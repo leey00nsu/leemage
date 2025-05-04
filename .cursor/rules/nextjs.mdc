@@ -1,6 +1,7 @@
 ---
 description: Next.js with TypeScript and Tailwind UI best practices
 globs: **/*.tsx, **/*.ts, src/**/*.ts, src/**/*.tsx
+alwaysApply: false
 ---
 
 # Next.js Best Practices
@@ -8,7 +9,7 @@ globs: **/*.tsx, **/*.ts, src/**/*.ts, src/**/*.tsx
 ## Project Structure
 - Use the App Router directory structure
 - Place components in `app` directory for route-specific components
-- Place shared components in `components` directory
+- Use FSD patterns.
 - Place utilities and helpers in `lib` directory
 - Use lowercase with dashes for directories (e.g., `components/auth-wizard`)
 
