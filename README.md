@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Leemage (가칭)
 
-## Getting Started
+## 프로젝트 개요
 
-First, run the development server:
+Oracle Cloud Infrastructure (OCI) Object Storage를 활용하여 Cloudinary와 유사한 이미지 관리 및 제공 서비스를 구축합니다. Next.js, Tailwind CSS, Shadcn/ui를 사용하여 사용자 친화적인 인터페이스를 제공하고, 프로젝트별로 이미지를 효율적으로 관리하는 것을 목표로 합니다.
+
+## 기술 스택
+
+- **프레임워크:** Next.js
+- **UI:** Tailwind CSS, Shadcn/ui
+- **스토리지:** Oracle Cloud Infrastructure (OCI) Object Storage
+- **인증:** (추후 결정)
+- **데이터베이스:** (추후 결정)
+
+## 주요 기능
+
+- **사용자 인증:** 안전한 로그인 기능 제공
+- **프로젝트 관리:** 프로젝트 단위로 이미지 그룹화 및 관리
+- **이미지 관리:**
+  - 이미지 업로드 (OCI Object Storage 연동)
+  - 이미지 삭제 (OCI Object Storage 연동)
+  - 이미지 정보 수정 (예: 태그, 설명 등)
+- **이미지 변환:** 업로드 시 리사이징, 포맷 변경 등 자동 변환 기능 제공
+- **이미지 제공:** OCI Object Storage에 저장된 이미지를 효율적으로 제공
+- **API 엔드포인트:** 외부 서비스 연동을 위한 API 제공
+
+## 설치 및 실행 (예상)
 
 ```bash
+# 저장소 복제
+git clone <repository_url>
+cd leemage
+
+# 의존성 설치
+npm install
+# 또는
+yarn install
+
+# 환경 변수 설정 (.env.local 파일 생성)
+# OCI 관련 자격 증명 및 설정 추가
+# 데이터베이스 및 인증 관련 설정 추가
+
+# 개발 서버 실행
 npm run dev
-# or
+# 또는
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 향후 계획
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- 팀/협업 기능 구현
+- 상세한 사용 통계 및 분석 기능
