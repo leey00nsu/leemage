@@ -2,6 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,14 +16,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { loginSchema, LoginFormValues } from "../model/schema"; // Zod 스키마 임포트
 import { useRouter } from "next/navigation"; // 페이지 이동을 위해 추가
+import { loginFn } from "../api"; // 분리된 API 함수 임포트
 
 export function LoginForm() {
   const router = useRouter(); // useRouter 훅 사용
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
-    setError, // 서버 측 에러 처리를 위해 다시 사용
+    formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -31,36 +32,24 @@ export function LoginForm() {
     },
   });
 
-  const onSubmit = async (data: LoginFormValues) => {
-    try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
+  // 로그인 Mutation
+  const mutation = useMutation({
+    mutationFn: loginFn, // API 호출 함수 연결
+    onSuccess: (data) => {
+      // 로그인 성공 시 대시보드 페이지로 이동
+      console.log("Login successful:", data);
+      // TODO: 실제 세션/토큰 처리 로직 필요 (예: 쿠키 설정)
+      router.push("/dashboard");
+    },
+    onError: (error) => {
+      // 에러 처리 (폼 에러 표시는 아래 isError에서 처리)
+      console.error("Login mutation error:", error);
+    },
+  });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        // 서버에서 받은 에러 메시지를 폼의 루트 에러로 설정
-        setError("root", {
-          type: "manual",
-          message: errorData.message || "로그인에 실패했습니다.",
-        });
-        return;
-      }
-
-      // 로그인 성공 시 대시보드 페이지로 이동 (예시)
-      console.log("Login successful, redirecting...");
-      router.push("/dashboard"); // 로그인 성공 후 이동할 경로
-    } catch (error) {
-      console.error("Login form submission error:", error);
-      setError("root", {
-        type: "manual",
-        message: "로그인 요청 중 오류가 발생했습니다.",
-      });
-    }
+  // 폼 제출 핸들러
+  const onSubmit = (data: LoginFormValues) => {
+    mutation.mutate(data);
   };
 
   return (
@@ -73,10 +62,12 @@ export function LoginForm() {
       </CardHeader>
       <form onSubmit={handleSubmit(onSubmit)}>
         <CardContent className="grid gap-4">
-          {/* 서버 측 루트 에러 메시지 표시 */}
-          {errors.root && (
+          {/* TanStack Query 에러 메시지 표시 */}
+          {mutation.isError && (
             <p className="text-sm text-red-500 bg-red-100 p-2 rounded">
-              {errors.root.message}
+              {mutation.error instanceof Error
+                ? mutation.error.message
+                : "로그인 처리 중 오류 발생"}
             </p>
           )}
           <div className="grid gap-2">
@@ -86,6 +77,7 @@ export function LoginForm() {
               type="email"
               placeholder="root@example.com"
               {...register("email")}
+              disabled={mutation.isPending} // 로딩 중 비활성화
             />
             {errors.email && (
               <p className="text-xs text-red-500 mt-1">
@@ -95,7 +87,12 @@ export function LoginForm() {
           </div>
           <div className="grid gap-2">
             <Label htmlFor="password">비밀번호</Label>
-            <Input id="password" type="password" {...register("password")} />
+            <Input
+              id="password"
+              type="password"
+              {...register("password")}
+              disabled={mutation.isPending} // 로딩 중 비활성화
+            />
             {errors.password && (
               <p className="text-xs text-red-500 mt-1">
                 {errors.password.message}
@@ -104,8 +101,12 @@ export function LoginForm() {
           </div>
         </CardContent>
         <CardFooter className="mt-6">
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? "로그인 중..." : "로그인"}
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={mutation.isPending}
+          >
+            {mutation.isPending ? "로그인 중..." : "로그인"}
           </Button>
         </CardFooter>
       </form>

@@ -1,0 +1,42 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ====================================
+//          Application Models
+// ====================================
+
+model Project {
+  id          String   @id @default(cuid()) // CUID를 기본 ID로 사용
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  images Image[] // 프로젝트에 속한 이미지 목록 (1:N 관계)
+}
+
+model Image {
+  id        String   @id @default(cuid())
+  name      String // 원본 파일명 또는 저장된 이름
+  url       String   @unique // OCI Object Storage URL
+  size      Int // 파일 크기 (bytes)
+  format    String // 이미지 포맷 (e.g., "jpeg", "png")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projectId String // 이 이미지가 속한 프로젝트의 ID (외래 키)
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade) // N:1 관계 정의, 프로젝트 삭제 시 이미지도 삭제
+}
