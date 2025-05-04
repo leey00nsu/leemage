@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import Link from "next/link";
-import { ProjectList } from "@/features/projects/list/ui/ProjectList";
+import { ProjectList } from "@/features/projects/list/ui/project-list";
 
 export default function DashboardPage() {
   return (

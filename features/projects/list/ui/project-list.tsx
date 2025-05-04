@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
-import { AlertCircle, Folder } from "lucide-react"; // 아이콘 추가
+import { AlertCircle, Folder } from "lucide-react";
 
 export function ProjectList() {
   const {
@@ -19,12 +19,11 @@ export function ProjectList() {
     isError,
     error,
   } = useQuery({
-    queryKey: ["projects"], // 쿼리 키
-    queryFn: getProjectsFn, // 데이터 가져오기 함수
+    queryKey: ["projects"],
+    queryFn: getProjectsFn,
   });
 
   if (isLoading) {
-    // 로딩 상태 표시 (스켈레톤 UI)
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {[...Array(3)].map((_, i) => (
@@ -41,7 +40,6 @@ export function ProjectList() {
   }
 
   if (isError) {
-    // 에러 상태 표시
     return (
       <div className="border rounded-lg p-8 text-center border-destructive bg-destructive/10">
         <AlertCircle className="h-8 w-8 text-destructive mx-auto mb-2" />
@@ -56,7 +54,6 @@ export function ProjectList() {
   }
 
   if (!projects || projects.length === 0) {
-    // 프로젝트가 없는 경우
     return (
       <div className="border rounded-lg p-8 text-center border-dashed">
         <p className="text-muted-foreground">
@@ -68,7 +65,6 @@ export function ProjectList() {
     );
   }
 
-  // 프로젝트 목록 렌더링
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {projects.map((project) => (
@@ -82,11 +78,8 @@ export function ProjectList() {
                 </CardTitle>
               </div>
               <CardDescription className="line-clamp-2">
-                {" "}
-                {/* 두 줄 이상은 ... 처리 */}
                 {project.description || "설명이 없습니다."}
               </CardDescription>
-              {/* TODO: 이미지 개수 등 추가 정보 표시 */}
             </CardHeader>
           </Card>
         </Link>

@@ -1,4 +1,4 @@
-"use client"; // 클라이언트 컴포넌트로 지정
+"use client";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,12 +14,12 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { loginSchema, LoginFormValues } from "../model/schema"; // Zod 스키마 임포트
-import { useRouter } from "next/navigation"; // 페이지 이동을 위해 추가
-import { loginFn } from "../api"; // 분리된 API 함수 임포트
+import { loginSchema, LoginFormValues } from "../model/schema";
+import { useRouter } from "next/navigation";
+import { loginFn } from "../api";
 
 export function LoginForm() {
-  const router = useRouter(); // useRouter 훅 사용
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -34,15 +34,12 @@ export function LoginForm() {
 
   // 로그인 Mutation
   const mutation = useMutation({
-    mutationFn: loginFn, // API 호출 함수 연결
+    mutationFn: loginFn,
     onSuccess: (data) => {
-      // 로그인 성공 시 대시보드 페이지로 이동
       console.log("Login successful:", data);
-      // TODO: 실제 세션/토큰 처리 로직 필요 (예: 쿠키 설정)
       router.push("/dashboard");
     },
     onError: (error) => {
-      // 에러 처리 (폼 에러 표시는 아래 isError에서 처리)
       console.error("Login mutation error:", error);
     },
   });
@@ -77,7 +74,7 @@ export function LoginForm() {
               type="email"
               placeholder="root@example.com"
               {...register("email")}
-              disabled={mutation.isPending} // 로딩 중 비활성화
+              disabled={mutation.isPending}
             />
             {errors.email && (
               <p className="text-xs text-red-500 mt-1">
@@ -91,7 +88,7 @@ export function LoginForm() {
               id="password"
               type="password"
               {...register("password")}
-              disabled={mutation.isPending} // 로딩 중 비활성화
+              disabled={mutation.isPending}
             />
             {errors.password && (
               <p className="text-xs text-red-500 mt-1">
@@ -100,6 +97,7 @@ export function LoginForm() {
             )}
           </div>
         </CardContent>
+        {/* CardFooter에 상단 마진(mt-6) 추가 */}
         <CardFooter className="mt-6">
           <Button
             type="submit"
