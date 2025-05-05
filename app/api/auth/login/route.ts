@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     if (email === rootEmail && password === rootPassword) {
       // 로그인 성공
       const session = await getIronSession<SessionData>(
-        cookies(),
+        await cookies(),
         sessionOptions
       );
       session.isLoggedIn = true;
