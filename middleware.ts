@@ -6,7 +6,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // 보호할 경로 목록
-  const protectedRoutes = ["/dashboard", "/projects"];
+  const protectedRoutes = ["/projects", "/account"];
   const isProtectedRoute = protectedRoutes.some((route) =>
     pathname.startsWith(route)
   );
@@ -30,8 +30,8 @@ export async function middleware(request: NextRequest) {
 
   // 2. 로그인 된 사용자가 로그인 페이지 접근 시
   if (isLoggedIn && pathname === loginPath) {
-    // 대시보드로 리디렉션
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    // 프로젝트로 리디렉션
+    return NextResponse.redirect(new URL("/projects", request.url));
   }
 
   // 그 외의 경우 요청 계속 진행

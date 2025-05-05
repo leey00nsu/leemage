@@ -40,7 +40,7 @@ export function CreateProjectForm() {
     onSuccess: (data) => {
       console.log("Project created successfully:", data);
       queryClient.invalidateQueries({ queryKey: ["projects"] });
-      router.push("/dashboard");
+      router.push("/projects");
     },
     onError: (error) => {
       console.error("Project creation mutation error:", error);

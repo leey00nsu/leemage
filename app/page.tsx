@@ -23,7 +23,7 @@ export default function HomePage() {
           경험하세요. 프로젝트별로 이미지를 손쉽게 관리하고 필요한 형태로
           변환하여 사용하세요.
         </p>
-        <Link href="/login">
+        <Link href="/projects">
           <Button size="lg">
             지금 시작하기 <ArrowRight className="ml-2 h-5 w-5" />
           </Button>

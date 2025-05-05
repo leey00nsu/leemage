@@ -3,7 +3,7 @@ import { PlusCircle } from "lucide-react";
 import Link from "next/link";
 import { ProjectList } from "@/features/projects/list/ui/project-list";
 
-export default function DashboardPage() {
+export default function ProjectsPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
