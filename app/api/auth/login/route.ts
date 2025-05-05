@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { loginSchema } from "@/features/auth/login/model/schema";
+import { getIronSession } from "iron-session";
+import { cookies } from "next/headers";
+import { SessionData, sessionOptions } from "@/lib/session";
 
 export async function POST(req: NextRequest) {
   try {
@@ -33,9 +36,18 @@ export async function POST(req: NextRequest) {
     // 3. 입력된 정보와 환경 변수 정보 비교
     if (email === rootEmail && password === rootPassword) {
       // 로그인 성공
-      // TODO: 세션 관리 구현 (예: 쿠키 설정 또는 JWT 발급)
-      // 예시: 간단한 성공 메시지 반환
-      return NextResponse.json({ message: "로그인 성공" }, { status: 200 });
+      const session = await getIronSession<SessionData>(
+        cookies(),
+        sessionOptions
+      );
+      session.isLoggedIn = true;
+      session.username = email;
+      await session.save();
+
+      return NextResponse.json(
+        { message: "로그인 성공", user: { username: email } },
+        { status: 200 }
+      );
     } else {
       // 로그인 실패
       return NextResponse.json(
