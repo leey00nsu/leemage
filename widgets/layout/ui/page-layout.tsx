@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 
 interface PageLayoutProps {
   children: React.ReactNode;
@@ -16,9 +17,23 @@ export function PageLayout({ children }: PageLayoutProps) {
         style={{ height: `var(--header-height, ${HEADER_HEIGHT})` }} // 기본값 설정
       >
         <div className="container mx-auto flex items-center justify-between">
-          <h1 className="text-xl font-semibold">Leemage</h1>
-          {/* TODO: Add navigation links / User menu */}
-          <div>Nav placeholder</div>
+          <Link href="/" className="text-xl font-semibold">
+            Leemage
+          </Link>
+          <nav className="flex items-center space-x-4">
+            <Link
+              href="/projects"
+              className="text-sm font-medium text-muted-foreground hover:text-primary"
+            >
+              프로젝트
+            </Link>
+            <Link
+              href="/account"
+              className="text-sm font-medium text-muted-foreground hover:text-primary"
+            >
+              내 정보
+            </Link>
+          </nav>
         </div>
       </header>
 

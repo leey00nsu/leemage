@@ -1,7 +1,7 @@
 "use client";
 
 import { Image as ImageType } from "@/lib/generated/prisma";
-import { Card } from "@/components/ui/card";
+import { Card } from "@/shared/ui/card";
 import { ImageIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";

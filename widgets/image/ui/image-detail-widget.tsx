@@ -2,12 +2,12 @@
 
 import { Image as ImageType } from "@/lib/generated/prisma";
 import Image from "next/image";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
+import { Badge } from "@/shared/ui/badge";
 import { Calendar, FileBox, Ruler, Trash2 } from "lucide-react";
 import { format } from "date-fns"; // 날짜 포맷팅 라이브러리
 import { ko } from "date-fns/locale"; // 한국어 로케일
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,7 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+} from "@/shared/ui/alert-dialog";
 import { useDeleteImageMutation } from "@/features/images/delete/model/useDeleteImageMutation";
 
 interface ImageDetailsWidgetProps {

@@ -2,13 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { getProjectsFn } from "../api";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardHeader, CardTitle, CardDescription } from "@/shared/ui/card";
+import { Skeleton } from "@/shared/ui/skeleton";
 import Link from "next/link";
 import { AlertCircle, Folder } from "lucide-react";
 

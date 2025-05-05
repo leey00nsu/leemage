@@ -2,9 +2,9 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { getProjectDetailsFn } from "@/features/projects/details/api";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from "@/shared/ui/skeleton";
 import { AlertCircle, Upload } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/ui/button";
 import { ImageList } from "@/features/images/list/ui/image-list";
 import { ImageUploadDialog } from "@/features/images/upload/ui/image-upload-dialog";
 
