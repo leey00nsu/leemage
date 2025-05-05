@@ -38,3 +38,16 @@ model Image {
   projectId String // 이 이미지가 속한 프로젝트의 ID (외래 키)
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade) // N:1 관계 정의, 프로젝트 삭제 시 이미지도 삭제
 }
+
+model ApiKey {
+  id             String    @id @default(cuid())
+  keyHash        String    @unique // 해시된 API 키 값
+  prefix         String    @unique // 키 식별용 접두사 (예: lmk_)
+  userIdentifier String // 키 소유자를 식별하는 값 (예: 사용자 ID, 이메일 등 - 세션에서 얻을 수 있는 고유 값)
+  name           String? // 사용자가 지정하는 키 이름 (선택 사항)
+  createdAt      DateTime  @default(now())
+  lastUsedAt     DateTime? // 마지막 사용 시각 (선택 사항)
+  expiresAt      DateTime? // 만료 시각 (선택 사항)
+
+  @@index([userIdentifier]) // userIdentifier로 검색 성능 향상
+}

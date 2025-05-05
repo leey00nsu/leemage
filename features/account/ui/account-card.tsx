@@ -15,7 +15,7 @@ interface AccountCardProps {
 
 export function AccountCard({ username }: AccountCardProps) {
   return (
-    <Card className="w-full max-w-sm">
+    <Card className="w-full max-w-lg">
       <CardHeader>
         <CardTitle className="text-2xl">내 정보</CardTitle>
         <CardDescription>현재 로그인된 사용자 정보입니다.</CardDescription>
