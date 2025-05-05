@@ -1,20 +1,32 @@
-import { Image } from "@/lib/generated/prisma";
+import { Image as PrismaImage } from "@/lib/generated/prisma";
 
-interface UploadImageParams {
+// ImageVariantData 타입 정의 (공유 타입으로 분리 권장)
+type ImageVariantData = {
+  url: string;
+  width: number;
+  height: number;
+  size: number;
+  format: string;
+};
+
+// API 응답 타입 (variants 포함)
+export type ApiImageResponse = Omit<PrismaImage, "variants"> & {
+  variants: ImageVariantData[];
+};
+
+interface UploadParams {
   projectId: string;
-  file: File;
+  formData: FormData;
 }
 
 export const uploadImageFn = async ({
   projectId,
-  file,
-}: UploadImageParams): Promise<Image> => {
-  const formData = new FormData();
-  formData.append("file", file);
-
+  formData,
+}: UploadParams): Promise<ApiImageResponse> => {
+  // 이제 projectId 사용 가능
   const response = await fetch(`/api/projects/${projectId}/images`, {
     method: "POST",
-    body: formData, // FormData를 직접 body에 전달
+    body: formData,
   });
 
   if (!response.ok) {
@@ -22,5 +34,6 @@ export const uploadImageFn = async ({
     throw new Error(errorData.message || "이미지 업로드에 실패했습니다.");
   }
 
-  return response.json();
+  const data = await response.json();
+  return data as ApiImageResponse; // 타입 단언
 };

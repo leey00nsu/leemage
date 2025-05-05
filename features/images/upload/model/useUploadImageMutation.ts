@@ -1,16 +1,22 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { uploadImageFn } from "../api";
+import { uploadImageFn, ApiImageResponse } from "../api";
+
+// mutate 함수에 전달될 변수 타입 정의 (FormData 직접 사용)
+type UploadVariables = {
+  formData: FormData;
+};
 
 export const useUploadImageMutation = (projectId: string) => {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: uploadImageFn,
+  return useMutation<ApiImageResponse, Error, UploadVariables>({
+    // mutate 변수 타입 명시
+    mutationFn: (variables) =>
+      uploadImageFn({ projectId, formData: variables.formData }), // projectId와 formData 전달
     onSuccess: (data) => {
-      toast.success(`이미지 "${data.name}" 업로드 성공!`);
-      // 이미지 목록을 다시 불러오기 위해 프로젝트 쿼리를 무효화합니다.
-      // 직접 쿼리 키를 지정합니다. ProjectDetailsWidget 에서 사용하는 키와 일치시킵니다.
+      // data 객체 (ApiImageResponse 타입) 사용 가능
+      toast.success(`이미지 "${data.name}" 업로드 성공!`); // 원본 이름 사용
       queryClient.invalidateQueries({ queryKey: ["project", projectId] });
     },
     onError: (error) => {

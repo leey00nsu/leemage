@@ -1,18 +1,28 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { deleteObject } from "@/lib/oci"; // OCI 객체 삭제 함수 (oci.ts에 구현 필요)
+import { deleteObject } from "@/lib/oci";
+
+// ImageVariantData 타입 정의 (공유 타입으로 분리 권장)
+type ImageVariantData = {
+  url: string;
+  width?: number;
+  height?: number;
+  size?: number;
+  format?: string;
+  label?: string;
+};
 
 export async function DELETE(
-  req: Request, // req는 현재 사용하지 않지만, 인증/인가 로직 추가 시 필요
+  req: Request,
   context: { params: { projectId: string; imageId: string } }
 ) {
   try {
-    const { projectId, imageId } = context.params;
+    const { imageId } = context.params;
 
-    // 1. 데이터베이스에서 이미지 정보 조회 (OCI 객체 이름을 알아야 함)
+    // 1. 데이터베이스에서 이미지 정보 조회 (variants 포함)
     const image = await prisma.image.findUnique({
       where: { id: imageId },
-      select: { name: true, url: true }, // OCI 삭제에 필요한 정보만 선택
+      select: { id: true, name: true, variants: true, projectId: true }, // projectId도 가져오기
     });
 
     if (!image) {
@@ -22,42 +32,67 @@ export async function DELETE(
       );
     }
 
-    // OCI 객체 이름 구성 (업로드 시 사용한 형식과 동일하게)
-    // 가정: 업로드 시 `${projectId}/${cuid()}.${fileExtension}` 형식을 사용했고,
-    // URL 구조가 `.../o/projectId/imageId.ext` 형태라고 가정하고 추출
-    const urlParts = image.url.split("/o/");
-    if (urlParts.length < 2) {
-      // URL 형식이 예상과 다를 경우 에러 처리 또는 다른 방식 시도
-      console.error(`Invalid OCI URL format: ${image.url}`);
-      throw new Error("데이터베이스에 저장된 OCI URL 형식이 잘못되었습니다.");
-    }
-    const objectPath = urlParts[1]; // 예: projectId/imageId.ext
-    // objectPath가 projectId로 시작하는지 추가 검증 가능 (선택적)
-    if (!objectPath.startsWith(`${projectId}/`)) {
+    // 2. 모든 variants에서 OCI 객체 이름 추출 및 삭제 준비
+    const variants = image.variants as ImageVariantData[]; // 타입 단언 (실제 타입 검증 추가 권장)
+    const objectDeletionPromises: Promise<void>[] = [];
+    const deletedObjectNames: string[] = []; // 로깅용
+
+    variants.forEach((variant) => {
+      if (typeof variant?.url === "string") {
+        try {
+          const urlParts = variant.url.split("/o/");
+          if (urlParts.length < 2) {
+            console.warn(`Invalid OCI URL format in variant: ${variant.url}`);
+            return; // 다음 variant로 넘어감
+          }
+          const objectName = urlParts[1];
+          deletedObjectNames.push(objectName);
+          objectDeletionPromises.push(deleteObject(objectName));
+        } catch (e) {
+          console.error(
+            `Error preparing deletion for variant URL ${variant.url}:`,
+            e
+          );
+        }
+      } else {
+        console.warn(`Variant object is missing or has invalid URL:`, variant);
+      }
+    });
+
+    // 3. 모든 OCI 객체 삭제 시도
+    if (objectDeletionPromises.length > 0) {
+      const deletionResults = await Promise.allSettled(objectDeletionPromises);
+      // OCI 삭제 결과 로깅
+      deletionResults.forEach((result, index) => {
+        if (result.status === "rejected") {
+          console.error(
+            `Failed to delete OCI object ${deletedObjectNames[index]}:`,
+            result.reason
+          );
+        }
+      });
+    } else {
       console.warn(
-        `Warning: OCI object path '${objectPath}' does not seem to start with the expected projectId '${projectId}'. Deleting anyway.`
+        `No valid OCI objects found to delete for image ${imageId}.`
       );
-      // 필요시 여기서 에러 처리 가능
     }
 
-    // 2. OCI Object Storage에서 이미지 파일 삭제
-    await deleteObject(objectPath); // 수정: objectPath 전달
-
-    // 3. 데이터베이스에서 이미지 레코드 삭제
+    // 4. 데이터베이스에서 이미지 레코드 삭제
     await prisma.image.delete({
       where: { id: imageId },
     });
 
     console.log(
-      `Image deleted: DB ID = ${imageId}, OCI Object = ${objectPath}` // 수정: objectPath 로깅
+      `Image deleted: DB ID = ${imageId}, OCI Objects = [${deletedObjectNames.join(
+        ", "
+      )}]`
     );
     return NextResponse.json(
-      { message: "이미지가 성공적으로 삭제되었습니다." },
+      { message: "이미지 및 관련 버전 파일이 삭제되었습니다." },
       { status: 200 }
     );
   } catch (error) {
     console.error("Error deleting image:", error);
-    // OCI 삭제 오류 등 특정 오류 처리 추가 가능
     return NextResponse.json(
       { message: "이미지 삭제 중 오류가 발생했습니다." },
       { status: 500 }

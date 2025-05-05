@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { deleteObject } from "@/lib/oci"; // OCI 삭제 함수 임포트
+import { ImageVariantData } from "./images/route";
 
-// GET 핸들러: 특정 프로젝트 정보 및 포함된 이미지 목록 조회
+// GET 핸들러: 특정 프로젝트 정보 및 포함된 이미지 목록(variants 포함) 조회
 export async function GET(
   request: NextRequest,
   { params }: { params: { projectId: string } }
@@ -25,6 +26,15 @@ export async function GET(
       include: {
         images: {
           // 프로젝트에 속한 이미지 정보 포함
+          select: {
+            // 필요한 필드만 선택
+            id: true,
+            name: true,
+            variants: true, // variants 필드 명시적 포함
+            createdAt: true,
+            updatedAt: true,
+            projectId: true,
+          },
           orderBy: {
             createdAt: "desc", // 최신 이미지 순으로 정렬
           },
@@ -39,7 +49,19 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(project);
+    // 이미지 variants 타입 변환 (Prisma.JsonValue -> 원하는 타입 배열)
+    // 클라이언트 측 타입과 일치시키기 위함 (선택적이지만 권장)
+    const processedProject = {
+      ...project,
+      images: project.images.map((img) => ({
+        ...img,
+        // Prisma.JsonValue를 ImageVariantData[] 타입으로 가정하고 변환 시도
+        // 실제 타입 검증/변환 로직 추가 가능
+        variants: img.variants as ImageVariantData[], // variants를 ImageVariantData[] 타입으로 변환
+      })),
+    };
+
+    return NextResponse.json(processedProject);
   } catch (error) {
     console.error(`Fetch project ${projectId} API error:`, error);
     return NextResponse.json(
@@ -49,12 +71,12 @@ export async function GET(
   }
 }
 
-// DELETE 핸들러: 특정 프로젝트 및 관련 OCI 이미지 삭제
+// DELETE 핸들러: 특정 프로젝트 및 관련 OCI 이미지(모든 variants) 삭제
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { projectId: string } }
 ) {
-  const { projectId } = params; // GET과 달리 await 필요 없음
+  const { projectId } = params;
 
   if (!projectId) {
     return NextResponse.json(
@@ -64,12 +86,12 @@ export async function DELETE(
   }
 
   try {
-    // 1. 프로젝트와 관련 이미지 정보 조회 (url 포함)
+    // 1. 프로젝트와 관련 이미지 정보 조회 (variants 포함)
     const projectToDelete = await prisma.project.findUnique({
       where: { id: projectId },
       include: {
         images: {
-          select: { url: true }, // OCI 객체 식별을 위해 URL만 선택
+          select: { id: true, name: true, variants: true }, // variants 포함
         },
       },
     });
@@ -81,31 +103,33 @@ export async function DELETE(
       );
     }
 
-    // 2. OCI 객체 이름 추출 및 삭제
-    const objectDeletionPromises = projectToDelete.images.map((image) => {
-      try {
-        const urlParts = image.url.split("/o/");
-        if (urlParts.length < 2) {
+    // 2. 모든 이미지의 모든 variants에서 OCI 객체 이름 추출 및 삭제 준비
+    const objectDeletionPromises: Promise<void>[] = [];
+    projectToDelete.images.forEach((image) => {
+      const variants = image.variants as ImageVariantData[]; // ImageVariantData[] 타입으로 변경
+      variants.forEach((variant) => {
+        if (typeof variant?.url === "string") {
+          try {
+            const urlParts = variant.url.split("/o/");
+            if (urlParts.length < 2) {
+              console.warn(`Invalid OCI URL format in variant: ${variant.url}`);
+              return; // 다음 variant로 넘어감
+            }
+            const objectName = urlParts[1];
+            objectDeletionPromises.push(deleteObject(objectName));
+          } catch (e) {
+            console.error(
+              `Error preparing deletion for variant URL ${variant.url}:`,
+              e
+            );
+          }
+        } else {
           console.warn(
-            `Invalid OCI URL format, cannot extract object name: ${image.url}`
+            `Variant object is missing or has invalid URL:`,
+            variant
           );
-          return Promise.resolve({
-            status: "rejected",
-            reason: `Invalid URL format: ${image.url}`,
-          });
         }
-        const objectName = urlParts[1]; // URL의 마지막 부분이 객체 이름
-        return deleteObject(objectName);
-      } catch (e) {
-        console.error(
-          `Error preparing object deletion for URL ${image.url}:`,
-          e
-        );
-        return Promise.resolve({
-          status: "rejected",
-          reason: `Error processing URL ${image.url}`,
-        }); // 개별 에러 처리
-      }
+      });
     });
 
     // 3. 모든 OCI 객체 삭제 시도 (Promise.allSettled 사용)
@@ -113,9 +137,10 @@ export async function DELETE(
 
     // 4. OCI 삭제 결과 로깅
     deletionResults.forEach((result, index) => {
+      // index 사용 대신 URL 직접 로깅 고려
       if (result.status === "rejected") {
         console.error(
-          `Failed to delete OCI object derived from URL ${projectToDelete.images[index].url}:`,
+          `Failed to delete OCI object (index ${index}):`, // 어떤 객체인지 식별 어려움 개선 필요
           result.reason
         );
       }
@@ -130,7 +155,7 @@ export async function DELETE(
 
     // 6. 최종 성공 응답
     return NextResponse.json(
-      { message: "프로젝트 및 관련 이미지가 삭제되었습니다." },
+      { message: "프로젝트 및 관련 이미지(모든 버전)가 삭제되었습니다." },
       { status: 200 }
     );
   } catch (error) {

@@ -6,7 +6,10 @@ import { DeleteProjectButton } from "@/features/projects/delete/ui/delete-projec
 import { Loader2, Upload } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert";
 import { useQuery } from "@tanstack/react-query";
-import { getProjectDetailsFn } from "@/features/projects/details/api";
+import {
+  getProjectDetailsFn,
+  ProjectDetailsApiResponse,
+} from "@/features/projects/details/api";
 import { Button } from "@/shared/ui/button";
 
 interface ProjectDetailsWidgetProps {
@@ -18,10 +21,10 @@ export function ProjectDetailsWidget({ projectId }: ProjectDetailsWidgetProps) {
     data: project,
     isLoading,
     error,
-  } = useQuery({
-    queryKey: ["project", projectId], // queryKey에 projectId 포함
+  } = useQuery<ProjectDetailsApiResponse, Error>({
+    queryKey: ["project", projectId],
     queryFn: () => getProjectDetailsFn(projectId),
-    enabled: !!projectId, // projectId가 있을 때만 쿼리 실행
+    enabled: !!projectId,
   });
 
   if (isLoading) {

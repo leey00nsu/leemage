@@ -30,10 +30,8 @@ model Project {
 
 model Image {
   id          String   @id @default(cuid())
-  name        String // 원본 파일명 또는 저장된 이름
-  url         String   @unique // OCI Object Storage URL
-  size        Int      // 파일 크기 (bytes)
-  format      String   // 이미지 포맷 (e.g., "jpeg", "png")
+  name        String // 원본 파일명
+  variants    Json     @default("[]") // 처리된 이미지 버전 정보 배열 추가
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

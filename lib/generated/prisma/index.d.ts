@@ -2066,26 +2066,13 @@ export namespace Prisma {
 
   export type AggregateImage = {
     _count: ImageCountAggregateOutputType | null
-    _avg: ImageAvgAggregateOutputType | null
-    _sum: ImageSumAggregateOutputType | null
     _min: ImageMinAggregateOutputType | null
     _max: ImageMaxAggregateOutputType | null
-  }
-
-  export type ImageAvgAggregateOutputType = {
-    size: number | null
-  }
-
-  export type ImageSumAggregateOutputType = {
-    size: number | null
   }
 
   export type ImageMinAggregateOutputType = {
     id: string | null
     name: string | null
-    url: string | null
-    size: number | null
-    format: string | null
     createdAt: Date | null
     updatedAt: Date | null
     projectId: string | null
@@ -2094,9 +2081,6 @@ export namespace Prisma {
   export type ImageMaxAggregateOutputType = {
     id: string | null
     name: string | null
-    url: string | null
-    size: number | null
-    format: string | null
     createdAt: Date | null
     updatedAt: Date | null
     projectId: string | null
@@ -2105,9 +2089,7 @@ export namespace Prisma {
   export type ImageCountAggregateOutputType = {
     id: number
     name: number
-    url: number
-    size: number
-    format: number
+    variants: number
     createdAt: number
     updatedAt: number
     projectId: number
@@ -2115,20 +2097,9 @@ export namespace Prisma {
   }
 
 
-  export type ImageAvgAggregateInputType = {
-    size?: true
-  }
-
-  export type ImageSumAggregateInputType = {
-    size?: true
-  }
-
   export type ImageMinAggregateInputType = {
     id?: true
     name?: true
-    url?: true
-    size?: true
-    format?: true
     createdAt?: true
     updatedAt?: true
     projectId?: true
@@ -2137,9 +2108,6 @@ export namespace Prisma {
   export type ImageMaxAggregateInputType = {
     id?: true
     name?: true
-    url?: true
-    size?: true
-    format?: true
     createdAt?: true
     updatedAt?: true
     projectId?: true
@@ -2148,9 +2116,7 @@ export namespace Prisma {
   export type ImageCountAggregateInputType = {
     id?: true
     name?: true
-    url?: true
-    size?: true
-    format?: true
+    variants?: true
     createdAt?: true
     updatedAt?: true
     projectId?: true
@@ -2195,18 +2161,6 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
-     * Select which fields to average
-    **/
-    _avg?: ImageAvgAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to sum
-    **/
-    _sum?: ImageSumAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
      * Select which fields to find the minimum value
     **/
     _min?: ImageMinAggregateInputType
@@ -2237,8 +2191,6 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: ImageCountAggregateInputType | true
-    _avg?: ImageAvgAggregateInputType
-    _sum?: ImageSumAggregateInputType
     _min?: ImageMinAggregateInputType
     _max?: ImageMaxAggregateInputType
   }
@@ -2246,15 +2198,11 @@ export namespace Prisma {
   export type ImageGroupByOutputType = {
     id: string
     name: string
-    url: string
-    size: number
-    format: string
+    variants: JsonValue
     createdAt: Date
     updatedAt: Date
     projectId: string
     _count: ImageCountAggregateOutputType | null
-    _avg: ImageAvgAggregateOutputType | null
-    _sum: ImageSumAggregateOutputType | null
     _min: ImageMinAggregateOutputType | null
     _max: ImageMaxAggregateOutputType | null
   }
@@ -2276,9 +2224,7 @@ export namespace Prisma {
   export type ImageSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     name?: boolean
-    url?: boolean
-    size?: boolean
-    format?: boolean
+    variants?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     projectId?: boolean
@@ -2288,9 +2234,7 @@ export namespace Prisma {
   export type ImageSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     name?: boolean
-    url?: boolean
-    size?: boolean
-    format?: boolean
+    variants?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     projectId?: boolean
@@ -2300,9 +2244,7 @@ export namespace Prisma {
   export type ImageSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     name?: boolean
-    url?: boolean
-    size?: boolean
-    format?: boolean
+    variants?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     projectId?: boolean
@@ -2312,15 +2254,13 @@ export namespace Prisma {
   export type ImageSelectScalar = {
     id?: boolean
     name?: boolean
-    url?: boolean
-    size?: boolean
-    format?: boolean
+    variants?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     projectId?: boolean
   }
 
-  export type ImageOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "url" | "size" | "format" | "createdAt" | "updatedAt" | "projectId", ExtArgs["result"]["image"]>
+  export type ImageOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "variants" | "createdAt" | "updatedAt" | "projectId", ExtArgs["result"]["image"]>
   export type ImageInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     project?: boolean | ProjectDefaultArgs<ExtArgs>
   }
@@ -2339,9 +2279,7 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: string
       name: string
-      url: string
-      size: number
-      format: string
+      variants: Prisma.JsonValue
       createdAt: Date
       updatedAt: Date
       projectId: string
@@ -2771,9 +2709,7 @@ export namespace Prisma {
   interface ImageFieldRefs {
     readonly id: FieldRef<"Image", 'String'>
     readonly name: FieldRef<"Image", 'String'>
-    readonly url: FieldRef<"Image", 'String'>
-    readonly size: FieldRef<"Image", 'Int'>
-    readonly format: FieldRef<"Image", 'String'>
+    readonly variants: FieldRef<"Image", 'Json'>
     readonly createdAt: FieldRef<"Image", 'DateTime'>
     readonly updatedAt: FieldRef<"Image", 'DateTime'>
     readonly projectId: FieldRef<"Image", 'String'>
@@ -3219,9 +3155,7 @@ export namespace Prisma {
   export const ImageScalarFieldEnum: {
     id: 'id',
     name: 'name',
-    url: 'url',
-    size: 'size',
-    format: 'format',
+    variants: 'variants',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
     projectId: 'projectId'
@@ -3238,6 +3172,13 @@ export namespace Prisma {
   export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+  export const JsonNullValueInput: {
+    JsonNull: typeof JsonNull
+  };
+
+  export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
   export const QueryMode: {
     default: 'default',
     insensitive: 'insensitive'
@@ -3252,6 +3193,15 @@ export namespace Prisma {
   };
 
   export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+  export const JsonNullValueFilter: {
+    DbNull: typeof DbNull,
+    JsonNull: typeof JsonNull,
+    AnyNull: typeof AnyNull
+  };
+
+  export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 
 
   /**
@@ -3288,6 +3238,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'Json'
+   */
+  export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+  /**
+   * Reference to a field of type 'QueryMode'
+   */
+  export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
+
+  /**
    * Reference to a field of type 'Int'
    */
   export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
@@ -3298,20 +3262,6 @@ export namespace Prisma {
    * Reference to a field of type 'Int[]'
    */
   export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
-    
-
-
-  /**
-   * Reference to a field of type 'Float'
-   */
-  export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
-    
-
-
-  /**
-   * Reference to a field of type 'Float[]'
-   */
-  export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
     
   /**
    * Deep Input Types
@@ -3379,9 +3329,7 @@ export namespace Prisma {
     NOT?: ImageWhereInput | ImageWhereInput[]
     id?: StringFilter<"Image"> | string
     name?: StringFilter<"Image"> | string
-    url?: StringFilter<"Image"> | string
-    size?: IntFilter<"Image"> | number
-    format?: StringFilter<"Image"> | string
+    variants?: JsonFilter<"Image">
     createdAt?: DateTimeFilter<"Image"> | Date | string
     updatedAt?: DateTimeFilter<"Image"> | Date | string
     projectId?: StringFilter<"Image"> | string
@@ -3391,9 +3339,7 @@ export namespace Prisma {
   export type ImageOrderByWithRelationInput = {
     id?: SortOrder
     name?: SortOrder
-    url?: SortOrder
-    size?: SortOrder
-    format?: SortOrder
+    variants?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     projectId?: SortOrder
@@ -3402,33 +3348,27 @@ export namespace Prisma {
 
   export type ImageWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    url?: string
     AND?: ImageWhereInput | ImageWhereInput[]
     OR?: ImageWhereInput[]
     NOT?: ImageWhereInput | ImageWhereInput[]
     name?: StringFilter<"Image"> | string
-    size?: IntFilter<"Image"> | number
-    format?: StringFilter<"Image"> | string
+    variants?: JsonFilter<"Image">
     createdAt?: DateTimeFilter<"Image"> | Date | string
     updatedAt?: DateTimeFilter<"Image"> | Date | string
     projectId?: StringFilter<"Image"> | string
     project?: XOR<ProjectScalarRelationFilter, ProjectWhereInput>
-  }, "id" | "url">
+  }, "id">
 
   export type ImageOrderByWithAggregationInput = {
     id?: SortOrder
     name?: SortOrder
-    url?: SortOrder
-    size?: SortOrder
-    format?: SortOrder
+    variants?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     projectId?: SortOrder
     _count?: ImageCountOrderByAggregateInput
-    _avg?: ImageAvgOrderByAggregateInput
     _max?: ImageMaxOrderByAggregateInput
     _min?: ImageMinOrderByAggregateInput
-    _sum?: ImageSumOrderByAggregateInput
   }
 
   export type ImageScalarWhereWithAggregatesInput = {
@@ -3437,9 +3377,7 @@ export namespace Prisma {
     NOT?: ImageScalarWhereWithAggregatesInput | ImageScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Image"> | string
     name?: StringWithAggregatesFilter<"Image"> | string
-    url?: StringWithAggregatesFilter<"Image"> | string
-    size?: IntWithAggregatesFilter<"Image"> | number
-    format?: StringWithAggregatesFilter<"Image"> | string
+    variants?: JsonWithAggregatesFilter<"Image">
     createdAt?: DateTimeWithAggregatesFilter<"Image"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Image"> | Date | string
     projectId?: StringWithAggregatesFilter<"Image"> | string
@@ -3508,9 +3446,7 @@ export namespace Prisma {
   export type ImageCreateInput = {
     id?: string
     name: string
-    url: string
-    size: number
-    format: string
+    variants?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     project: ProjectCreateNestedOneWithoutImagesInput
@@ -3519,9 +3455,7 @@ export namespace Prisma {
   export type ImageUncheckedCreateInput = {
     id?: string
     name: string
-    url: string
-    size: number
-    format: string
+    variants?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     projectId: string
@@ -3530,9 +3464,7 @@ export namespace Prisma {
   export type ImageUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
-    url?: StringFieldUpdateOperationsInput | string
-    size?: IntFieldUpdateOperationsInput | number
-    format?: StringFieldUpdateOperationsInput | string
+    variants?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     project?: ProjectUpdateOneRequiredWithoutImagesNestedInput
@@ -3541,9 +3473,7 @@ export namespace Prisma {
   export type ImageUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
-    url?: StringFieldUpdateOperationsInput | string
-    size?: IntFieldUpdateOperationsInput | number
-    format?: StringFieldUpdateOperationsInput | string
+    variants?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     projectId?: StringFieldUpdateOperationsInput | string
@@ -3552,9 +3482,7 @@ export namespace Prisma {
   export type ImageCreateManyInput = {
     id?: string
     name: string
-    url: string
-    size: number
-    format: string
+    variants?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     projectId: string
@@ -3563,9 +3491,7 @@ export namespace Prisma {
   export type ImageUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
-    url?: StringFieldUpdateOperationsInput | string
-    size?: IntFieldUpdateOperationsInput | number
-    format?: StringFieldUpdateOperationsInput | string
+    variants?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -3573,9 +3499,7 @@ export namespace Prisma {
   export type ImageUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
-    url?: StringFieldUpdateOperationsInput | string
-    size?: IntFieldUpdateOperationsInput | number
-    format?: StringFieldUpdateOperationsInput | string
+    variants?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     projectId?: StringFieldUpdateOperationsInput | string
@@ -3710,16 +3634,28 @@ export namespace Prisma {
     _min?: NestedDateTimeFilter<$PrismaModel>
     _max?: NestedDateTimeFilter<$PrismaModel>
   }
+  export type JsonFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonFilterBase<$PrismaModel>>, 'path'>>
 
-  export type IntFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntFilter<$PrismaModel> | number
+  export type JsonFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
 
   export type ProjectScalarRelationFilter = {
@@ -3730,24 +3666,15 @@ export namespace Prisma {
   export type ImageCountOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
-    url?: SortOrder
-    size?: SortOrder
-    format?: SortOrder
+    variants?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     projectId?: SortOrder
   }
 
-  export type ImageAvgOrderByAggregateInput = {
-    size?: SortOrder
-  }
-
   export type ImageMaxOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
-    url?: SortOrder
-    size?: SortOrder
-    format?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     projectId?: SortOrder
@@ -3756,32 +3683,35 @@ export namespace Prisma {
   export type ImageMinOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
-    url?: SortOrder
-    size?: SortOrder
-    format?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     projectId?: SortOrder
   }
+  export type JsonWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
 
-  export type ImageSumOrderByAggregateInput = {
-    size?: SortOrder
-  }
-
-  export type IntWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+  export type JsonWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
     _count?: NestedIntFilter<$PrismaModel>
-    _avg?: NestedFloatFilter<$PrismaModel>
-    _sum?: NestedIntFilter<$PrismaModel>
-    _min?: NestedIntFilter<$PrismaModel>
-    _max?: NestedIntFilter<$PrismaModel>
+    _min?: NestedJsonFilter<$PrismaModel>
+    _max?: NestedJsonFilter<$PrismaModel>
   }
 
   export type ImageCreateNestedManyWithoutProjectInput = {
@@ -3842,14 +3772,6 @@ export namespace Prisma {
     create?: XOR<ProjectCreateWithoutImagesInput, ProjectUncheckedCreateWithoutImagesInput>
     connectOrCreate?: ProjectCreateOrConnectWithoutImagesInput
     connect?: ProjectWhereUniqueInput
-  }
-
-  export type IntFieldUpdateOperationsInput = {
-    set?: number
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
   }
 
   export type ProjectUpdateOneRequiredWithoutImagesNestedInput = {
@@ -3968,40 +3890,34 @@ export namespace Prisma {
     _min?: NestedDateTimeFilter<$PrismaModel>
     _max?: NestedDateTimeFilter<$PrismaModel>
   }
+  export type NestedJsonFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<NestedJsonFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>,
+        Required<NestedJsonFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>
 
-  export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
-    _count?: NestedIntFilter<$PrismaModel>
-    _avg?: NestedFloatFilter<$PrismaModel>
-    _sum?: NestedIntFilter<$PrismaModel>
-    _min?: NestedIntFilter<$PrismaModel>
-    _max?: NestedIntFilter<$PrismaModel>
-  }
-
-  export type NestedFloatFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel>
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatFilter<$PrismaModel> | number
+  export type NestedJsonFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
 
   export type ImageCreateWithoutProjectInput = {
     id?: string
     name: string
-    url: string
-    size: number
-    format: string
+    variants?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -4009,9 +3925,7 @@ export namespace Prisma {
   export type ImageUncheckedCreateWithoutProjectInput = {
     id?: string
     name: string
-    url: string
-    size: number
-    format: string
+    variants?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -4048,9 +3962,7 @@ export namespace Prisma {
     NOT?: ImageScalarWhereInput | ImageScalarWhereInput[]
     id?: StringFilter<"Image"> | string
     name?: StringFilter<"Image"> | string
-    url?: StringFilter<"Image"> | string
-    size?: IntFilter<"Image"> | number
-    format?: StringFilter<"Image"> | string
+    variants?: JsonFilter<"Image">
     createdAt?: DateTimeFilter<"Image"> | Date | string
     updatedAt?: DateTimeFilter<"Image"> | Date | string
     projectId?: StringFilter<"Image"> | string
@@ -4107,9 +4019,7 @@ export namespace Prisma {
   export type ImageCreateManyProjectInput = {
     id?: string
     name: string
-    url: string
-    size: number
-    format: string
+    variants?: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -4117,9 +4027,7 @@ export namespace Prisma {
   export type ImageUpdateWithoutProjectInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
-    url?: StringFieldUpdateOperationsInput | string
-    size?: IntFieldUpdateOperationsInput | number
-    format?: StringFieldUpdateOperationsInput | string
+    variants?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -4127,9 +4035,7 @@ export namespace Prisma {
   export type ImageUncheckedUpdateWithoutProjectInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
-    url?: StringFieldUpdateOperationsInput | string
-    size?: IntFieldUpdateOperationsInput | number
-    format?: StringFieldUpdateOperationsInput | string
+    variants?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -4137,9 +4043,7 @@ export namespace Prisma {
   export type ImageUncheckedUpdateManyWithoutProjectInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
-    url?: StringFieldUpdateOperationsInput | string
-    size?: IntFieldUpdateOperationsInput | number
-    format?: StringFieldUpdateOperationsInput | string
+    variants?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
