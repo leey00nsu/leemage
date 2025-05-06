@@ -54,6 +54,8 @@ yarn install
 # OCI 관련 자격 증명 및 설정 추가
 # 데이터베이스 및 인증 관련 설정 추가
 
+# 도커 컴포즈로 데이터베이스 실행
+docker compose up -d
 # 개발 서버 실행
 npm run dev
 # 또는
