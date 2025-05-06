@@ -145,7 +145,7 @@ export function ApiKeyManager() {
         <CardTitle>API 키 관리</CardTitle>
         <CardDescription>
           외부 서비스 연동을 위한 API 키를 관리합니다. API 키는 시스템당 하나만
-          생성 가능합니다.
+          생성 가능합니다. 만약 API 키를 분실하였다면 새로 생성해야 합니다.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -198,7 +198,7 @@ export function ApiKeyManager() {
             <div className="flex items-center">
               <KeyRound className="h-5 w-5 mr-2 text-muted-foreground" />
               <span className="font-mono text-sm">
-                API 키가 설정되어 있습니다 (접두사: {apiKeyPrefix})
+                API 키가 설정되어 있습니다
               </span>
             </div>
             <AlertDialog>

@@ -9,7 +9,6 @@ export default async function AccountPage() {
   const username = session.username || "사용자 정보 없음";
 
   return (
-    // items-center 유지, w-full 제거, mx-auto 추가하여 중앙 정렬
     <div className="flex flex-col items-center gap-8 py-10 px-4 min-h-[calc(100vh-var(--header-height)-1rem)]">
       <AccountCard username={username} />
       <ApiKeyManager />
