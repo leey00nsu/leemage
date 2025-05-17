@@ -1,7 +1,7 @@
 import { CreateProjectFormValues } from "../model/schema";
 import { Project } from "@/lib/generated/prisma";
 
-export const createProjectFn = async (
+export const createProject = async (
   data: CreateProjectFormValues
 ): Promise<Project> => {
   const response = await fetch("/api/projects", {

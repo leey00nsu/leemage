@@ -6,9 +6,7 @@ interface LoginResponse {
   // token?: string; // 예: JWT 토큰
 }
 
-export const loginFn = async (
-  data: LoginFormValues
-): Promise<LoginResponse> => {
+export const login = async (data: LoginFormValues): Promise<LoginResponse> => {
   const response = await fetch("/api/auth/login", {
     method: "POST",
     headers: {

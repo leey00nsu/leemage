@@ -16,7 +16,7 @@ import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { Progress } from "@/shared/ui/progress";
 import { Checkbox } from "@/shared/ui/checkbox";
-import { useUploadImageMutation } from "../model/useUploadImageMutation";
+import { useUploadImage } from "../model/upload";
 import { toast } from "sonner";
 
 // 선택 가능한 옵션 정의 (API에서 사용한 값과 일치)
@@ -42,7 +42,16 @@ export function ImageUploadDialog({
   );
   const [saveOriginal, setSaveOriginal] = useState<boolean>(true);
 
-  const uploadMutation = useUploadImageMutation(projectId);
+  const uploadMutation = useUploadImage(projectId, {
+    onSuccessCallback: () => {
+      toast.success(`이미지 "${selectedFile?.name}" 업로드 성공!`);
+      setSelectedFile(null);
+      setIsOpen(false);
+    },
+    onErrorCallback: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {

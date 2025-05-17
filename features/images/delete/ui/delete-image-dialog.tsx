@@ -1,7 +1,6 @@
 "use client";
 
-import { ImageWithVariants } from "@/entities/image/model/types"; // 경로 수정
-import { useDeleteImageMutation } from "../model/useDeleteImageMutation"; // 경로 수정
+import { ImageWithVariants } from "@/entities/image/model/types";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,13 +14,26 @@ import {
 } from "@/shared/ui/alert-dialog";
 import { Button } from "@/shared/ui/button";
 import { Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { useDeleteImage } from "../model/delete";
 
 interface DeleteImageDialogProps {
   image: ImageWithVariants;
 }
 
 export function DeleteImageDialog({ image }: DeleteImageDialogProps) {
-  const deleteMutation = useDeleteImageMutation();
+  const router = useRouter();
+
+  const deleteMutation = useDeleteImage({
+    onSuccessCallback: () => {
+      toast.success("이미지가 삭제되었습니다.");
+      router.push(`/projects/${image.projectId}`);
+    },
+    onErrorCallback: () => {
+      toast.error("이미지 삭제 중 오류가 발생했습니다.");
+    },
+  });
 
   const handleDelete = () => {
     deleteMutation.mutate({ projectId: image.projectId, imageId: image.id });

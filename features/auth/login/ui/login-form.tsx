@@ -16,7 +16,7 @@ import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { loginSchema, LoginFormValues } from "../model/schema";
 import { useRouter } from "next/navigation";
-import { loginFn } from "../api";
+import { login } from "../api/login";
 
 export function LoginForm() {
   const router = useRouter();
@@ -34,7 +34,7 @@ export function LoginForm() {
 
   // 로그인 Mutation
   const mutation = useMutation({
-    mutationFn: loginFn,
+    mutationFn: login,
     onSuccess: (data) => {
       console.log("Login successful:", data);
       router.push("/projects");

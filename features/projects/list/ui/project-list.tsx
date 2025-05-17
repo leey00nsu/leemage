@@ -1,22 +1,13 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { getProjectsFn } from "../api";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/shared/ui/card";
 import { Skeleton } from "@/shared/ui/skeleton";
 import Link from "next/link";
 import { AlertCircle, Folder } from "lucide-react";
+import { useGetProjects } from "../model/get";
 
 export function ProjectList() {
-  const {
-    data: projects,
-    isLoading,
-    isError,
-    error,
-  } = useQuery({
-    queryKey: ["projects"],
-    queryFn: getProjectsFn,
-  });
+  const { data: projects, isLoading, isError, error } = useGetProjects();
 
   if (isLoading) {
     return (

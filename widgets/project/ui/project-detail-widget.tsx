@@ -5,27 +5,15 @@ import { ImageList } from "@/features/images/list/ui/image-list";
 import { DeleteProjectButton } from "@/features/projects/delete/ui/delete-project-button";
 import { Loader2, Upload } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert";
-import { useQuery } from "@tanstack/react-query";
-import {
-  getProjectDetailsFn,
-  ProjectDetailsApiResponse,
-} from "@/features/projects/details/api";
 import { Button } from "@/shared/ui/button";
+import { useGetProjectDetails } from "@/features/projects/details/model/get";
 
 interface ProjectDetailsWidgetProps {
   projectId: string;
 }
 
 export function ProjectDetailsWidget({ projectId }: ProjectDetailsWidgetProps) {
-  const {
-    data: project,
-    isLoading,
-    error,
-  } = useQuery<ProjectDetailsApiResponse, Error>({
-    queryKey: ["project", projectId],
-    queryFn: () => getProjectDetailsFn(projectId),
-    enabled: !!projectId,
-  });
+  const { data: project, isLoading, error } = useGetProjectDetails(projectId);
 
   if (isLoading) {
     return (

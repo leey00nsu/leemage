@@ -19,7 +19,7 @@ interface UploadParams {
   formData: FormData;
 }
 
-export const uploadImageFn = async ({
+export const uploadImage = async ({
   projectId,
   formData,
 }: UploadParams): Promise<ApiImageResponse> => {
@@ -35,5 +35,5 @@ export const uploadImageFn = async ({
   }
 
   const data = await response.json();
-  return data as ApiImageResponse; // 타입 단언
+  return data as ApiImageResponse;
 };

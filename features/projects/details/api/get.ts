@@ -22,7 +22,7 @@ export type ProjectDetailsApiResponse = Omit<PrismaProject, "images"> & {
   images: ImageWithVariants[];
 };
 
-export const getProjectDetailsFn = async (
+export const getProjectDetails = async (
   projectId: string
 ): Promise<ProjectDetailsApiResponse> => {
   const response = await fetch(`/api/projects/${projectId}`);

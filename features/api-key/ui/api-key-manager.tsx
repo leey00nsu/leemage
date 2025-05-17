@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/shared/ui/button";
 import {
   Card,
@@ -32,42 +31,32 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { toast } from "sonner";
-import { getApiKeyInfo, generateApiKey, deleteApiKey } from "../actions"; // 서버 액션 임포트
-
-const API_KEY_QUERY_KEY = ["apiKeyInfo"]; // 쿼리 키 정의
+import { useGetApiKeyInfo } from "../model/get";
+import { useGenerateApiKey } from "../model/generate";
+import { useDeleteApiKey } from "../model/delete";
 
 export function ApiKeyManager() {
   const [generatedKey, setGeneratedKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const queryClient = useQueryClient();
-
-  // API 키 정보 조회 (useQuery)
+  // API 키 정보 조회
   const {
     data: apiKeyInfo,
     isLoading,
     error: queryError, // query용 에러 상태
-  } = useQuery({
-    queryKey: API_KEY_QUERY_KEY,
-    queryFn: getApiKeyInfo,
-    // staleTime: Infinity, // 필요에 따라 캐시 전략 설정
-  });
+  } = useGetApiKeyInfo();
 
   // API 키 생성 (useMutation)
   const {
     mutate: generateMutate,
     isPending: isGenerating,
     error: generationError, // generation용 에러 상태
-  } = useMutation({
-    mutationFn: generateApiKey,
-    onSuccess: (newKey) => {
-      console.log("generateApiKey onSuccess, newKey:", newKey);
+  } = useGenerateApiKey({
+    onSuccessCallback: (newKey) => {
       setGeneratedKey(newKey);
-      queryClient.invalidateQueries({ queryKey: API_KEY_QUERY_KEY });
       toast.success("새 API 키가 생성되었습니다. 안전한 곳에 보관하세요!");
     },
-    onError: (err) => {
-      console.error("generateApiKey onError:", err);
+    onErrorCallback: (err) => {
       toast.error(
         err instanceof Error ? err.message : "API 키 생성에 실패했습니다."
       );
@@ -79,14 +68,12 @@ export function ApiKeyManager() {
     mutate: deleteMutate,
     isPending: isDeleting,
     error: deletionError, // deletion용 에러 상태
-  } = useMutation({
-    mutationFn: deleteApiKey,
-    onSuccess: () => {
+  } = useDeleteApiKey({
+    onSuccessCallback: () => {
       setGeneratedKey(null); // 로컬에 저장된 키도 제거
-      queryClient.invalidateQueries({ queryKey: API_KEY_QUERY_KEY }); // 쿼리 무효화
       toast.success("API 키가 삭제되었습니다.");
     },
-    onError: (err) => {
+    onErrorCallback: (err) => {
       toast.error(
         err instanceof Error ? err.message : "API 키 삭제에 실패했습니다."
       );

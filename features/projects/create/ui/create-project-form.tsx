@@ -2,7 +2,6 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/shared/ui/button";
 import {
   Card,
@@ -17,11 +16,11 @@ import { Label } from "@/shared/ui/label";
 import { Textarea } from "@/shared/ui/textarea";
 import { createProjectSchema, CreateProjectFormValues } from "../model/schema";
 import { useRouter } from "next/navigation";
-import { createProjectFn } from "../api";
+import { useCreateProject } from "../model/create";
+import { toast } from "sonner";
 
 export function CreateProjectForm() {
   const router = useRouter();
-  const queryClient = useQueryClient();
 
   const {
     register,
@@ -35,20 +34,22 @@ export function CreateProjectForm() {
     },
   });
 
-  const mutation = useMutation({
-    mutationFn: createProjectFn,
-    onSuccess: (data) => {
-      console.log("Project created successfully:", data);
-      queryClient.invalidateQueries({ queryKey: ["projects"] });
+  const {
+    mutate: createProject,
+    isPending: isCreating,
+    error: createError,
+  } = useCreateProject({
+    onSuccessCallback: () => {
+      toast.success("프로젝트가 생성되었습니다.");
       router.push("/projects");
     },
-    onError: (error) => {
-      console.error("Project creation mutation error:", error);
+    onErrorCallback: (error) => {
+      toast.error(error.message);
     },
   });
 
   const onSubmit = (data: CreateProjectFormValues) => {
-    mutation.mutate(data);
+    createProject(data);
   };
 
   return (
@@ -61,10 +62,10 @@ export function CreateProjectForm() {
       </CardHeader>
       <form onSubmit={handleSubmit(onSubmit)}>
         <CardContent className="grid gap-6">
-          {mutation.isError && (
+          {createError && (
             <p className="text-sm text-red-500 bg-red-100 p-3 rounded">
-              {mutation.error instanceof Error
-                ? mutation.error.message
+              {createError instanceof Error
+                ? createError.message
                 : "알 수 없는 오류가 발생했습니다."}
             </p>
           )}
@@ -74,7 +75,7 @@ export function CreateProjectForm() {
               id="name"
               placeholder="예: 내 웹사이트 에셋"
               {...register("name")}
-              disabled={mutation.isPending}
+              disabled={isCreating}
             />
             {errors.name && (
               <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>
@@ -87,7 +88,7 @@ export function CreateProjectForm() {
               placeholder="프로젝트에 대한 간단한 설명을 입력하세요."
               {...register("description")}
               className="min-h-[100px]"
-              disabled={mutation.isPending}
+              disabled={isCreating}
             />
             {errors.description && (
               <p className="text-xs text-red-500 mt-1">
@@ -101,12 +102,12 @@ export function CreateProjectForm() {
             type="button"
             variant="outline"
             onClick={() => router.back()}
-            disabled={mutation.isPending}
+            disabled={isCreating}
           >
             취소
           </Button>
-          <Button type="submit" disabled={mutation.isPending}>
-            {mutation.isPending ? "생성 중..." : "프로젝트 생성"}
+          <Button type="submit" disabled={isCreating}>
+            {isCreating ? "생성 중..." : "프로젝트 생성"}
           </Button>
         </CardFooter>
       </form>

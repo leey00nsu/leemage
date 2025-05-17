@@ -1,6 +1,6 @@
-import { getSessionDefault } from "@/lib/session"; // 서버 컴포넌트용 세션 함수
-import { AccountCard } from "@/features/account/ui/account-card"; // AccountCard 임포트
-import { ApiKeyManager } from "@/features/auth/api-key/ui/api-key-manager"; // ApiKeyManager 임포트 추가
+import { getSessionDefault } from "@/lib/session";
+import { AccountCard } from "@/features/account/ui/account-card";
+import { ApiKeyManager } from "@/features/api-key/ui/api-key-manager";
 
 export default async function AccountPage() {
   // 서버 컴포넌트에서 세션 정보 가져오기

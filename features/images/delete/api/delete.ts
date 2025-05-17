@@ -1,12 +1,12 @@
-interface DeleteImageParams {
+interface DeleteImage {
   projectId: string;
   imageId: string;
 }
 
-export const deleteImageFn = async ({
+export const deleteImage = async ({
   projectId,
   imageId,
-}: DeleteImageParams): Promise<{ message: string }> => {
+}: DeleteImage): Promise<{ message: string }> => {
   const response = await fetch(`/api/projects/${projectId}/images/${imageId}`, {
     method: "DELETE",
   });
