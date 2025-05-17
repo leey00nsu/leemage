@@ -1,4 +1,4 @@
-# Leemage (가칭)
+# Leemage
 
 ## 프로젝트 개요
 
@@ -9,8 +9,8 @@ Oracle Cloud Infrastructure (OCI) Object Storage를 활용하여 Cloudinary와 �
 - **프레임워크:** Next.js
 - **UI:** Tailwind CSS, Shadcn/ui
 - **스토리지:** Oracle Cloud Infrastructure (OCI) Object Storage
-- **인증:** (추후 결정)
-- **데이터베이스:** (추후 결정)
+- **인증:** iron-session(환경변수 기반 인증방식)
+- **데이터베이스:** PostgreSQL
 
 ## 주요 기능
 
@@ -38,7 +38,34 @@ Oracle Cloud Infrastructure (OCI) Object Storage를 활용하여 Cloudinary와 �
 
 FSD는 계층 간 의존성 규칙(상위 레이어는 하위 레이어에 의존 가능, 하위 레이어는 상위 레이어에 의존 불가)을 통해 코드의 결합도를 낮추고 재사용성을 높입니다.
 
-## 설치 및 실행 (예상)
+## 환경변수
+
+```
+# Local Environment Variables
+
+# Root User Credentials
+ROOT_USER_EMAIL= #루트 계정 이메일
+ROOT_USER_PASSWORD= #루트 계정 비밀번호
+
+# PostgreSQL Database Credentials (for Docker Compose and Prisma)
+POSTGRES_PASSWORD= # Docker Compose에서 사용할 비밀번호
+DATABASE_URL=# 데이터베이스 URL
+
+# OCI Object Storage Credentials (Placeholder - Add your actual credentials)
+OCI_TENANCY_OCID=
+OCI_USER_OCID=
+OCI_FINGERPRINT=
+OCI_PRIVATE_KEY_PATH=
+OCI_REGION=
+OCI_NAMESPACE=
+OCI_BUCKET_NAME=
+OCI_OBJECT_STORAGE_HOST=
+
+IRON_SESSION_COOKIE_NAME=
+IRON_SESSION_PASSWORD=
+```
+
+## 설치 및 실행
 
 ```bash
 # 저장소 복제
