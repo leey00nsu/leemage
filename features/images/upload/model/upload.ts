@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { uploadImage, ApiImageResponse } from "../api/upload";
+import { projectKeys } from "@/features/projects/model/query-keys";
 
 // mutate 함수에 전달될 변수 타입 정의 (FormData 직접 사용)
 type UploadVariables = {
@@ -22,7 +23,9 @@ export const useUploadImage = (
     mutationFn: (variables) =>
       uploadImage({ projectId, formData: variables.formData }), // projectId와 formData 전달
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["project", projectId] });
+      queryClient.invalidateQueries({
+        queryKey: projectKeys.byId(projectId),
+      });
 
       if (options?.onSuccessCallback) {
         options.onSuccessCallback();

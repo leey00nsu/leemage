@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { imageKeys } from "../../model/query-keys";
 import { deleteImage } from "../api/delete";
+import { projectKeys } from "@/features/projects/model/query-keys";
 
 interface UseDeleteImageMutationOptions {
   onSuccessCallback?: () => void;
@@ -14,7 +14,7 @@ export const useDeleteImage = (options?: UseDeleteImageMutationOptions) => {
     mutationFn: deleteImage,
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({
-        queryKey: imageKeys.byProjectId(variables.projectId),
+        queryKey: projectKeys.byId(variables.projectId),
       });
 
       if (options?.onSuccessCallback) {
