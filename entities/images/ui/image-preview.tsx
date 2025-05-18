@@ -8,14 +8,13 @@ interface ImagePreviewProps {
 
 export function ImagePreview({ variant, altText }: ImagePreviewProps) {
   return (
-    <div className="relative aspect-video w-full overflow-hidden rounded-lg border">
+    <div className="relative aspect-video w-full overflow-hidden rounded-lg border ">
       <Image
         src={variant.url}
         alt={altText}
         width={variant.width}
         height={variant.height}
-        className="object-contain" // 비율 유지
-        // sizes="..." // 필요 시 추가
+        className="object-contain w-full h-full"
       />
     </div>
   );

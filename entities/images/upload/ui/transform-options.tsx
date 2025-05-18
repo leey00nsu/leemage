@@ -31,7 +31,7 @@ export function TransformOptions({
 }: TransformOptionsProps) {
   return (
     <div className="space-y-4 rounded-md border p-4">
-      <h4 className="mb-2 font-medium leading-none">변환 옵션</h4>
+      <h4 className="mb-2 font-medium ">변환 옵션</h4>
 
       <div className="space-y-2">
         <Label>크기 (Size)</Label>
@@ -46,7 +46,7 @@ export function TransformOptions({
               />
               <label
                 htmlFor={`size-${size}`}
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                className="text-sm font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
                 {size}
               </label>
@@ -68,7 +68,7 @@ export function TransformOptions({
               />
               <label
                 htmlFor={`format-${format}`}
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                className="text-sm font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
                 {format.toUpperCase()}
               </label>
@@ -86,7 +86,7 @@ export function TransformOptions({
         />
         <label
           htmlFor="save-original"
-          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          className="text-sm font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
         >
           원본 이미지 저장
         </label>

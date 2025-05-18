@@ -51,7 +51,7 @@ export function ImageCard({
           alt={name}
           width={displayVariant.width}
           height={displayVariant.height}
-          className="object-cover transition-transform duration-300 group-hover:scale-105"
+          className="object-contain w-full h-full transition-transform duration-300 group-hover:scale-105"
           priority={priority}
         />
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity flex justify-between items-center">

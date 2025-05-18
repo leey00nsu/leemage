@@ -9,11 +9,7 @@ import { ImagePreview } from "@/entities/images/ui/image-preview";
 import { ImageInfo } from "@/entities/images/ui/image-info";
 import { DeleteImageDialog } from "@/features/images/delete/ui/delete-image-dialog";
 
-interface ImageDetailsWidgetProps {
-  image: ImageWithVariants;
-}
-
-export function ImageDetailsWidget({ image }: ImageDetailsWidgetProps) {
+export function ImageDetailsWidget({ image }: { image: ImageWithVariants }) {
   const displayVariant =
     findVariantByLabel(image.variants, "original") || image.variants[0];
 
@@ -38,7 +34,7 @@ export function ImageDetailsWidget({ image }: ImageDetailsWidgetProps) {
       <Card>
         <CardHeader className="flex flex-row items-start justify-between">
           <div>
-            <CardTitle className="truncate" title={image.name}>
+            <CardTitle className="truncate " title={image.name}>
               {image.name}
             </CardTitle>
             <Badge variant="secondary" className="w-fit mt-1">
