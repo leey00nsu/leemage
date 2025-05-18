@@ -21,6 +21,12 @@ export function Header() {
             프로젝트
           </Link>
           <Link
+            href="/api-docs"
+            className="text-sm font-medium text-muted-foreground hover:text-primary"
+          >
+            API 문서
+          </Link>
+          <Link
             href="/account"
             className="text-sm font-medium text-muted-foreground hover:text-primary"
           >
