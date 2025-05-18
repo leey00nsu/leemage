@@ -1,12 +1,12 @@
 "use client"; // next/image 사용 및 클라이언트 인터랙션 가능성을 위해
 
-import { ImageWithVariants } from "@/entities/image/model/types";
+import { ImageWithVariants } from "@/entities/images/model/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Badge } from "@/shared/ui/badge";
 import { ImageIcon } from "lucide-react";
 import { findVariantByLabel } from "@/shared/lib/image-utils";
-import { ImagePreview } from "@/entities/image/ui/image-preview";
-import { ImageInfo } from "@/entities/image/ui/image-info";
+import { ImagePreview } from "@/entities/images/ui/image-preview";
+import { ImageInfo } from "@/entities/images/ui/image-info";
 import { DeleteImageDialog } from "@/features/images/delete/ui/delete-image-dialog";
 
 interface ImageDetailsWidgetProps {

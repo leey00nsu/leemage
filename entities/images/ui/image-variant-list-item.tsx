@@ -1,6 +1,9 @@
+"use client";
+
+import { CopyTextButton } from "@/shared/ui/copy-text-button";
 import { ImageVariantData } from "../model/types"; // 경로 수정
 import { formatBytes } from "@/shared/lib/image-utils"; // 경로 수정
-import { CopyImageUrlButton } from "@/features/images/copy-url/ui/copy-image-url-button"; // 경로 수정
+import { toast } from "sonner";
 
 interface ImageVariantListItemProps {
   variant: ImageVariantData;
@@ -31,7 +34,13 @@ export function ImageVariantListItem({
         >
           {variant.url}
         </span>
-        <CopyImageUrlButton url={variant.url} />
+        <CopyTextButton
+          text={variant.url}
+          title="URL 복사"
+          onSuccessCallback={() => {
+            toast.success("URL이 클립보드에 복사되었습니다.");
+          }}
+        />
       </div>
     </li>
   );

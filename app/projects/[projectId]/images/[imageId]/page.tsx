@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma"; // Prisma 클라이언트 임포트 (경로는 실제 위치에 맞게 조정)
 import { notFound } from "next/navigation";
 import { ImageDetailsWidget } from "@/widgets/image/ui/image-detail-widget"; // 상세 정보 위젯 (생성 예정)
+import { ImageWithVariants } from "@/entities/images/model/types";
 
 interface ImageDetailPageProps {
   params: {
@@ -25,5 +26,5 @@ export default async function ImageDetailPage({
   }
 
   // TODO: ImageDetailsWidget 구현 후 데이터 전달
-  return <ImageDetailsWidget image={image} />;
+  return <ImageDetailsWidget image={image as ImageWithVariants} />;
 }

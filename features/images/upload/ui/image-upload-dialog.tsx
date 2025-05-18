@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, ChangeEvent, FormEvent } from "react";
+import { useState, FormEvent } from "react";
 import { Button } from "@/shared/ui/button";
 import {
   Dialog,
@@ -12,16 +12,15 @@ import {
   DialogTrigger,
   DialogClose,
 } from "@/shared/ui/dialog";
-import { Input } from "@/shared/ui/input";
-import { Label } from "@/shared/ui/label";
-import { Progress } from "@/shared/ui/progress";
-import { Checkbox } from "@/shared/ui/checkbox";
 import { useUploadImage } from "../model/upload";
 import { toast } from "sonner";
-
-// 선택 가능한 옵션 정의 (API에서 사용한 값과 일치)
-const AVAILABLE_SIZES = ["300x300", "800x800", "1920x1080"] as const;
-const AVAILABLE_FORMATS = ["png", "jpeg", "avif", "webp"] as const;
+import {
+  AVAILABLE_FORMATS,
+  AVAILABLE_SIZES,
+} from "@/shared/config/image-options";
+import { TransformOptions } from "@/entities/images/upload/ui/transform-options";
+import { UploadProgress } from "@/entities/images/upload/ui/upload-progress";
+import { FileInput } from "@/entities/images/upload/ui/file-input";
 
 interface ImageUploadDialogProps {
   projectId: string;
@@ -35,7 +34,7 @@ export function ImageUploadDialog({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedFormats, setSelectedFormats] = useState<Set<string>>(
-    new Set(["webp"])
+    new Set([AVAILABLE_FORMATS[3]])
   );
   const [selectedSizes, setSelectedSizes] = useState<Set<string>>(
     new Set(AVAILABLE_SIZES)
@@ -52,14 +51,6 @@ export function ImageUploadDialog({
       toast.error(error.message);
     },
   });
-
-  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      setSelectedFile(event.target.files[0]);
-    } else {
-      setSelectedFile(null);
-    }
-  };
 
   const handleFormatChange = (format: string, checked: boolean | string) => {
     setSelectedFormats((prev) => {
@@ -105,11 +96,6 @@ export function ImageUploadDialog({
     formData.append("variants", JSON.stringify(requestedVariants));
     formData.append("saveOriginal", JSON.stringify(saveOriginal));
 
-    console.log("Sending FormData entries:");
-    for (const [key, value] of formData.entries()) {
-      console.log(`${key}:`, value);
-    }
-
     uploadMutation.mutate(
       {
         formData,
@@ -127,7 +113,7 @@ export function ImageUploadDialog({
     setIsOpen(open);
     if (!open) {
       setSelectedFile(null);
-      setSelectedFormats(new Set(["webp"]));
+      setSelectedFormats(new Set([AVAILABLE_FORMATS[3]]));
       setSelectedSizes(new Set(AVAILABLE_SIZES));
       setSaveOriginal(true);
       uploadMutation.reset();
@@ -146,105 +132,34 @@ export function ImageUploadDialog({
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="image-file" className="text-right">
-                파일
-              </Label>
-              <Input
-                id="image-file"
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="col-span-3"
-                disabled={uploadMutation.isPending}
-              />
-            </div>
-            {selectedFile && (
-              <div className="col-span-4 text-sm text-muted-foreground">
-                선택: {selectedFile.name} (
-                {(selectedFile.size / 1024).toFixed(2)} KB)
-              </div>
-            )}
-            <div className="space-y-4 rounded-md border p-4">
-              <h4 className="mb-2 font-medium leading-none">변환 옵션</h4>
-              <div className="space-y-2">
-                <Label>크기 (Size)</Label>
-                <div className="flex flex-wrap gap-x-4 gap-y-2">
-                  {AVAILABLE_SIZES.map((size) => (
-                    <div key={size} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`size-${size}`}
-                        checked={selectedSizes.has(size)}
-                        onCheckedChange={(checked: boolean | string) =>
-                          handleSizeChange(size, checked)
-                        }
-                        disabled={uploadMutation.isPending}
-                      />
-                      <label
-                        htmlFor={`size-${size}`}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        {size}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>포맷 (Format)</Label>
-                <div className="flex flex-wrap gap-x-4 gap-y-2">
-                  {AVAILABLE_FORMATS.map((format) => (
-                    <div key={format} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`format-${format}`}
-                        checked={selectedFormats.has(format)}
-                        onCheckedChange={(checked: boolean | string) =>
-                          handleFormatChange(format, checked)
-                        }
-                        disabled={uploadMutation.isPending}
-                      />
-                      <label
-                        htmlFor={`format-${format}`}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        {format.toUpperCase()}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="flex items-center space-x-2 pt-2">
-                <Checkbox
-                  id="save-original"
-                  checked={saveOriginal}
-                  onCheckedChange={(checked: boolean | string) =>
-                    setSaveOriginal(checked === true)
-                  }
-                  disabled={uploadMutation.isPending}
-                />
-                <label
-                  htmlFor="save-original"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  원본 이미지 저장
-                </label>
-              </div>
-            </div>
-            {uploadMutation.isPending && (
-              <div className="col-span-4 space-y-2">
-                <Progress value={undefined} className="w-full" />
-                <p className="text-sm text-center text-muted-foreground">
-                  업로드 중...
-                </p>
-              </div>
-            )}
-            {uploadMutation.isError && (
-              <p className="col-span-4 text-sm text-red-600 text-center">
-                {uploadMutation.error instanceof Error
-                  ? uploadMutation.error.message
-                  : "업로드 중 오류 발생"}
-              </p>
-            )}
+            <FileInput
+              onChange={setSelectedFile}
+              selectedFile={selectedFile}
+              disabled={uploadMutation.isPending}
+              id="image-file"
+              label="파일"
+            />
+
+            <TransformOptions
+              selectedSizes={selectedSizes}
+              selectedFormats={selectedFormats}
+              saveOriginal={saveOriginal}
+              onSizeChange={handleSizeChange}
+              onFormatChange={handleFormatChange}
+              onSaveOriginalChange={(checked) =>
+                setSaveOriginal(checked === true)
+              }
+              disabled={uploadMutation.isPending}
+            />
+
+            <UploadProgress
+              isUploading={uploadMutation.isPending}
+              error={
+                uploadMutation.error instanceof Error
+                  ? uploadMutation.error
+                  : null
+              }
+            />
           </div>
           <DialogFooter>
             <DialogClose asChild>

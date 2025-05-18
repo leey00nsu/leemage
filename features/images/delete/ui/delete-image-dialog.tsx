@@ -1,6 +1,6 @@
 "use client";
 
-import { ImageWithVariants } from "@/entities/image/model/types";
+import { ImageWithVariants } from "@/entities/images/model/types";
 import {
   AlertDialog,
   AlertDialogAction,

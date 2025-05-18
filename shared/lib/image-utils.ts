@@ -1,4 +1,4 @@
-import { ImageVariantData } from "@/entities/image/model/types";
+import { ImageVariantData } from "@/entities/images/model/types";
 
 // 파일 크기를 읽기 쉬운 형식으로 변환하는 함수
 export function formatBytes(bytes: number, decimals = 2): string {

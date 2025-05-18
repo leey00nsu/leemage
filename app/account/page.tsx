@@ -1,5 +1,5 @@
 import { getSessionDefault } from "@/lib/session";
-import { AccountCard } from "@/features/account/ui/account-card";
+import { AccountCard } from "@/entities/account/ui/account-card";
 import { ApiKeyManager } from "@/features/api-key/ui/api-key-manager";
 
 export default async function AccountPage() {
