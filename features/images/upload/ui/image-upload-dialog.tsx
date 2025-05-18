@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState } from "react";
 import { Button } from "@/shared/ui/button";
 import {
   Dialog,
@@ -21,6 +21,12 @@ import {
 import { TransformOptions } from "@/entities/images/upload/ui/transform-options";
 import { UploadProgress } from "@/entities/images/upload/ui/upload-progress";
 import { FileInput } from "@/entities/images/upload/ui/file-input";
+import { useForm, SubmitHandler } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ImageUploadFormValues, imageUploadSchema } from "../model/schema";
+
+type FormatType = (typeof AVAILABLE_FORMATS)[number];
+type SizeType = (typeof AVAILABLE_SIZES)[number];
 
 interface ImageUploadDialogProps {
   projectId: string;
@@ -31,91 +37,122 @@ export function ImageUploadDialog({
   projectId,
   children,
 }: ImageUploadDialogProps) {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedFormats, setSelectedFormats] = useState<Set<string>>(
-    new Set([AVAILABLE_FORMATS[3]])
-  );
-  const [selectedSizes, setSelectedSizes] = useState<Set<string>>(
-    new Set(AVAILABLE_SIZES)
-  );
-  const [saveOriginal, setSaveOriginal] = useState<boolean>(true);
+  const [fileState, setFileState] = useState<File | null>(null);
 
+  // react-hook-form 설정
+  const {
+    handleSubmit,
+    setValue,
+    watch,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<ImageUploadFormValues>({
+    resolver: zodResolver(imageUploadSchema),
+    defaultValues: {
+      formats: [AVAILABLE_FORMATS[3]], // "webp"
+      sizes: [...AVAILABLE_SIZES],
+      saveOriginal: true,
+    },
+    mode: "onChange",
+  });
+
+  // API 요청 훅
   const uploadMutation = useUploadImage(projectId, {
     onSuccessCallback: () => {
-      toast.success(`이미지 "${selectedFile?.name}" 업로드 성공!`);
-      setSelectedFile(null);
+      toast.success(`이미지 "${fileState?.name}" 업로드 성공!`);
       setIsOpen(false);
+      setFileState(null);
     },
     onErrorCallback: (error: Error) => {
       toast.error(error.message);
     },
   });
 
+  // 포맷, 사이즈 상태 관찰
+  const selectedFormats = watch("formats");
+  const selectedSizes = watch("sizes");
+  const saveOriginal = watch("saveOriginal");
+  const isFormValid =
+    Object.keys(errors).length === 0 &&
+    fileState &&
+    !isSubmitting &&
+    !uploadMutation.isPending;
+
+  // 포맷 변경 핸들러
   const handleFormatChange = (format: string, checked: boolean | string) => {
-    setSelectedFormats((prev) => {
-      const next = new Set(prev);
-      if (checked === true) {
-        next.add(format);
-      } else {
-        next.delete(format);
+    const formatValue = format as FormatType;
+    const newFormats = [...selectedFormats];
+
+    if (checked === true && !newFormats.includes(formatValue)) {
+      newFormats.push(formatValue);
+    } else if (checked !== true) {
+      const index = newFormats.indexOf(formatValue);
+      if (index !== -1) {
+        newFormats.splice(index, 1);
       }
-      return next;
-    });
+    }
+
+    setValue("formats", newFormats, { shouldValidate: true });
   };
 
+  // 사이즈 변경 핸들러
   const handleSizeChange = (size: string, checked: boolean | string) => {
-    setSelectedSizes((prev) => {
-      const next = new Set(prev);
-      if (checked === true) {
-        next.add(size);
-      } else {
-        next.delete(size);
+    const sizeValue = size as SizeType;
+    const newSizes = [...selectedSizes];
+
+    if (checked === true && !newSizes.includes(sizeValue)) {
+      newSizes.push(sizeValue);
+    } else if (checked !== true) {
+      const index = newSizes.indexOf(sizeValue);
+      if (index !== -1) {
+        newSizes.splice(index, 1);
       }
-      return next;
-    });
+    }
+
+    setValue("sizes", newSizes, { shouldValidate: true });
   };
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!selectedFile) {
+  // 파일 변경 핸들러
+  const handleFileChange = (file: File | null) => {
+    setFileState(file);
+    if (file) {
+      setValue("file", file, { shouldValidate: true });
+    }
+  };
+
+  // 폼 제출 핸들러
+  const onSubmit: SubmitHandler<ImageUploadFormValues> = (data) => {
+    const { file, formats, sizes, saveOriginal } = data;
+
+    if (!file) {
       toast.warning("업로드할 파일을 선택해주세요.");
       return;
     }
-    if (selectedFormats.size === 0 || selectedSizes.size === 0) {
-      toast.warning("최소 하나 이상의 포맷과 크기를 선택해야 합니다.");
-      return;
-    }
 
-    const requestedVariants = Array.from(selectedSizes).flatMap((sizeLabel) =>
-      Array.from(selectedFormats).map((format) => ({ sizeLabel, format }))
+    const requestedVariants = sizes.flatMap((sizeLabel) =>
+      formats.map((format) => ({ sizeLabel, format }))
     );
 
     const formData = new FormData();
-    formData.append("file", selectedFile);
+    formData.append("file", file);
     formData.append("variants", JSON.stringify(requestedVariants));
     formData.append("saveOriginal", JSON.stringify(saveOriginal));
 
-    uploadMutation.mutate(
-      {
-        formData,
-      },
-      {
-        onSuccess: () => {
-          setSelectedFile(null);
-          setIsOpen(false);
-        },
-      }
-    );
+    uploadMutation.mutate({ formData });
   };
 
+  // 다이얼로그 상태 변경 핸들러
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
     if (!open) {
-      setSelectedFile(null);
-      setSelectedFormats(new Set([AVAILABLE_FORMATS[3]]));
-      setSelectedSizes(new Set(AVAILABLE_SIZES));
-      setSaveOriginal(true);
+      // 다이얼로그 닫을 때 폼 초기화
+      reset({
+        formats: [AVAILABLE_FORMATS[3]],
+        sizes: [...AVAILABLE_SIZES],
+        saveOriginal: true,
+      });
+      setFileState(null);
       uploadMutation.reset();
     }
   };
@@ -130,30 +167,45 @@ export function ImageUploadDialog({
             파일을 선택하고 생성할 이미지 버전 옵션을 선택하세요.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <div className="grid gap-4 py-4">
             <FileInput
-              onChange={setSelectedFile}
-              selectedFile={selectedFile}
-              disabled={uploadMutation.isPending}
+              onChange={handleFileChange}
+              selectedFile={fileState}
+              disabled={isSubmitting || uploadMutation.isPending}
               id="image-file"
               label="파일"
             />
+            {errors.file && (
+              <p className="text-sm text-destructive pl-[25%]">
+                {errors.file.message}
+              </p>
+            )}
 
             <TransformOptions
-              selectedSizes={selectedSizes}
-              selectedFormats={selectedFormats}
+              selectedSizes={new Set(selectedSizes)}
+              selectedFormats={new Set(selectedFormats)}
               saveOriginal={saveOriginal}
               onSizeChange={handleSizeChange}
               onFormatChange={handleFormatChange}
               onSaveOriginalChange={(checked) =>
-                setSaveOriginal(checked === true)
+                setValue("saveOriginal", checked === true, {
+                  shouldValidate: true,
+                })
               }
-              disabled={uploadMutation.isPending}
+              disabled={isSubmitting || uploadMutation.isPending}
             />
+            {errors.formats && (
+              <p className="text-sm text-destructive">
+                {errors.formats.message}
+              </p>
+            )}
+            {errors.sizes && (
+              <p className="text-sm text-destructive">{errors.sizes.message}</p>
+            )}
 
             <UploadProgress
-              isUploading={uploadMutation.isPending}
+              isUploading={isSubmitting || uploadMutation.isPending}
               error={
                 uploadMutation.error instanceof Error
                   ? uploadMutation.error
@@ -166,16 +218,15 @@ export function ImageUploadDialog({
               <Button
                 type="button"
                 variant="outline"
-                disabled={uploadMutation.isPending}
+                disabled={isSubmitting || uploadMutation.isPending}
               >
                 취소
               </Button>
             </DialogClose>
-            <Button
-              type="submit"
-              disabled={!selectedFile || uploadMutation.isPending}
-            >
-              {uploadMutation.isPending ? "업로드 중..." : "업로드"}
+            <Button type="submit" disabled={!isFormValid}>
+              {isSubmitting || uploadMutation.isPending
+                ? "업로드 중..."
+                : "업로드"}
             </Button>
           </DialogFooter>
         </form>
