@@ -22,7 +22,6 @@ export const imageUploadSchema = z.object({
   sizes: z
     .array(z.enum(AVAILABLE_SIZES))
     .min(1, "최소 하나 이상의 크기를 선택해야 합니다."),
-  saveOriginal: z.boolean(),
 });
 
 export type ImageUploadFormValues = z.infer<typeof imageUploadSchema>;

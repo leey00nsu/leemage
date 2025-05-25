@@ -13,20 +13,16 @@ export type FormatOption = (typeof AVAILABLE_FORMATS)[number];
 interface TransformOptionsProps {
   selectedSizes: Set<string>;
   selectedFormats: Set<string>;
-  saveOriginal: boolean;
   onSizeChange: (size: string, checked: boolean | string) => void;
   onFormatChange: (format: string, checked: boolean | string) => void;
-  onSaveOriginalChange: (checked: boolean | string) => void;
   disabled?: boolean;
 }
 
 export function TransformOptions({
   selectedSizes,
   selectedFormats,
-  saveOriginal,
   onSizeChange,
   onFormatChange,
-  onSaveOriginalChange,
   disabled = false,
 }: TransformOptionsProps) {
   return (
@@ -48,8 +44,13 @@ export function TransformOptions({
                 htmlFor={`size-${size}`}
                 className="text-sm font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
-                {size}
+                {size === "original" ? "원본 (original)" : size}
               </label>
+              {size === "original" && (
+                <span className="text-xs text-muted-foreground ml-1">
+                  가공 없이 원본 이미지를 그대로 저장합니다
+                </span>
+              )}
             </div>
           ))}
         </div>
@@ -75,21 +76,6 @@ export function TransformOptions({
             </div>
           ))}
         </div>
-      </div>
-
-      <div className="flex items-center space-x-2 pt-2">
-        <Checkbox
-          id="save-original"
-          checked={saveOriginal}
-          onCheckedChange={onSaveOriginalChange}
-          disabled={disabled}
-        />
-        <label
-          htmlFor="save-original"
-          className="text-sm font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-        >
-          원본 이미지 저장
-        </label>
       </div>
     </div>
   );

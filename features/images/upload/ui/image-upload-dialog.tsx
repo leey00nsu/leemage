@@ -50,9 +50,10 @@ export function ImageUploadDialog({
   } = useForm<ImageUploadFormValues>({
     resolver: zodResolver(imageUploadSchema),
     defaultValues: {
-      formats: [AVAILABLE_FORMATS[3]], // "webp"
-      sizes: [...AVAILABLE_SIZES],
-      saveOriginal: true,
+      formats: [AVAILABLE_FORMATS[0]], // 기본 포맷 (예: png)
+      sizes: [
+        AVAILABLE_SIZES.find((s) => s === "original") || AVAILABLE_SIZES[0],
+      ], // 기본으로 "original" 선택
     },
     mode: "onChange",
   });
@@ -72,10 +73,11 @@ export function ImageUploadDialog({
   // 포맷, 사이즈 상태 관찰
   const selectedFormats = watch("formats");
   const selectedSizes = watch("sizes");
-  const saveOriginal = watch("saveOriginal");
   const isFormValid =
     Object.keys(errors).length === 0 &&
     fileState &&
+    selectedFormats.length > 0 && // formats도 선택되었는지 확인
+    selectedSizes.length > 0 && // sizes도 선택되었는지 확인
     !isSubmitting &&
     !uploadMutation.isPending;
 
@@ -123,12 +125,18 @@ export function ImageUploadDialog({
 
   // 폼 제출 핸들러
   const onSubmit: SubmitHandler<ImageUploadFormValues> = (data) => {
-    const { file, formats, sizes, saveOriginal } = data;
+    const { file, formats, sizes } = data;
 
     if (!file) {
       toast.warning("업로드할 파일을 선택해주세요.");
       return;
     }
+
+    // Zod 스키마에서 이미 sizes와 formats 배열이 비어있지 않음을 검증함
+    // if (sizes.length === 0 || formats.length === 0) {
+    //   toast.warning("하나 이상의 크기와 포맷을 선택해야 합니다.");
+    //   return;
+    // }
 
     const requestedVariants = sizes.flatMap((sizeLabel) =>
       formats.map((format) => ({ sizeLabel, format }))
@@ -137,7 +145,7 @@ export function ImageUploadDialog({
     const formData = new FormData();
     formData.append("file", file);
     formData.append("variants", JSON.stringify(requestedVariants));
-    formData.append("saveOriginal", JSON.stringify(saveOriginal));
+    // formData.append("saveOriginal", ...); // 제거
 
     uploadMutation.mutate({ formData });
   };
@@ -148,9 +156,10 @@ export function ImageUploadDialog({
     if (!open) {
       // 다이얼로그 닫을 때 폼 초기화
       reset({
-        formats: [AVAILABLE_FORMATS[3]],
-        sizes: [...AVAILABLE_SIZES],
-        saveOriginal: true,
+        formats: [AVAILABLE_FORMATS[0]],
+        sizes: [
+          AVAILABLE_SIZES.find((s) => s === "original") || AVAILABLE_SIZES[0],
+        ],
       });
       setFileState(null);
       uploadMutation.reset();
@@ -185,14 +194,8 @@ export function ImageUploadDialog({
             <TransformOptions
               selectedSizes={new Set(selectedSizes)}
               selectedFormats={new Set(selectedFormats)}
-              saveOriginal={saveOriginal}
               onSizeChange={handleSizeChange}
               onFormatChange={handleFormatChange}
-              onSaveOriginalChange={(checked) =>
-                setValue("saveOriginal", checked === true, {
-                  shouldValidate: true,
-                })
-              }
               disabled={isSubmitting || uploadMutation.isPending}
             />
             {errors.formats && (
