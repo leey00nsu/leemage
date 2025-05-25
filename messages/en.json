@@ -1,0 +1,467 @@
+{
+  "EndpointCard": {
+    "copiedToClipboard": "Copied to clipboard.",
+    "authRequired": "Auth Required",
+    "parameters": "Parameters",
+    "name": "Name",
+    "type": "Type",
+    "required": "Required",
+    "description": "Description",
+    "yes": "Yes",
+    "no": "No",
+    "requestBody": "Request Body",
+    "response": "Response",
+    "copy": "Copy"
+  },
+  "ProjectCard": {
+    "noDescription": "No description provided."
+  },
+  "EmptyProjectState": {
+    "defaultMessage": "No projects created yet.\\nClick the 'Create New Project' button to get started."
+  },
+  "ProjectError": {
+    "defaultError": "Unknown error",
+    "fetchError": "An error occurred while fetching the project list."
+  },
+  "ImageVariantListItem": {
+    "urlCopied": "URL copied to clipboard.",
+    "copyUrl": "Copy URL"
+  },
+  "ImageInfo": {
+    "details": "Details",
+    "sizeLabel": "Size:",
+    "fileLabel": "File:",
+    "uploadDateLabel": "Upload Date:",
+    "lastModifiedDateLabel": "Last Modified Date:",
+    "urlLabel": "URL ({label}):"
+  },
+  "EmptyImageState": {
+    "noImages": "No images yet."
+  },
+  "ImageVariantList": {
+    "savedVersions": "Saved Versions",
+    "noVersions": "No saved version information available."
+  },
+  "AccountCard": {
+    "title": "My Account",
+    "description": "Information for the currently logged in user.",
+    "usernameLabel": "Username:"
+  },
+  "ApiKeyStatus": {
+    "apiKeySet": "API Key is set",
+    "noApiKeyTitle": "No API Key",
+    "noApiKeyDescription": "There is no API key currently set in the system. Generate a new key for external integrations."
+  },
+  "ApiKeyDeleteButton": {
+    "delete": "Delete",
+    "confirmTitle": "Are you sure you want to delete?",
+    "confirmDescription": "This action cannot be undone. The API key will be permanently deleted.",
+    "cancel": "Cancel",
+    "deleting": "Deleting...",
+    "confirmDelete": "Confirm Delete"
+  },
+  "ApiKeyDisplay": {
+    "keyCopied": "API key copied to clipboard.",
+    "copyFailed": "Failed to copy to clipboard.",
+    "newKeyGenerated": "New API Key Generated",
+    "newKeyDescription": "This is your newly generated API key. This key will not be shown again, so be sure to copy and store it in a safe place.",
+    "copy": "Copy"
+  },
+  "ApiKeyGenerateButton": {
+    "generateNewKey": "Generate New API Key"
+  },
+  "ApiKeyError": {
+    "title": "Error Occurred"
+  },
+  "ApiKeySkeleton": {
+    "title": "API Key Management",
+    "loadingDescription": "Loading API key information..."
+  },
+  "ImageList": {
+    "noImagesInProject": "This project does not have any images yet."
+  },
+  "ImageUploadDialog": {
+    "uploadSuccess": "Image \"{fileName}\" uploaded successfully!",
+    "selectFileWarning": "Please select a file to upload.",
+    "title": "Upload New Image",
+    "description": "Select a file and choose options for the image versions to create.",
+    "fileInputLabel": "File",
+    "cancelButton": "Cancel",
+    "uploadingButton": "Uploading...",
+    "uploadButton": "Upload"
+  },
+  "DeleteImageDialog": {
+    "deleteSuccess": "Image deleted successfully.",
+    "deleteError": "An error occurred while deleting the image.",
+    "deleteImageSr": "Delete image",
+    "confirmTitle": "Are you sure you want to delete?",
+    "confirmDescription": "This action cannot be undone. The image will be permanently deleted.",
+    "cancel": "Cancel",
+    "deleting": "Deleting...",
+    "confirmDelete": "Confirm Delete"
+  },
+  "DeleteProjectButton": {
+    "deleteSuccessToast": "Project '{projectName}' deleted successfully",
+    "redirectToastDescription": "Redirecting to project list.",
+    "deleteProjectButton": "Delete Project",
+    "confirmTitle": "Are you sure you want to delete?",
+    "confirmDescription": "This will delete the project \"{projectName}\". This action cannot be undone. All image information within the project will also be deleted.",
+    "cancel": "Cancel",
+    "deleting": "Deleting...",
+    "confirmDelete": "Confirm Delete"
+  },
+  "CreateProjectForm": {
+    "createSuccessToast": "Project created successfully.",
+    "unknownError": "An unknown error occurred.",
+    "title": "Create New Project",
+    "description": "Enter the name and description for your new project.",
+    "nameLabel": "Project Name",
+    "namePlaceholder": "e.g., My Website Assets",
+    "descriptionLabel": "Description (optional)",
+    "descriptionPlaceholder": "Enter a brief description for your project.",
+    "cancelButton": "Cancel",
+    "creatingButton": "Creating...",
+    "createButton": "Create Project"
+  },
+  "LogoutButton": {
+    "logoutErrorToast": "Logout Error",
+    "networkErrorToastDescription": "This might be a network or server issue.",
+    "loggingOutButton": "Logging out...",
+    "logoutButton": "Logout"
+  },
+  "LoginForm": {
+    "loginError": "Error during login process",
+    "title": "Login",
+    "description": "Enter your email and password to login.",
+    "emailLabel": "Email",
+    "emailPlaceholder": "root@example.com",
+    "passwordLabel": "Password",
+    "loggingInButton": "Logging in...",
+    "loginButton": "Login"
+  },
+  "ApiKeyManager": {
+    "generateSuccessToast": "New API key generated. Store it safely!",
+    "generateErrorToast": "Failed to generate API key.",
+    "deleteSuccessToast": "API key deleted.",
+    "deleteErrorToast": "Failed to delete API key.",
+    "unknownError": "An unknown error occurred",
+    "cardDescription": "Manage API keys for external service integration. Only one API key can be generated per system. If you lose your API key, you must generate a new one."
+  },
+  "ApiDocsView": {
+    "title": "API Documentation",
+    "description": "Explore the usage and endpoint information for the Leemage API. Authentication may be required to use the API.",
+    "categoryTitle": "Categories"
+  },
+  "HeroSection": {
+    "mainHeading1": "Upload Everything",
+    "mainHeading2": "on",
+    "startButton": "Get Started Now"
+  },
+  "FeaturesSection": {
+    "item1Title": "Project-Based Management",
+    "item1Description": "Efficiently manage images by grouping them into projects.",
+    "item2Title": "Easy Image Management",
+    "item2Description": "Easily upload, delete, and modify image information through an intuitive interface.",
+    "item3Title": "Image Transformation",
+    "item3Description": "Provides functionality to automatically resize images and convert them to desired formats upon upload.",
+    "item4Title": "Simple Authentication",
+    "item4Description": "Access the system through simple authentication.",
+    "item5Title": "API Support",
+    "item5Description": "Manage images from external projects via API."
+  },
+  "ProjectListHeader": {
+    "title": "Project List",
+    "createButton": "Create New Project"
+  },
+  "ProjectDetailsWidget": {
+    "errorTitle": "Error",
+    "fetchErrorDescription": "An error occurred while fetching project information.",
+    "notFoundTitle": "Not Found",
+    "notFoundDescription": "Project not found.",
+    "uploadImageButton": "Upload Image"
+  },
+  "ImageDetailsWidget": {
+    "noInfoTitle": "No Image Information",
+    "noInfoDescription": "Cannot display image versions."
+  },
+  "Header": {
+    "projectsLink": "Projects",
+    "apiDocsLink": "API Docs",
+    "accountLink": "My Account"
+  },
+  "Footer": {
+    "copyright": "© 2025 Leemage. All rights reserved."
+  },
+  "TransformOptions": {
+    "title": "Transform Options",
+    "sizeLabel": "Size",
+    "formatLabel": "Format",
+    "originalSizeDescription": "Save the original image without processing."
+  },
+  "ApiDocsData": {
+    "categories": {
+      "projects": {
+        "name": "Projects",
+        "description": "Project related API endpoints",
+        "endpoints": {
+          "getProjects": {
+            "description": "Retrieve all projects list.",
+            "responses": {
+              "200": {
+                "description": "Projects list successfully returned.",
+                "example": {
+                  "0": {
+                    "name": "Sample Project",
+                    "description": "This is a sample project."
+                  }
+                }
+              },
+              "401": {
+                "description": "Authentication failed",
+                "example": {
+                  "message": "Authentication failed: Invalid API key"
+                }
+              },
+              "500": {
+                "description": "Server error",
+                "example": {
+                  "message": "An error occurred while retrieving projects list."
+                }
+              }
+            }
+          },
+          "createProject": {
+            "description": "Create a new project.",
+            "requestBody": {
+              "properties": {
+                "name": {
+                  "description": "Project name"
+                },
+                "description": {
+                  "description": "Project description"
+                }
+              }
+            },
+            "responses": {
+              "201": {
+                "description": "Project successfully created.",
+                "example": {
+                  "name": "New Project",
+                  "description": "New project description"
+                }
+              },
+              "400": {
+                "description": "Bad request",
+                "example": {
+                  "message": "Project name is required"
+                }
+              },
+              "401": {
+                "description": "Authentication failed",
+                "example": {
+                  "message": "Authentication failed: Invalid API key"
+                }
+              },
+              "500": {
+                "description": "Server error",
+                "example": {
+                  "message": "An error occurred while creating the project"
+                }
+              }
+            }
+          },
+          "getProjectById": {
+            "description": "Retrieve a specific project by its ID.",
+            "parameters": {
+              "projectId": {
+                "description": "ID of the project to retrieve"
+              }
+            },
+            "responses": {
+              "200": {
+                "description": "Project successfully returned.",
+                "example": {
+                  "name": "Sample Project",
+                  "description": "This is a sample project.",
+                  "images": {
+                    "0": {
+                      "name": "Sample Image"
+                    }
+                  }
+                }
+              },
+              "401": {
+                "description": "Authentication failed",
+                "example": {
+                  "message": "Authentication failed: Invalid API key"
+                }
+              },
+              "404": {
+                "description": "Project not found",
+                "example": {
+                  "message": "Project not found"
+                }
+              },
+              "500": {
+                "description": "Server error",
+                "example": {
+                  "message": "Error fetching project"
+                }
+              }
+            }
+          },
+          "deleteProjectById": {
+            "description": "Delete a specific project by its ID.",
+            "parameters": {
+              "projectId": {
+                "description": "ID of the project to delete"
+              }
+            },
+            "responses": {
+              "200": {
+                "description": "Project successfully deleted.",
+                "example": {
+                  "message": "Project successfully deleted."
+                }
+              },
+              "401": {
+                "description": "Authentication failed",
+                "example": {
+                  "message": "Authentication failed: Invalid API key"
+                }
+              },
+              "404": {
+                "description": "Project not found",
+                "example": {
+                  "message": "Project not found"
+                }
+              },
+              "500": {
+                "description": "Server error",
+                "example": {
+                  "message": "Error deleting project"
+                }
+              }
+            }
+          }
+        }
+      },
+      "images": {
+        "name": "Images",
+        "description": "Image related API endpoints",
+        "endpoints": {
+          "uploadImage": {
+            "description": "Upload a new image to a specific project and save it with specified format/size conversions.",
+            "parameters": {
+              "projectId": {
+                "description": "ID of the project to upload the image to"
+              }
+            },
+            "requestBody": {
+              "properties": {
+                "file": {
+                  "description": "Image file to upload"
+                },
+                "variants": {
+                  "description": "Image version options to create. Each element is of the form '{' \"sizeLabel\": \"original\" | \"300x300\" | \"800x800\" | \"1920x1080\", \"format\": \"png\" | \"jpeg\" | \"avif\" | \"webp\" '}'"
+                },
+                "saveOriginal": {
+                  "description": "\"true\" or \"false\". Whether to save the original image (default: true)"
+                }
+              }
+            },
+            "responses": {
+              "201": {
+                "description": "On success of all version processing"
+              },
+              "207": {
+                "description": "On partial failure of version processing",
+                "example": {
+                  "message": "Partial image conversion processing failure",
+                  "errors": {
+                    "0": {
+                      "error": "An error occurred during image conversion processing."
+                    }
+                  }
+                }
+              },
+              "400": {
+                "description": "Bad request",
+                "example": {
+                  "message": "Required parameters are missing."
+                }
+              },
+              "401": {
+                "description": "Authentication failed",
+                "example": {
+                  "message": "Authentication failed: Invalid API key"
+                }
+              },
+              "404": {
+                "description": "Project not found",
+                "example": {
+                  "message": "Project not found."
+                }
+              },
+              "415": {
+                "description": "Unsupported media type",
+                "example": {
+                  "message": "Content-Type is not multipart/form-data."
+                }
+              },
+              "500": {
+                "description": "Server error",
+                "example": {
+                  "message": "An error occurred while processing the image."
+                }
+              }
+            }
+          },
+          "deleteImage": {
+            "description": "Delete an image with a specific ID and all related version files (including OCI storage).",
+            "parameters": {
+              "projectId": {
+                "description": "ID of the project the image belongs to (for path validation)"
+              },
+              "imageId": {
+                "description": "ID of the image to delete"
+              }
+            },
+            "responses": {
+              "200": {
+                "description": "Image deletion successful",
+                "example": {
+                  "message": "Image deleted successfully"
+                }
+              },
+              "400": {
+                "description": "Bad request",
+                "example": {
+                  "message": "imageId is missing"
+                }
+              },
+              "401": {
+                "description": "Authentication failed",
+                "example": {
+                  "message": "Authentication failed: Invalid API key"
+                }
+              },
+              "404": {
+                "description": "Image not found",
+                "example": {
+                  "message": "Image with the given imageId not found or projectId mismatch."
+                }
+              },
+              "500": {
+                "description": "Server error",
+                "example": {
+                  "message": "An error occurred while deleting the image."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

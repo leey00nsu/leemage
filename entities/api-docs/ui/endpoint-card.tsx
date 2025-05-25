@@ -13,15 +13,18 @@ import { Copy } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 interface EndpointCardProps {
   endpoint: ApiEndpoint;
 }
 
 export function EndpointCard({ endpoint }: EndpointCardProps) {
+  const t = useTranslations("EndpointCard");
+
   function copyToClipboard(text: string) {
     navigator.clipboard.writeText(text);
-    toast.success("클립보드에 복사되었습니다.");
+    toast.success(t("copiedToClipboard"));
   }
 
   return (
@@ -61,22 +64,22 @@ export function EndpointCard({ endpoint }: EndpointCardProps) {
         </div>
         {endpoint.auth && (
           <Badge variant="outline" className="border-amber-500 text-amber-500">
-            인증 필요
+            {t("authRequired")}
           </Badge>
         )}
       </CardHeader>
       <CardContent>
         {endpoint.parameters && endpoint.parameters.length > 0 && (
           <div className="mb-4">
-            <h4 className="text-sm font-semibold mb-2">Parameters</h4>
+            <h4 className="text-sm font-semibold mb-2">{t("parameters")}</h4>
             <div className="bg-muted p-3 rounded-md overflow-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="text-left py-2 pr-4">이름</th>
-                    <th className="text-left py-2 pr-4">타입</th>
-                    <th className="text-left py-2 pr-4">필수</th>
-                    <th className="text-left py-2">설명</th>
+                    <th className="text-left py-2 pr-4">{t("name")}</th>
+                    <th className="text-left py-2 pr-4">{t("type")}</th>
+                    <th className="text-left py-2 pr-4">{t("required")}</th>
+                    <th className="text-left py-2">{t("description")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -85,7 +88,7 @@ export function EndpointCard({ endpoint }: EndpointCardProps) {
                       <td className="py-2 pr-4 font-mono">{param.name}</td>
                       <td className="py-2 pr-4">{param.type}</td>
                       <td className="py-2 pr-4">
-                        {param.required ? "예" : "아니오"}
+                        {param.required ? t("yes") : t("no")}
                       </td>
                       <td className="py-2">{param.description}</td>
                     </tr>
@@ -99,16 +102,16 @@ export function EndpointCard({ endpoint }: EndpointCardProps) {
         {endpoint.requestBody && (
           <div className="mb-4">
             <h4 className="text-sm font-semibold mb-2">
-              Request Body ({endpoint.requestBody.type})
+              {t("requestBody")} ({endpoint.requestBody.type})
             </h4>
             <div className="bg-muted p-3 rounded-md overflow-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="text-left py-2 pr-4">이름</th>
-                    <th className="text-left py-2 pr-4">타입</th>
-                    <th className="text-left py-2 pr-4">필수</th>
-                    <th className="text-left py-2">설명</th>
+                    <th className="text-left py-2 pr-4">{t("name")}</th>
+                    <th className="text-left py-2 pr-4">{t("type")}</th>
+                    <th className="text-left py-2 pr-4">{t("required")}</th>
+                    <th className="text-left py-2">{t("description")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -117,7 +120,7 @@ export function EndpointCard({ endpoint }: EndpointCardProps) {
                       <td className="py-2 pr-4 font-mono">{prop.name}</td>
                       <td className="py-2 pr-4">{prop.type}</td>
                       <td className="py-2 pr-4">
-                        {prop.required ? "예" : "아니오"}
+                        {prop.required ? t("yes") : t("no")}
                       </td>
                       <td className="py-2">{prop.description}</td>
                     </tr>
@@ -129,7 +132,7 @@ export function EndpointCard({ endpoint }: EndpointCardProps) {
         )}
 
         <div>
-          <h4 className="text-sm font-semibold mb-2">응답</h4>
+          <h4 className="text-sm font-semibold mb-2">{t("response")}</h4>
           <Tabs defaultValue={endpoint.responses[0]?.status.toString()}>
             <TabsList className="mb-2">
               {endpoint.responses.map((response) => (
@@ -159,7 +162,7 @@ export function EndpointCard({ endpoint }: EndpointCardProps) {
                     }
                   >
                     <Copy size={14} />
-                    <span className="text-xs">복사</span>
+                    <span className="text-xs">{t("copy")}</span>
                   </Button>
                 </div>
                 <pre className="bg-muted p-3 rounded-md overflow-auto text-xs md:text-sm">

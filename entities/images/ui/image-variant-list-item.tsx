@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useCopyToClipboard } from "@/shared/model/copy-text";
 import { Button } from "@/shared/ui/button";
 import { Check, Copy } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface ImageVariantListItemProps {
   variant: ImageVariantData;
@@ -16,10 +17,11 @@ export function ImageVariantListItem({
   variant,
   isDisplayed,
 }: ImageVariantListItemProps) {
+  const t = useTranslations("ImageVariantListItem");
   const { copied, handleCopy } = useCopyToClipboard({
     text: variant.url,
     onSuccessCallback: () => {
-      toast.success("URL이 클립보드에 복사되었습니다.");
+      toast.success(t("urlCopied"));
     },
   });
 
@@ -51,14 +53,14 @@ export function ImageVariantListItem({
           size="icon"
           className="h-6 w-6 flex-shrink-0" // 버튼 크기 조정
           onClick={handleCopy}
-          title="URL 복사"
+          title={t("copyUrl")}
         >
           {copied ? (
             <Check className="h-3 w-3 text-green-600" />
           ) : (
             <Copy className="h-3 w-3" />
           )}
-          <span className="sr-only">URL 복사</span>
+          <span className="sr-only">{t("copyUrl")}</span>
         </Button>
       </div>
     </li>

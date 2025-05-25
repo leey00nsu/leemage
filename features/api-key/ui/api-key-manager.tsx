@@ -19,9 +19,12 @@ import { ApiKeyStatus } from "@/entities/api-key/ui/api-key-status";
 import { ApiKeyDeleteButton } from "@/entities/api-key/ui/api-key-delete-button";
 import { ApiKeyError } from "@/entities/api-key/ui/api-key-error";
 import { ApiKeyGenerateButton } from "@/entities/api-key/ui/api-key-generate-button";
+import { useTranslations } from "next-intl";
 
 export function ApiKeyManager() {
   const [generatedKey, setGeneratedKey] = useState<string | null>(null);
+  const t = useTranslations("ApiKeyManager");
+  const tSkeleton = useTranslations("ApiKeySkeleton");
 
   // API 키 정보 조회
   const { data: apiKeyInfo, isLoading, error: queryError } = useGetApiKeyInfo();
@@ -34,12 +37,10 @@ export function ApiKeyManager() {
   } = useGenerateApiKey({
     onSuccessCallback: (newKey) => {
       setGeneratedKey(newKey);
-      toast.success("새 API 키가 생성되었습니다. 안전한 곳에 보관하세요!");
+      toast.success(t("generateSuccessToast"));
     },
     onErrorCallback: (err) => {
-      toast.error(
-        err instanceof Error ? err.message : "API 키 생성에 실패했습니다."
-      );
+      toast.error(err instanceof Error ? err.message : t("generateErrorToast"));
     },
   });
 
@@ -51,12 +52,10 @@ export function ApiKeyManager() {
   } = useDeleteApiKey({
     onSuccessCallback: () => {
       setGeneratedKey(null); // 로컬에 저장된 키도 제거
-      toast.success("API 키가 삭제되었습니다.");
+      toast.success(t("deleteSuccessToast"));
     },
     onErrorCallback: (err) => {
-      toast.error(
-        err instanceof Error ? err.message : "API 키 삭제에 실패했습니다."
-      );
+      toast.error(err instanceof Error ? err.message : t("deleteErrorToast"));
     },
   });
 
@@ -69,11 +68,7 @@ export function ApiKeyManager() {
   // 에러 상태 통합 (쿼리, 생성, 삭제 에러 중 하나라도 있으면 표시)
   const error = queryError || generationError || deletionError;
   const errorMessage =
-    error instanceof Error
-      ? error.message
-      : error
-      ? "알 수 없는 오류 발생"
-      : null;
+    error instanceof Error ? error.message : error ? t("unknownError") : null;
 
   if (isLoading) {
     return <ApiKeySkeleton />;
@@ -85,11 +80,8 @@ export function ApiKeyManager() {
   return (
     <Card className="w-full max-w-lg">
       <CardHeader>
-        <CardTitle>API 키 관리</CardTitle>
-        <CardDescription>
-          외부 서비스 연동을 위한 API 키를 관리합니다. API 키는 시스템당 하나만
-          생성 가능합니다. 만약 API 키를 분실하였다면 새로 생성해야 합니다.
-        </CardDescription>
+        <CardTitle>{tSkeleton("title")}</CardTitle>
+        <CardDescription>{t("cardDescription")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <ApiKeyError errorMessage={errorMessage} />

@@ -5,6 +5,7 @@ import { EmptyImageState } from "@/entities/images/ui/empty-image-state";
 import { ImageCard } from "@/entities/images/ui/image-card";
 import { ImageGrid } from "@/entities/images/ui/image-grid";
 import { Image as PrismaImageType } from "@/lib/generated/prisma";
+import { useTranslations } from "next-intl";
 
 type ImageWithVariants = Omit<PrismaImageType, "variants"> & {
   variants: ImageVariantData[];
@@ -15,10 +16,9 @@ interface ImageListProps {
 }
 
 export function ImageList({ images }: ImageListProps) {
+  const t = useTranslations("ImageList");
   if (!images || images.length === 0) {
-    return (
-      <EmptyImageState message="이 프로젝트에는 아직 이미지가 없습니다." />
-    );
+    return <EmptyImageState message={t("noImagesInProject")} />;
   }
 
   return (

@@ -1,8 +1,23 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getSessionFromEdge } from "@/lib/session"; // Edge용 세션 함수 임포트
+import createMiddleware from "next-intl/middleware";
+import { routing } from "@/i18n/routing"; // 수정된 경로
+
+const intlMiddleware = createMiddleware(routing);
 
 export async function middleware(request: NextRequest) {
+  // next-intl 미들웨어 실행
+  const intlResponse = intlMiddleware(request);
+  // next-intl이 리디렉션 또는 응답을 반환하면 그대로 사용
+  if (
+    intlResponse.status === 307 ||
+    intlResponse.status === 308 ||
+    intlResponse.headers.get("x-middleware-rewrite")
+  ) {
+    return intlResponse;
+  }
+
   const { pathname } = request.nextUrl;
 
   // 보호할 경로 목록
@@ -41,14 +56,9 @@ export async function middleware(request: NextRequest) {
 // 미들웨어를 적용할 경로 설정
 export const config = {
   matcher: [
-    /*
-     * 다음의 경로와 일치하는 경우 미들웨어 실행:
-     * - api (API 라우트)
-     * - _next/static (정적 파일)
-     * - _next/image (이미지 최적화 파일)
-     * - favicon.ico (파비콘 파일)
-     * 제외:
-     */
-    "/((?!api|_next/static|_next/image|favicon.ico).*)",
+    // Match all pathnames except for
+    // - … if they start with `/api`, `/trpc`, `/_next` or `/_vercel`
+    // - … the ones containing a dot (e.g. `favicon.ico`)
+    "/((?!api|trpc|_next|_vercel|.*\\..*).*)",
   ],
 };

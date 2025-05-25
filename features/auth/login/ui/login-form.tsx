@@ -15,11 +15,13 @@ import {
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { loginSchema, LoginFormValues } from "../model/schema";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { login } from "../api/login";
+import { useTranslations } from "next-intl";
 
 export function LoginForm() {
   const router = useRouter();
+  const t = useTranslations("LoginForm");
   const {
     register,
     handleSubmit,
@@ -64,15 +66,15 @@ export function LoginForm() {
             <p className="text-sm text-red-500 bg-red-100 p-2 rounded">
               {mutation.error instanceof Error
                 ? mutation.error.message
-                : "로그인 처리 중 오류 발생"}
+                : t("loginError")}
             </p>
           )}
           <div className="grid gap-2">
-            <Label htmlFor="email">이메일</Label>
+            <Label htmlFor="email">{t("emailLabel")}</Label>
             <Input
               id="email"
               type="email"
-              placeholder="root@example.com"
+              placeholder={t("emailPlaceholder")}
               {...register("email")}
               disabled={mutation.isPending}
             />
@@ -83,7 +85,7 @@ export function LoginForm() {
             )}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="password">비밀번호</Label>
+            <Label htmlFor="password">{t("passwordLabel")}</Label>
             <Input
               id="password"
               type="password"
@@ -104,7 +106,7 @@ export function LoginForm() {
             className="w-full"
             disabled={mutation.isPending}
           >
-            {mutation.isPending ? "로그인 중..." : "로그인"}
+            {mutation.isPending ? t("loggingInButton") : t("loginButton")}
           </Button>
         </CardFooter>
       </form>

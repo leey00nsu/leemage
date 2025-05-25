@@ -8,22 +8,22 @@ import { findVariantByLabel } from "@/shared/lib/image-utils";
 import { ImagePreview } from "@/entities/images/ui/image-preview";
 import { ImageInfo } from "@/entities/images/ui/image-info";
 import { DeleteImageDialog } from "@/features/images/delete/ui/delete-image-dialog";
+import { useTranslations } from "next-intl";
 
 export function ImageDetailsWidget({ image }: { image: ImageWithVariants }) {
   const displayVariant =
     findVariantByLabel(image.variants, "original") || image.variants[0];
+  const t = useTranslations("ImageDetailsWidget");
 
   if (!displayVariant) {
     return (
       <Card className="container mx-auto py-8 px-4">
         <CardHeader>
-          <CardTitle>이미지 정보 없음</CardTitle>
+          <CardTitle>{t("noInfoTitle")}</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col items-center justify-center h-64">
           <ImageIcon className="h-16 w-16 text-muted-foreground mb-4" />
-          <p className="text-muted-foreground">
-            이미지 버전을 표시할 수 없습니다.
-          </p>
+          <p className="text-muted-foreground">{t("noInfoDescription")}</p>
         </CardContent>
       </Card>
     );

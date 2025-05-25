@@ -7,6 +7,7 @@ import { ImageVariantList } from "./image-variant-list"; // 경로 수정
 import { useCopyToClipboard } from "@/shared/model/copy-text";
 import { toast } from "sonner";
 import { Button } from "@/shared/ui/button";
+import { useTranslations } from "next-intl";
 
 interface ImageInfoProps {
   image: ImageWithVariants;
@@ -14,33 +15,36 @@ interface ImageInfoProps {
 }
 
 export function ImageInfo({ image, displayVariant }: ImageInfoProps) {
+  const t = useTranslations("ImageInfo");
+  const tListItem = useTranslations("ImageVariantListItem");
+
   const { copied, handleCopy } = useCopyToClipboard({
     text: displayVariant.url,
     onSuccessCallback: () => {
-      toast.success("URL이 클립보드에 복사되었습니다.");
+      toast.success(tListItem("urlCopied"));
     },
   });
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold border-b pb-2">상세 정보</h3>
+      <h3 className="text-lg font-semibold border-b pb-2">{t("details")}</h3>
       <div className="flex items-center text-sm text-muted-foreground">
         <Ruler className="h-4 w-4 mr-2 flex-shrink-0" />
         <span>
-          크기: {displayVariant.width} x {displayVariant.height} px
+          {t("sizeLabel")} {displayVariant.width} x {displayVariant.height} px
         </span>
       </div>
       <div className="flex items-center text-sm text-muted-foreground">
         <FileBox className="h-4 w-4 mr-2 flex-shrink-0" />
         <span>
-          파일: {displayVariant.format.toUpperCase()} (
+          {t("fileLabel")} {displayVariant.format.toUpperCase()} (
           {formatBytes(displayVariant.size)})
         </span>
       </div>
       <div className="flex items-center text-sm text-muted-foreground">
         <Calendar className="h-4 w-4 mr-2 flex-shrink-0" />
         <span>
-          업로드 날짜:{" "}
+          {t("uploadDateLabel")}{" "}
           {format(new Date(image.createdAt), "yyyy년 MM월 dd일 HH:mm", {
             locale: ko,
           })}
@@ -49,7 +53,7 @@ export function ImageInfo({ image, displayVariant }: ImageInfoProps) {
       <div className="flex items-center text-sm text-muted-foreground">
         <Calendar className="h-4 w-4 mr-2 flex-shrink-0" />
         <span>
-          최종 수정 날짜:{" "}
+          {t("lastModifiedDateLabel")}{" "}
           {format(new Date(image.updatedAt), "yyyy년 MM월 dd일 HH:mm", {
             locale: ko,
           })}
@@ -62,7 +66,7 @@ export function ImageInfo({ image, displayVariant }: ImageInfoProps) {
         >
           <p className="text-xs text-muted-foreground break-all">
             <span className="font-medium text-foreground">
-              URL ({displayVariant.label}):
+              {t("urlLabel", { label: displayVariant.label })}
             </span>{" "}
             {displayVariant.url}
           </p>

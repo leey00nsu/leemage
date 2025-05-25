@@ -11,6 +11,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/shared/ui/alert-dialog";
+import { useTranslations } from "next-intl";
 
 interface ApiKeyDeleteButtonProps {
   onDelete: () => void;
@@ -21,6 +22,7 @@ export function ApiKeyDeleteButton({
   onDelete,
   isDeleting,
 }: ApiKeyDeleteButtonProps) {
+  const t = useTranslations("ApiKeyDeleteButton");
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
@@ -30,18 +32,20 @@ export function ApiKeyDeleteButton({
           ) : (
             <Trash2 className="mr-2 h-4 w-4" />
           )}
-          삭제
+          {t("delete")}
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>정말로 삭제하시겠습니까?</AlertDialogTitle>
+          <AlertDialogTitle>{t("confirmTitle")}</AlertDialogTitle>
           <AlertDialogDescription>
-            이 작업은 되돌릴 수 없습니다. API 키가 영구적으로 삭제됩니다.
+            {t("confirmDescription")}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isDeleting}>취소</AlertDialogCancel>
+          <AlertDialogCancel disabled={isDeleting}>
+            {t("cancel")}
+          </AlertDialogCancel>
           <AlertDialogAction
             onClick={onDelete}
             disabled={isDeleting}
@@ -49,10 +53,11 @@ export function ApiKeyDeleteButton({
           >
             {isDeleting ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 삭제 중...
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
+                {t("deleting")}
               </>
             ) : (
-              "삭제 확인"
+              t("confirmDelete")
             )}
           </AlertDialogAction>
         </AlertDialogFooter>

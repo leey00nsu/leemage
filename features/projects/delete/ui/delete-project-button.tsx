@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { Button } from "@/shared/ui/button";
 import {
   AlertDialog,
@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 import { Loader2, Trash2 } from "lucide-react";
 import { useDeleteProject } from "../model/delete";
+import { useTranslations } from "next-intl";
 
 interface DeleteProjectButtonProps {
   projectId: string;
@@ -29,11 +30,12 @@ export function DeleteProjectButton({
 }: DeleteProjectButtonProps) {
   const router = useRouter();
   const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const t = useTranslations("DeleteProjectButton");
 
   const { mutate: deleteProject, isPending: isDeleting } = useDeleteProject({
     onSuccessCallback: () => {
-      toast.success(`프로젝트 '${projectName}' 삭제 성공`, {
-        description: "프로젝트 목록으로 이동합니다.",
+      toast.success(t("deleteSuccessToast", { projectName }), {
+        description: t("redirectToastDescription"),
       });
 
       setIsAlertOpen(false);
@@ -54,19 +56,20 @@ export function DeleteProjectButton({
       <AlertDialogTrigger asChild>
         <Button variant="destructive" size="sm">
           <Trash2 className="mr-2 h-4 w-4" />
-          프로젝트 삭제
+          {t("deleteProjectButton")}
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>정말로 삭제하시겠습니까?</AlertDialogTitle>
+          <AlertDialogTitle>{t("confirmTitle")}</AlertDialogTitle>
           <AlertDialogDescription>
-            {`"${projectName}"`} 프로젝트를 삭제합니다. 이 작업은 되돌릴 수
-            없습니다. 프로젝트에 포함된 모든 이미지 정보도 함께 삭제됩니다.
+            {t("confirmDescription", { projectName })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isDeleting}>취소</AlertDialogCancel>
+          <AlertDialogCancel disabled={isDeleting}>
+            {t("cancel")}
+          </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleDelete}
             disabled={isDeleting}
@@ -75,10 +78,10 @@ export function DeleteProjectButton({
             {isDeleting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                삭제 중...
+                {t("deleting")}
               </>
             ) : (
-              "삭제 확인"
+              t("confirmDelete")
             )}
           </AlertDialogAction>
         </AlertDialogFooter>

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ApiCategory } from "@/entities/api-docs/model/types";
 import { EndpointCard } from "@/entities/api-docs/ui/endpoint-card";
 import { Button } from "@/shared/ui/button";
+import { useTranslations } from "next-intl";
 
 interface ApiDocsViewProps {
   apiDocs: ApiCategory[];
@@ -13,21 +14,19 @@ export function ApiDocsView({ apiDocs }: ApiDocsViewProps) {
   const [activeCategory, setActiveCategory] = useState<string>(
     apiDocs[0]?.name || ""
   );
+  const t = useTranslations("ApiDocsView");
 
   return (
     <div className="container mx-auto p-4 py-8 max-w-6xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">API 문서</h1>
-        <p className="text-muted-foreground">
-          Leemage API의 사용법과 엔드포인트 정보를 확인하세요. API를 사용하려면
-          인증이 필요할 수 있습니다.
-        </p>
+        <h1 className="text-3xl font-bold mb-2">{t("title")}</h1>
+        <p className="text-muted-foreground">{t("description")}</p>
       </div>
 
       <div className="flex flex-col md:flex-row gap-6">
         <aside className="md:w-1/4">
           <div className="sticky top-20">
-            <h2 className="text-lg font-semibold mb-4">카테고리</h2>
+            <h2 className="text-lg font-semibold mb-4">{t("categoryTitle")}</h2>
             <ul className="space-y-1">
               {apiDocs.map((category) => (
                 <li key={category.name}>

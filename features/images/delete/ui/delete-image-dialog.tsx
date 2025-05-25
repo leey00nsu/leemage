@@ -15,8 +15,9 @@ import {
 import { Button } from "@/shared/ui/button";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useDeleteImage } from "../model/delete";
+import { useTranslations } from "next-intl";
 
 interface DeleteImageDialogProps {
   image: ImageWithVariants;
@@ -24,14 +25,15 @@ interface DeleteImageDialogProps {
 
 export function DeleteImageDialog({ image }: DeleteImageDialogProps) {
   const router = useRouter();
+  const t = useTranslations("DeleteImageDialog");
 
   const deleteMutation = useDeleteImage({
     onSuccessCallback: () => {
-      toast.success("이미지가 삭제되었습니다.");
+      toast.success(t("deleteSuccess"));
       router.push(`/projects/${image.projectId}`);
     },
     onErrorCallback: () => {
-      toast.error("이미지 삭제 중 오류가 발생했습니다.");
+      toast.error(t("deleteError"));
     },
   });
 
@@ -48,26 +50,26 @@ export function DeleteImageDialog({ image }: DeleteImageDialogProps) {
           disabled={deleteMutation.isPending}
         >
           <Trash2 className="h-4 w-4" />
-          <span className="sr-only">이미지 삭제</span>
+          <span className="sr-only">{t("deleteImageSr")}</span>
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>정말로 삭제하시겠습니까?</AlertDialogTitle>
+          <AlertDialogTitle>{t("confirmTitle")}</AlertDialogTitle>
           <AlertDialogDescription>
-            이 작업은 되돌릴 수 없습니다. 이미지가 영구적으로 삭제됩니다.
+            {t("confirmDescription")}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={deleteMutation.isPending}>
-            취소
+            {t("cancel")}
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleDelete}
             disabled={deleteMutation.isPending}
             className="bg-destructive text-white hover:bg-destructive/90"
           >
-            {deleteMutation.isPending ? "삭제 중..." : "삭제 확인"}
+            {deleteMutation.isPending ? t("deleting") : t("confirmDelete")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

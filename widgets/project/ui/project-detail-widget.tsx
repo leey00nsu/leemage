@@ -7,6 +7,7 @@ import { Loader2, Upload } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert";
 import { Button } from "@/shared/ui/button";
 import { useGetProjectDetails } from "@/features/projects/details/model/get";
+import { useTranslations } from "next-intl";
 
 interface ProjectDetailsWidgetProps {
   projectId: string;
@@ -14,6 +15,7 @@ interface ProjectDetailsWidgetProps {
 
 export function ProjectDetailsWidget({ projectId }: ProjectDetailsWidgetProps) {
   const { data: project, isLoading, error } = useGetProjectDetails(projectId);
+  const t = useTranslations("ProjectDetailsWidget");
 
   if (isLoading) {
     return (
@@ -26,9 +28,9 @@ export function ProjectDetailsWidget({ projectId }: ProjectDetailsWidgetProps) {
   if (error) {
     return (
       <Alert variant="destructive">
-        <AlertTitle>오류</AlertTitle>
+        <AlertTitle>{t("errorTitle")}</AlertTitle>
         <AlertDescription>
-          {error.message || "프로젝트 정보를 불러오는 중 오류가 발생했습니다."}
+          {error.message || t("fetchErrorDescription")}
         </AlertDescription>
       </Alert>
     );
@@ -37,8 +39,8 @@ export function ProjectDetailsWidget({ projectId }: ProjectDetailsWidgetProps) {
   if (!project) {
     return (
       <Alert>
-        <AlertTitle>정보 없음</AlertTitle>
-        <AlertDescription>프로젝트를 찾을 수 없습니다.</AlertDescription>
+        <AlertTitle>{t("notFoundTitle")}</AlertTitle>
+        <AlertDescription>{t("notFoundDescription")}</AlertDescription>
       </Alert>
     );
   }
@@ -57,7 +59,7 @@ export function ProjectDetailsWidget({ projectId }: ProjectDetailsWidgetProps) {
       <div className="flex justify-start mb-4">
         <ImageUploadDialog projectId={projectId}>
           <Button size="sm">
-            <Upload className="mr-2 h-4 w-4" /> 이미지 업로드
+            <Upload className="mr-2 h-4 w-4" /> {t("uploadImageButton")}
           </Button>
         </ImageUploadDialog>
       </div>

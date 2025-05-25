@@ -24,6 +24,7 @@ import { FileInput } from "@/entities/images/upload/ui/file-input";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ImageUploadFormValues, imageUploadSchema } from "../model/schema";
+import { useTranslations } from "next-intl";
 
 type FormatType = (typeof AVAILABLE_FORMATS)[number];
 type SizeType = (typeof AVAILABLE_SIZES)[number];
@@ -39,6 +40,7 @@ export function ImageUploadDialog({
 }: ImageUploadDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [fileState, setFileState] = useState<File | null>(null);
+  const t = useTranslations("ImageUploadDialog");
 
   // react-hook-form 설정
   const {
@@ -61,7 +63,7 @@ export function ImageUploadDialog({
   // API 요청 훅
   const uploadMutation = useUploadImage(projectId, {
     onSuccessCallback: () => {
-      toast.success(`이미지 "${fileState?.name}" 업로드 성공!`);
+      toast.success(t("uploadSuccess", { fileName: fileState?.name || "" }));
       setIsOpen(false);
       setFileState(null);
     },
@@ -128,7 +130,7 @@ export function ImageUploadDialog({
     const { file, formats, sizes } = data;
 
     if (!file) {
-      toast.warning("업로드할 파일을 선택해주세요.");
+      toast.warning(t("selectFileWarning"));
       return;
     }
 
@@ -171,10 +173,8 @@ export function ImageUploadDialog({
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>새 이미지 업로드</DialogTitle>
-          <DialogDescription>
-            파일을 선택하고 생성할 이미지 버전 옵션을 선택하세요.
-          </DialogDescription>
+          <DialogTitle>{t("title")}</DialogTitle>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="grid gap-4 py-4">
@@ -183,7 +183,7 @@ export function ImageUploadDialog({
               selectedFile={fileState}
               disabled={isSubmitting || uploadMutation.isPending}
               id="image-file"
-              label="파일"
+              label={t("fileInputLabel")}
             />
             {errors.file && (
               <p className="text-sm text-destructive pl-[25%]">
@@ -223,13 +223,13 @@ export function ImageUploadDialog({
                 variant="outline"
                 disabled={isSubmitting || uploadMutation.isPending}
               >
-                취소
+                {t("cancelButton")}
               </Button>
             </DialogClose>
             <Button type="submit" disabled={!isFormValid}>
               {isSubmitting || uploadMutation.isPending
-                ? "업로드 중..."
-                : "업로드"}
+                ? t("uploadingButton")
+                : t("uploadButton")}
             </Button>
           </DialogFooter>
         </form>

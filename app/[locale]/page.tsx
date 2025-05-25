@@ -6,7 +6,6 @@ export default function HomePage() {
     <div className="container mx-auto px-4 py-16 text-center">
       {/* Hero Section */}
       <HeroSection />
-
       {/* Features Section */}
       <FeaturesSection />
     </div>

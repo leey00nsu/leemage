@@ -3,12 +3,14 @@ import { Button } from "@/shared/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert";
 import { Check, Copy, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 interface ApiKeyDisplayProps {
   apiKey: string;
 }
 
 export function ApiKeyDisplay({ apiKey }: ApiKeyDisplayProps) {
+  const t = useTranslations("ApiKeyDisplay");
   const [copied, setCopied] = useState(false);
 
   const handleCopyKey = () => {
@@ -17,11 +19,11 @@ export function ApiKeyDisplay({ apiKey }: ApiKeyDisplayProps) {
       .writeText(apiKey)
       .then(() => {
         setCopied(true);
-        toast.success("API 키가 클립보드에 복사되었습니다.");
+        toast.success(t("keyCopied"));
         setTimeout(() => setCopied(false), 2000);
       })
       .catch(() => {
-        toast.error("클립보드 복사에 실패했습니다.");
+        toast.error(t("copyFailed"));
       });
   };
 
@@ -29,12 +31,11 @@ export function ApiKeyDisplay({ apiKey }: ApiKeyDisplayProps) {
     <Alert variant="default">
       <AlertTitle className="flex items-center">
         <CheckCircle className="h-5 w-5 mr-2 text-green-600 flex-shrink-0" />
-        <AlertTitle className="text-sm">새 API 키 생성됨</AlertTitle>
+        <AlertTitle className="text-sm">{t("newKeyGenerated")}</AlertTitle>
       </AlertTitle>
 
       <AlertDescription className="break-all">
-        다음은 새로 생성된 API 키입니다. 이 키는 다시 표시되지 않으니 반드시
-        안전한 곳에 복사하여 보관하세요.
+        {t("newKeyDescription")}
       </AlertDescription>
 
       <AlertDescription className="p-3 bg-muted rounded-md flex items-center justify-between break-all">
@@ -56,7 +57,7 @@ export function ApiKeyDisplay({ apiKey }: ApiKeyDisplayProps) {
           ) : (
             <Copy className="h-4 w-4" />
           )}
-          <span className="sr-only">복사</span>
+          <span className="sr-only">{t("copy")}</span>
         </Button>
       </AlertDescription>
     </Alert>

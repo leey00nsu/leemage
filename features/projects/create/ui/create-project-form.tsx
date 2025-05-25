@@ -15,12 +15,14 @@ import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { Textarea } from "@/shared/ui/textarea";
 import { createProjectSchema, CreateProjectFormValues } from "../model/schema";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useCreateProject } from "../model/create";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 export function CreateProjectForm() {
   const router = useRouter();
+  const t = useTranslations("CreateProjectForm");
 
   const {
     register,
@@ -40,7 +42,7 @@ export function CreateProjectForm() {
     error: createError,
   } = useCreateProject({
     onSuccessCallback: () => {
-      toast.success("프로젝트가 생성되었습니다.");
+      toast.success(t("createSuccessToast"));
       router.push("/projects");
     },
     onErrorCallback: (error) => {
@@ -55,10 +57,8 @@ export function CreateProjectForm() {
   return (
     <Card className="w-full max-w-2xl">
       <CardHeader>
-        <CardTitle className="text-2xl">새 프로젝트 생성</CardTitle>
-        <CardDescription>
-          새로운 프로젝트의 이름과 설명을 입력하세요.
-        </CardDescription>
+        <CardTitle className="text-2xl">{t("title")}</CardTitle>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit(onSubmit)}>
         <CardContent className="grid gap-6">
@@ -66,14 +66,14 @@ export function CreateProjectForm() {
             <p className="text-sm text-red-500 bg-red-100 p-3 rounded">
               {createError instanceof Error
                 ? createError.message
-                : "알 수 없는 오류가 발생했습니다."}
+                : t("unknownError")}
             </p>
           )}
           <div className="grid gap-2">
-            <Label htmlFor="name">프로젝트 이름</Label>
+            <Label htmlFor="name">{t("nameLabel")}</Label>
             <Input
               id="name"
-              placeholder="예: 내 웹사이트 에셋"
+              placeholder={t("namePlaceholder")}
               {...register("name")}
               disabled={isCreating}
             />
@@ -82,10 +82,10 @@ export function CreateProjectForm() {
             )}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="description">설명 (선택 사항)</Label>
+            <Label htmlFor="description">{t("descriptionLabel")}</Label>
             <Textarea
               id="description"
-              placeholder="프로젝트에 대한 간단한 설명을 입력하세요."
+              placeholder={t("descriptionPlaceholder")}
               {...register("description")}
               className="min-h-[100px]"
               disabled={isCreating}
@@ -104,10 +104,10 @@ export function CreateProjectForm() {
             onClick={() => router.back()}
             disabled={isCreating}
           >
-            취소
+            {t("cancelButton")}
           </Button>
           <Button type="submit" disabled={isCreating}>
-            {isCreating ? "생성 중..." : "프로젝트 생성"}
+            {isCreating ? t("creatingButton") : t("createButton")}
           </Button>
         </CardFooter>
       </form>

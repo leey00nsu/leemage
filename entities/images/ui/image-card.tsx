@@ -4,7 +4,7 @@ import { Card } from "@/shared/ui/card";
 import { Badge } from "@/shared/ui/badge";
 import { ImageIcon, Layers } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 
 export type ImageVariantData = {
   url: string;

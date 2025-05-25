@@ -6,6 +6,7 @@ import {
   AVAILABLE_FORMATS,
   AVAILABLE_SIZES,
 } from "@/shared/config/image-options";
+import { useTranslations } from "next-intl";
 
 export type SizeOption = (typeof AVAILABLE_SIZES)[number];
 export type FormatOption = (typeof AVAILABLE_FORMATS)[number];
@@ -25,12 +26,14 @@ export function TransformOptions({
   onFormatChange,
   disabled = false,
 }: TransformOptionsProps) {
+  const t = useTranslations("TransformOptions");
+
   return (
     <div className="space-y-4 rounded-md border p-4">
-      <h4 className="mb-2 font-medium ">변환 옵션</h4>
+      <h4 className="mb-2 font-medium ">{t("title")}</h4>
 
       <div className="space-y-2">
-        <Label>크기 (Size)</Label>
+        <Label>{t("sizeLabel")}</Label>
         <div className="flex flex-wrap gap-x-4 gap-y-2">
           {AVAILABLE_SIZES.map((size) => (
             <div key={size} className="flex items-center space-x-2">
@@ -48,7 +51,7 @@ export function TransformOptions({
               </label>
               {size === "original" && (
                 <span className="text-xs text-muted-foreground ml-1">
-                  가공 없이 원본 이미지를 그대로 저장합니다
+                  {t("originalSizeDescription")}
                 </span>
               )}
             </div>
@@ -57,7 +60,7 @@ export function TransformOptions({
       </div>
 
       <div className="space-y-2">
-        <Label>포맷 (Format)</Label>
+        <Label>{t("formatLabel")}</Label>
         <div className="flex flex-wrap gap-x-4 gap-y-2">
           {AVAILABLE_FORMATS.map((format) => (
             <div key={format} className="flex items-center space-x-2">

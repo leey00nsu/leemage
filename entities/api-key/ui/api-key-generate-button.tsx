@@ -1,5 +1,6 @@
 import { Button } from "@/shared/ui/button";
 import { KeyRound, Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface ApiKeyGenerateButtonProps {
   onGenerate: () => void;
@@ -10,6 +11,7 @@ export function ApiKeyGenerateButton({
   onGenerate,
   isGenerating,
 }: ApiKeyGenerateButtonProps) {
+  const t = useTranslations("ApiKeyGenerateButton");
   return (
     <Button onClick={onGenerate} disabled={isGenerating}>
       {isGenerating ? (
@@ -17,7 +19,7 @@ export function ApiKeyGenerateButton({
       ) : (
         <KeyRound className="mr-2 h-4 w-4" />
       )}
-      새 API 키 생성
+      {t("generateNewKey")}
     </Button>
   );
 }
