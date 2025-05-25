@@ -10,7 +10,7 @@ export default function ProjectsPage() {
         <h1 className="text-2xl font-semibold">프로젝트 목록</h1>
         {/* TODO: 새 프로젝트 생성 페이지 또는 모달 연결 */}
         <Link href="/projects/new">
-          <Button>
+          <Button size="sm">
             <PlusCircle className="mr-2 h-4 w-4" /> 새 프로젝트 생성
           </Button>
         </Link>
