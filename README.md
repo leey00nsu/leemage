@@ -56,14 +56,14 @@ DATABASE_URL=# 데이터베이스 URL
 OCI_TENANCY_OCID=
 OCI_USER_OCID=
 OCI_FINGERPRINT=
-OCI_PRIVATE_KEY_PATH=
+OCI_PRIVATE_KEY_PATH= # oci private key 경로
 OCI_REGION=
 OCI_NAMESPACE=
 OCI_BUCKET_NAME=
 OCI_OBJECT_STORAGE_HOST=
 
 IRON_SESSION_COOKIE_NAME=
-IRON_SESSION_PASSWORD=
+IRON_SESSION_PASSWORD= # 세션 비밀번호 32자 이상 설정
 ```
 
 ## 설치 및 실행
@@ -78,16 +78,14 @@ npm install
 # 또는
 yarn install
 
-# 환경 변수 설정 (.env.local 파일 생성)
-# OCI 관련 자격 증명 및 설정 추가
-# 데이터베이스 및 인증 관련 설정 추가
+# 환경 변수 설정 (.env 파일 생성)
 
 # 도커 컴포즈로 데이터베이스 실행
 docker compose up -d
-# 개발 서버 실행
-npm run dev
+# 서버 실행
+npm run start
 # 또는
-yarn dev
+yarn start
 ```
 
 ## 향후 계획
