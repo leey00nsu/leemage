@@ -19,10 +19,8 @@ export interface SessionData extends IronSession<SessionPayload> {
 
 // 세션 옵션 설정
 export const sessionOptions = {
-  cookieName: process.env.IRON_SESSION_COOKIE_NAME || "leemage_session",
-  password:
-    process.env.IRON_SESSION_PASSWORD ||
-    "complex_password_at_least_32_characters_long", // 환경 변수 사용 권장
+  cookieName: process.env.IRON_SESSION_COOKIE_NAME!,
+  password: process.env.IRON_SESSION_PASSWORD!,
   cookieOptions: {
     secure: process.env.NODE_ENV === "production",
     httpOnly: true,

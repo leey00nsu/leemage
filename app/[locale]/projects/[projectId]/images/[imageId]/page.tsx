@@ -4,10 +4,10 @@ import { ImageDetailsWidget } from "@/widgets/image/ui/image-detail-widget"; // 
 import { ImageWithVariants } from "@/entities/images/model/types";
 
 interface ImageDetailPageProps {
-  params: {
+  params: Promise<{
     projectId: string; // 프로젝트 ID는 현재 사용하지 않지만, 필요시 활용 가능
     imageId: string;
-  };
+  }>;
 }
 
 export default async function ImageDetailPage({

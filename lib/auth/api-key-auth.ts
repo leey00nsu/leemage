@@ -1,4 +1,4 @@
-import { type NextRequest, type NextFetchEvent } from "next/server";
+import { type NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
@@ -66,34 +66,21 @@ export async function validateApiKey(request: NextRequest): Promise<boolean> {
   }
 }
 
-// event 파라미터의 타입 명시적으로 수정하고 export 추가
-export type ApiHandlerEvent =
-  | NextFetchEvent
-  | { params?: Record<string, string | string[]> };
-
-// 핸들러 함수의 두 번째 인자 타입을 명확히 하기 위한 제네릭 추가
-// Context 타입은 params를 포함하는 객체여야 함
-type ApiRouteHandler<
-  Context extends { params?: Record<string, string | string[]> } = {
-    params?: Record<string, string | string[]>;
-  }
-> = (
-  req: NextRequest,
-  context: Context
-) => Promise<NextResponse> | NextResponse;
-
 /**
  * API 라우트 핸들러를 감싸 API 키 인증을 추가하는 HOF(Higher-Order Function)
+ * Next.js App Router의 타입 시스템과 완전히 호환됩니다.
  * @param handler 보호할 API 라우트 핸들러
  * @returns 인증 로직이 추가된 새로운 핸들러
  */
-export function withApiKeyAuth<
-  Context extends { params?: Record<string, string | string[]> }
->(handler: ApiRouteHandler<Context>) {
+export function withApiKeyAuth<T extends Record<string, string | string[]>>(
+  handler: (
+    req: NextRequest,
+    context: { params: Promise<T> }
+  ) => Promise<NextResponse> | NextResponse
+) {
   return async (
     req: NextRequest,
-    // event 타입을 context로 명명하고, handler가 받는 Context 타입과 일치시킴
-    context: Context // ApiHandlerEvent 대신 Context 사용
+    context: { params: Promise<T> }
   ): Promise<NextResponse> => {
     const isValid = await validateApiKey(req);
     if (!isValid) {
