@@ -179,7 +179,10 @@
     "fetchErrorDescription": "An error occurred while fetching project information.",
     "notFoundTitle": "Not Found",
     "notFoundDescription": "Project not found.",
-    "uploadImageButton": "Upload Image"
+    "uploadImageButton": "Upload Image",
+    "copyId": "Copy Project ID",
+    "idCopied": "Project ID copied to clipboard.",
+    "idLabel": "Project ID:"
   },
   "ImageDetailsWidget": {
     "noInfoTitle": "No Image Information",

@@ -3,11 +3,13 @@
 import { ImageUploadDialog } from "@/features/images/upload/ui/image-upload-dialog";
 import { ImageList } from "@/features/images/list/ui/image-list";
 import { DeleteProjectButton } from "@/features/projects/delete/ui/delete-project-button";
-import { Loader2, Upload } from "lucide-react";
+import { Check, Copy, Loader2, Upload } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert";
 import { Button } from "@/shared/ui/button";
 import { useGetProjectDetails } from "@/features/projects/details/model/get";
 import { useTranslations } from "next-intl";
+import { useCopyToClipboard } from "@/shared/model/copy-text";
+import { toast } from "sonner";
 
 interface ProjectDetailsWidgetProps {
   projectId: string;
@@ -16,6 +18,13 @@ interface ProjectDetailsWidgetProps {
 export function ProjectDetailsWidget({ projectId }: ProjectDetailsWidgetProps) {
   const { data: project, isLoading, error } = useGetProjectDetails(projectId);
   const t = useTranslations("ProjectDetailsWidget");
+
+  const { copied, handleCopy } = useCopyToClipboard({
+    text: project?.id || "",
+    onSuccessCallback: () => {
+      toast.success(t("idCopied"));
+    },
+  });
 
   if (isLoading) {
     return (
@@ -53,6 +62,22 @@ export function ProjectDetailsWidget({ projectId }: ProjectDetailsWidgetProps) {
           projectId={project.id}
           projectName={project.name}
         />
+      </div>
+      <div
+        onClick={handleCopy}
+        className="inline-flex items-center gap-2 cursor-pointer"
+      >
+        <span className="text-xs text-muted-foreground break-all ">
+          <span className="font-medium text-foreground">{t("idLabel")}</span>{" "}
+          {project.id}
+        </span>
+        <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0">
+          {copied ? (
+            <Check className="h-3 w-3 text-green-600" />
+          ) : (
+            <Copy className="h-3 w-3" />
+          )}
+        </Button>
       </div>
       <p className="text-muted-foreground mb-6">{project.description}</p>
 
