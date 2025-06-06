@@ -2,8 +2,7 @@ import { type NextRequest, type NextFetchEvent } from "next/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-
-const API_KEY_PREFIX = "lmk_"; // actions.ts와 동일한 접두사 사용
+import { API_KEY_PREFIX } from "@/shared/config/api-key";
 
 /**
  * API 요청 헤더에서 API 키를 추출하고 유효성을 검증합니다.
