@@ -45,7 +45,8 @@
   "AccountCard": {
     "title": "My Account",
     "description": "Information for the currently logged in user.",
-    "usernameLabel": "Username:"
+    "usernameLabel": "Username:",
+    "noUsername": "No user information"
   },
   "ApiKeyStatus": {
     "apiKeySet": "API Key is set",

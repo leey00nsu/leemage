@@ -9,24 +9,34 @@ const intlMiddleware = createMiddleware(routing);
 export async function middleware(request: NextRequest) {
   // next-intl 미들웨어 실행
   const intlResponse = intlMiddleware(request);
-  // next-intl이 리디렉션 또는 응답을 반환하면 그대로 사용
-  if (
-    intlResponse.status === 307 ||
-    intlResponse.status === 308 ||
-    intlResponse.headers.get("x-middleware-rewrite")
-  ) {
+
+  // next-intl이 실제 리디렉션을 수행하는 경우에만 early return
+  if (intlResponse.status === 307 || intlResponse.status === 308) {
     return intlResponse;
   }
 
   const { pathname } = request.nextUrl;
 
-  // 보호할 경로 목록
+  // locale prefix 제거하여 실제 경로 추출
+  const locales = routing.locales;
+  let pathWithoutLocale = pathname;
+  let currentLocale = routing.defaultLocale;
+
+  for (const locale of locales) {
+    if (pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`) {
+      pathWithoutLocale = pathname.slice(locale.length + 1) || "/";
+      currentLocale = locale;
+      break;
+    }
+  }
+
+  // 보호할 경로 목록 (locale 없는 경로)
   const protectedRoutes = ["/projects", "/account"];
   const isProtectedRoute = protectedRoutes.some((route) =>
-    pathname.startsWith(route)
+    pathWithoutLocale.startsWith(route)
   );
 
-  // 로그인 페이지 경로
+  // 로그인 페이지 경로 (locale 없는 경로)
   const loginPath = "/auth/login";
 
   // 세션 가져오기
@@ -37,20 +47,22 @@ export async function middleware(request: NextRequest) {
 
   // 1. 로그인 안 된 사용자가 보호된 경로 접근 시
   if (!isLoggedIn && isProtectedRoute) {
-    // 로그인 페이지로 리디렉션 (원래 요청 경로는 쿼리 파라미터로 전달)
-    const redirectUrl = new URL(loginPath, request.url);
+    // 현재 locale을 포함한 로그인 페이지로 리디렉션
+    const redirectUrl = new URL(`/${currentLocale}${loginPath}`, request.url);
     redirectUrl.searchParams.set("redirectedFrom", pathname);
     return NextResponse.redirect(redirectUrl);
   }
 
   // 2. 로그인 된 사용자가 로그인 페이지 접근 시
-  if (isLoggedIn && pathname === loginPath) {
-    // 프로젝트로 리디렉션
-    return NextResponse.redirect(new URL("/projects", request.url));
+  if (isLoggedIn && pathWithoutLocale === loginPath) {
+    // 현재 locale을 포함한 프로젝트 페이지로 리디렉션
+    return NextResponse.redirect(
+      new URL(`/${currentLocale}/projects`, request.url)
+    );
   }
 
-  // 그 외의 경우 요청 계속 진행
-  return NextResponse.next();
+  // 그 외의 경우 next-intl의 rewrite를 유지하면서 요청 계속 진행
+  return intlResponse;
 }
 
 // 미들웨어를 적용할 경로 설정

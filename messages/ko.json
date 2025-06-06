@@ -45,7 +45,8 @@
   "AccountCard": {
     "title": "내 정보",
     "description": "현재 로그인된 사용자 정보입니다.",
-    "usernameLabel": "사용자 이름:"
+    "usernameLabel": "사용자 이름:",
+    "noUsername": "사용자 정보 없음"
   },
   "ApiKeyStatus": {
     "apiKeySet": "API 키가 설정되어 있습니다",

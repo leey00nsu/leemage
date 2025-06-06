@@ -11,7 +11,7 @@ import { LogoutButton } from "@/features/auth/logout/ui/logout-button";
 import { useTranslations } from "next-intl";
 
 interface AccountCardProps {
-  username: string;
+  username?: string;
 }
 
 export function AccountCard({ username }: AccountCardProps) {
@@ -28,7 +28,7 @@ export function AccountCard({ username }: AccountCardProps) {
             <span className="font-medium text-muted-foreground">
               {t("usernameLabel")}
             </span>
-            {username}
+            {username || t("noUsername")}
           </p>
         </div>
         <LogoutButton />
