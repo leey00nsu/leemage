@@ -1,13 +1,12 @@
 import { ImageVariantData, ImageWithVariants } from "../model/types"; // 경로 수정
 import { formatBytes } from "@/shared/lib/image-utils"; // 경로 수정
-import { format } from "date-fns";
-import { ko } from "date-fns/locale";
 import { Ruler, FileBox, Calendar, Check, Copy } from "lucide-react";
 import { ImageVariantList } from "./image-variant-list"; // 경로 수정
 import { useCopyToClipboard } from "@/shared/model/copy-text";
 import { toast } from "sonner";
 import { Button } from "@/shared/ui/button";
 import { useTranslations } from "next-intl";
+import { FormattedDate } from "@/shared/ui/formatted-date";
 
 interface ImageInfoProps {
   image: ImageWithVariants;
@@ -45,18 +44,14 @@ export function ImageInfo({ image, displayVariant }: ImageInfoProps) {
         <Calendar className="h-4 w-4 mr-2 flex-shrink-0" />
         <span>
           {t("uploadDateLabel")}{" "}
-          {format(new Date(image.createdAt), "yyyy년 MM월 dd일 HH:mm", {
-            locale: ko,
-          })}
+          <FormattedDate date={new Date(image.createdAt)} />
         </span>
       </div>
       <div className="flex items-center text-sm text-muted-foreground">
         <Calendar className="h-4 w-4 mr-2 flex-shrink-0" />
         <span>
           {t("lastModifiedDateLabel")}{" "}
-          {format(new Date(image.updatedAt), "yyyy년 MM월 dd일 HH:mm", {
-            locale: ko,
-          })}
+          <FormattedDate date={new Date(image.updatedAt)} />
         </span>
       </div>
       <div className="mt-4 pt-4 border-t">
