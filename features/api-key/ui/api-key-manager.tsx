@@ -5,7 +5,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/shared/ui/card";
@@ -100,15 +99,13 @@ export function ApiKeyManager() {
         {!apiKeyPrefix && !generatedKey && (
           <ApiKeyStatus hasApiKey={hasApiKey} apiKeyPrefix={apiKeyPrefix} />
         )}
-      </CardContent>
-      {!apiKeyPrefix && !generatedKey && (
-        <CardFooter>
+        {!apiKeyPrefix && !generatedKey && (
           <ApiKeyGenerateButton
             onGenerate={handleGenerateKey}
             isGenerating={isGenerating}
           />
-        </CardFooter>
-      )}
+        )}
+      </CardContent>
     </Card>
   );
 }
