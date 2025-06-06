@@ -17,7 +17,7 @@
     "noDescription": "No description provided."
   },
   "EmptyProjectState": {
-    "defaultMessage": "No projects created yet.\\nClick the 'Create New Project' button to get started."
+    "defaultMessage": "No projects created yet.\nClick the 'Create New Project' button to get started."
   },
   "ProjectError": {
     "defaultError": "Unknown error",
