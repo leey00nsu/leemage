@@ -9,6 +9,7 @@ import { ImagePreview } from "@/entities/images/ui/image-preview";
 import { ImageInfo } from "@/entities/images/ui/image-info";
 import { DeleteImageDialog } from "@/features/images/delete/ui/delete-image-dialog";
 import { useTranslations } from "next-intl";
+import { ImageVariantList } from "@/entities/images/ui/image-variant-list";
 
 export function ImageDetailsWidget({ image }: { image: ImageWithVariants }) {
   const displayVariant =
@@ -43,9 +44,17 @@ export function ImageDetailsWidget({ image }: { image: ImageWithVariants }) {
           </div>
           <DeleteImageDialog image={image} />
         </CardHeader>
-        <CardContent className="grid md:grid-cols-2 gap-8">
-          <ImagePreview variant={displayVariant} altText={image.name} />
-          <ImageInfo image={image} displayVariant={displayVariant} />
+        <CardContent className="space-y-8">
+          <div className="grid md:grid-cols-2 gap-8">
+            <ImagePreview variant={displayVariant} altText={image.name} />
+            <div className="space-y-4">
+              <ImageInfo image={image} displayVariant={displayVariant} />
+              <ImageVariantList
+                variants={image.variants}
+                displayVariantLabel={displayVariant.label}
+              />
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -1,7 +1,6 @@
 import { ImageVariantData, ImageWithVariants } from "../model/types"; // 경로 수정
 import { formatBytes } from "@/shared/lib/image-utils"; // 경로 수정
 import { Ruler, FileBox, Calendar, Check, Copy } from "lucide-react";
-import { ImageVariantList } from "./image-variant-list"; // 경로 수정
 import { useCopyToClipboard } from "@/shared/model/copy-text";
 import { toast } from "sonner";
 import { Button } from "@/shared/ui/button";
@@ -74,12 +73,6 @@ export function ImageInfo({ image, displayVariant }: ImageInfoProps) {
           </Button>
         </div>
       </div>
-
-      {/* 저장된 버전 목록 컴포넌트 사용 */}
-      <ImageVariantList
-        variants={image.variants}
-        displayVariantLabel={displayVariant.label}
-      />
     </div>
   );
 }
