@@ -102,7 +102,7 @@
     "confirmDelete": "Confirm Delete"
   },
   "DeleteProjectButton": {
-    "deleteSuccessToast": "Project '{projectName}' deleted successfully",
+    "deleteSuccessToast": "Project \"{projectName}\" deleted successfully",
     "redirectToastDescription": "Redirecting to project list.",
     "deleteProjectButton": "Delete Project",
     "confirmTitle": "Are you sure you want to delete?",

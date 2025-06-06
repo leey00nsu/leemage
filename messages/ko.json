@@ -102,7 +102,7 @@
     "confirmDelete": "삭제 확인"
   },
   "DeleteProjectButton": {
-    "deleteSuccessToast": "프로젝트 '{projectName}' 삭제 성공",
+    "deleteSuccessToast": "프로젝트 \"{projectName}\" 삭제 성공",
     "redirectToastDescription": "프로젝트 목록으로 이동합니다.",
     "deleteProjectButton": "프로젝트 삭제",
     "confirmTitle": "정말로 삭제하시겠습니까?",
