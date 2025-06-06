@@ -2,92 +2,137 @@ import * as common from "oci-common";
 import * as os from "oci-objectstorage";
 import fs from "fs";
 
-// 환경 변수 로드 (서버 환경에서만 실행되도록 주의)
-const tenancyId = process.env.OCI_TENANCY_OCID;
-const userId = process.env.OCI_USER_OCID;
-const fingerprint = process.env.OCI_FINGERPRINT;
-const privateKeyPath = process.env.OCI_PRIVATE_KEY_PATH;
-const regionId = process.env.OCI_REGION;
-const namespaceName = process.env.OCI_NAMESPACE;
+// OCI 설정을 동적으로 로드하는 함수
+function getOCIConfig() {
+  const tenancyId = process.env.OCI_TENANCY_OCID;
+  const userId = process.env.OCI_USER_OCID;
+  const fingerprint = process.env.OCI_FINGERPRINT;
+  const privateKeyPath = process.env.OCI_PRIVATE_KEY_PATH;
+  const regionId = process.env.OCI_REGION;
+  const namespaceName = process.env.OCI_NAMESPACE;
+  const bucketName = process.env.OCI_BUCKET_NAME;
+
+  let privateKey: string | undefined;
+  if (privateKeyPath && fs.existsSync(privateKeyPath)) {
+    privateKey = fs.readFileSync(privateKeyPath, "utf8");
+  } else if (process.env.OCI_PRIVATE_KEY_CONTENT) {
+    // 환경 변수에 직접 키 내용을 넣는 경우 (권장하지 않음)
+    privateKey = process.env.OCI_PRIVATE_KEY_CONTENT.replace(/\\n/g, "\n");
+  } else {
+    console.warn(
+      "OCI private key path not found or invalid, or OCI_PRIVATE_KEY_CONTENT not set. OCI functionality might be disabled."
+    );
+  }
+
+  // 모든 필수 환경 변수가 설정되었는지 확인 (네임스페이스, 버킷 이름 포함)
+  if (
+    !tenancyId ||
+    !userId ||
+    !fingerprint ||
+    !privateKey ||
+    !regionId ||
+    !namespaceName ||
+    !bucketName
+  ) {
+    console.error(
+      "Error: Missing required OCI environment variables. Check OCI_TENANCY_OCID, OCI_USER_OCID, OCI_FINGERPRINT, OCI_PRIVATE_KEY_PATH/CONTENT, OCI_REGION, OCI_NAMESPACE, OCI_BUCKET_NAME."
+    );
+  }
+
+  return {
+    tenancyId,
+    userId,
+    fingerprint,
+    privateKey,
+    regionId,
+    namespaceName,
+    bucketName,
+  };
+}
+
+// 캐시된 클라이언트 및 설정
+let cachedClient: os.ObjectStorageClient | null = null;
+let cachedConfig: ReturnType<typeof getOCIConfig> | null = null;
+
+// OCI 클라이언트를 lazy하게 생성
+function getOCIClient() {
+  if (!cachedClient || !cachedConfig) {
+    cachedConfig = getOCIConfig();
+
+    if (
+      cachedConfig.tenancyId &&
+      cachedConfig.userId &&
+      cachedConfig.fingerprint &&
+      cachedConfig.privateKey &&
+      cachedConfig.regionId &&
+      cachedConfig.namespaceName &&
+      cachedConfig.bucketName
+    ) {
+      const provider = new common.SimpleAuthenticationDetailsProvider(
+        cachedConfig.tenancyId,
+        cachedConfig.userId,
+        cachedConfig.fingerprint,
+        cachedConfig.privateKey,
+        null,
+        common.Region.fromRegionId(cachedConfig.regionId)
+      );
+
+      cachedClient = new os.ObjectStorageClient({
+        authenticationDetailsProvider: provider,
+      });
+    } else {
+      cachedClient = null;
+    }
+  }
+
+  return { client: cachedClient, config: cachedConfig };
+}
+
+// Export된 값들을 동적으로 가져오는 함수들
+export function getBucketName(): string | undefined {
+  const { config } = getOCIClient();
+  return config?.bucketName;
+}
+
+export function getOCINamespace(): string | undefined {
+  const { config } = getOCIClient();
+  return config?.namespaceName;
+}
+
+// 기존 코드와의 호환성을 위해 클라이언트를 export하는 함수
+export function getObjectStorageClient(): os.ObjectStorageClient | null {
+  const { client } = getOCIClient();
+  return client;
+}
+
+// 호환성을 위한 export (동적으로 평가됨)
 export const bucketName = process.env.OCI_BUCKET_NAME;
-
-let privateKey: string | undefined;
-if (privateKeyPath && fs.existsSync(privateKeyPath)) {
-  privateKey = fs.readFileSync(privateKeyPath, "utf8");
-} else if (process.env.OCI_PRIVATE_KEY_CONTENT) {
-  // 환경 변수에 직접 키 내용을 넣는 경우 (권장하지 않음)
-  privateKey = process.env.OCI_PRIVATE_KEY_CONTENT.replace(/\\n/g, "\n");
-} else {
-  console.warn(
-    "OCI private key path not found or invalid, or OCI_PRIVATE_KEY_CONTENT not set. OCI functionality might be disabled."
-  );
-}
-
-// 모든 필수 환경 변수가 설정되었는지 확인 (네임스페이스, 버킷 이름 포함)
-if (
-  !tenancyId ||
-  !userId ||
-  !fingerprint ||
-  !privateKey ||
-  !regionId ||
-  !namespaceName ||
-  !bucketName
-) {
-  console.error(
-    "Error: Missing required OCI environment variables. Check OCI_TENANCY_OCID, OCI_USER_OCID, OCI_FINGERPRINT, OCI_PRIVATE_KEY_PATH/CONTENT, OCI_REGION, OCI_NAMESPACE, OCI_BUCKET_NAME."
-  );
-}
-
-// OCI 인증 공급자 생성 (SimpleAuthenticationDetailsProvider 사용)
-const provider: common.SimpleAuthenticationDetailsProvider =
-  new common.SimpleAuthenticationDetailsProvider(
-    tenancyId || "",
-    userId || "",
-    fingerprint || "",
-    privateKey || "", // privateKey 내용 전달
-    null, // passPhrase - 필요 시 설정 (현재 null)
-    common.Region.fromRegionId(regionId || "")
-  );
-
-// OCI Object Storage 클라이언트 생성
-// 필요한 모든 변수가 있을 때만 클라이언트 생성
-export const objectStorageClient =
-  tenancyId &&
-  userId &&
-  fingerprint &&
-  privateKey &&
-  regionId &&
-  namespaceName &&
-  bucketName
-    ? new os.ObjectStorageClient({ authenticationDetailsProvider: provider })
-    : null;
-
-// 네임스페이스와 버킷 이름도 내보내기
-export const ociNamespace = namespaceName;
-export const ociBucketName = bucketName; // bucketName도 명시적으로 내보내기
-
-// 필요에 따라 다른 OCI 클라이언트 (예: Image Analysis)도 여기에 추가 가능
+export const ociNamespace = process.env.OCI_NAMESPACE;
+export const ociBucketName = process.env.OCI_BUCKET_NAME;
+export const objectStorageClient = getObjectStorageClient();
 
 // 추가: OCI 객체 삭제 함수
 export async function deleteObject(objectName: string): Promise<void> {
-  if (!objectStorageClient || !ociNamespace || !ociBucketName) {
+  const { client, config } = getOCIClient();
+
+  if (!client || !config?.namespaceName || !config?.bucketName) {
     throw new Error(
       "OCI 클라이언트 또는 필수 정보(네임스페이스, 버킷 이름)가 초기화되지 않았습니다."
     );
   }
 
   console.log(
-    `Attempting to delete OCI object: ${objectName} from bucket: ${ociBucketName}`
+    `Attempting to delete OCI object: ${objectName} from bucket: ${config.bucketName}`
   );
 
   try {
     const deleteObjectRequest: os.requests.DeleteObjectRequest = {
-      namespaceName: ociNamespace,
-      bucketName: ociBucketName,
+      namespaceName: config.namespaceName,
+      bucketName: config.bucketName,
       objectName: objectName,
     };
 
-    await objectStorageClient.deleteObject(deleteObjectRequest);
+    await client.deleteObject(deleteObjectRequest);
     console.log(`Successfully deleted OCI object: ${objectName}`);
   } catch (error) {
     console.error(`Error deleting OCI object ${objectName}:`, error);
@@ -108,31 +153,38 @@ export async function uploadObject(
   fileBuffer: Buffer,
   contentType: string
 ): Promise<string> {
-  if (!objectStorageClient || !ociNamespace || !ociBucketName || !regionId) {
+  const { client, config } = getOCIClient();
+
+  if (
+    !client ||
+    !config?.namespaceName ||
+    !config?.bucketName ||
+    !config?.regionId
+  ) {
     throw new Error(
       "OCI 클라이언트 또는 필수 정보(네임스페이스, 버킷 이름, 리전)가 초기화되지 않았습니다."
     );
   }
 
   console.log(
-    `Attempting to upload OCI object: ${objectName} to bucket: ${ociBucketName}`
+    `Attempting to upload OCI object: ${objectName} to bucket: ${config.bucketName}`
   );
 
   try {
     const putObjectRequest: os.requests.PutObjectRequest = {
-      namespaceName: ociNamespace,
-      bucketName: ociBucketName,
+      namespaceName: config.namespaceName,
+      bucketName: config.bucketName,
       objectName: objectName,
       putObjectBody: fileBuffer, // 파일 버퍼 직접 전달
       contentType: contentType,
       contentLength: fileBuffer.length,
     };
 
-    await objectStorageClient.putObject(putObjectRequest);
+    await client.putObject(putObjectRequest);
     console.log(`Successfully uploaded OCI object: ${objectName}`);
 
     // 업로드 성공 후 객체 URL 생성 (실제 OCI URL 형식에 맞게 조정 필요)
-    const objectUrl = `https://objectstorage.${regionId}.oraclecloud.com/n/${ociNamespace}/b/${ociBucketName}/o/${objectName}`;
+    const objectUrl = `https://objectstorage.${config.regionId}.oraclecloud.com/n/${config.namespaceName}/b/${config.bucketName}/o/${objectName}`;
     return objectUrl;
   } catch (error) {
     console.error(`Error uploading OCI object ${objectName}:`, error);
