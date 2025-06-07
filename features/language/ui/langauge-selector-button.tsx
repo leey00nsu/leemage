@@ -5,7 +5,7 @@ import { Check, ChevronsUpDown, Globe } from "lucide-react";
 import { useLocale } from "next-intl";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
 import {
   Command,
