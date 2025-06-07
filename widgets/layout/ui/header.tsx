@@ -6,7 +6,7 @@ export function Header() {
   const t = useTranslations("Header");
 
   return (
-    <header className="p-4 border-b sticky top-0 bg-background z-10 h-var(--header-height)">
+    <header className="p-4 border-b sticky top-0 bg-background z-40 h-var(--header-height)">
       <div className="container mx-auto flex items-center justify-between">
         <Link href="/" className="text-xl font-semibold">
           Leemage
