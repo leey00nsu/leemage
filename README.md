@@ -19,6 +19,18 @@
   <a href="https://leemage.leey00nsu.com">데모</a>
 </p>
 
+<p align="center">
+  <img src="public/sample_1.png" alt="Leemage Screenshot 1" width="800" />
+</p>
+
+<p align="center">
+  <img src="public/sample_2.png" alt="Leemage Screenshot 2" width="800" />
+</p>
+
+<p align="center">
+  <img src="public/sample_3.png" alt="Leemage Screenshot 3" width="800" />
+</p>
+
 ---
 
 ## 목차
