@@ -1,72 +1,149 @@
-# Leemage
+![Leemage Logo](public/logo.webp)
+
+<h1 align="center">
+  <strong>Leemage</strong>
+</h1>
+
+<p align="center">
+  <strong>Oracle Cloud Infrastructure를 활용한 이미지 관리 플랫폼</strong>
+</p>
+
+<p align="center">
+  <a href="#시작하기">시작하기</a> •
+  <a href="#주요-기능">주요 기능</a> •
+  <a href="#api-문서">API 문서</a> •
+  <a href="#기여하기">기여하기</a>
+</p>
+
+<p align="center">
+  <a href="https://leemage.leey00nsu.com">데모</a>
+</p>
+
+---
+
+## 목차
+
+- [목차](#목차)
+- [프로젝트 개요](#프로젝트-개요)
+- [주요 기능](#주요-기능)
+  - [🔐 사용자 관리](#-사용자-관리)
+  - [📁 프로젝트 관리](#-프로젝트-관리)
+  - [🖼️ 이미지 관리](#️-이미지-관리)
+  - [🔗 API 통합](#-api-통합)
+  - [🌐 국제화 (i18n)](#-국제화-i18n)
+- [기술 스택](#기술-스택)
+  - [Frontend](#frontend)
+  - [Backend](#backend)
+  - [DevOps](#devops)
+- [프로젝트 구조](#프로젝트-구조)
+  - [주요 레이어](#주요-레이어)
+  - [의존성 규칙](#의존성-규칙)
+- [시작하기](#시작하기)
+  - [사전 요구사항](#사전-요구사항)
+  - [설치](#설치)
+  - [환경 설정](#환경-설정)
+  - [실행](#실행)
+- [API 문서](#api-문서)
+  - [인증](#인증)
+- [폴더 구조](#폴더-구조)
+- [개발 가이드](#개발-가이드)
+  - [코딩 규칙](#코딩-규칙)
+- [문제 해결](#문제-해결)
+  - [일반적인 문제](#일반적인-문제)
+- [기여하기](#기여하기)
+  - [기여 방법](#기여-방법)
+  - [개발 환경 설정](#개발-환경-설정)
+  - [커밋 규칙](#커밋-규칙)
+- [향후 계획](#향후-계획)
+- [라이선스](#라이선스)
 
 ## 프로젝트 개요
 
-Oracle Cloud Infrastructure (OCI) Object Storage를 활용하여 Cloudinary와 유사한 이미지 관리 및 제공 서비스를 구축합니다. Next.js, Tailwind CSS, Shadcn/ui를 사용하여 사용자 친화적인 인터페이스를 제공하고, 프로젝트별로 이미지를 효율적으로 관리하는 것을 목표로 합니다.
+**Leemage**는 Oracle Cloud Infrastructure (OCI) Object Storage를 활용하여 구축된 이미지 관리 플랫폼입니다. Cloudinary와 유사한 기능을 제공하며, 프로젝트 단위로 이미지를 효율적으로 관리할 수 있습니다.
 
-## 기술 스택
-
-- **프레임워크:** Next.js
-- **UI:** Tailwind CSS, Shadcn/ui
-- **스토리지:** Oracle Cloud Infrastructure (OCI) Object Storage
-- **인증:** iron-session(환경변수 기반 인증방식)
-- **데이터베이스:** PostgreSQL
+Next.js와 최신 웹 기술을 사용하여 직관적이고 반응형 사용자 인터페이스를 제공하며, 개발자 친화적인 API를 통해 외부 서비스와 쉽게 통합할 수 있습니다.
 
 ## 주요 기능
 
-- **사용자 인증:** 안전한 로그인 기능 제공
-- **프로젝트 관리:** 프로젝트 단위로 이미지 그룹화 및 관리
-- **이미지 관리:**
-  - 이미지 업로드 (OCI Object Storage 연동)
-  - 이미지 삭제 (OCI Object Storage 연동)
-  - 이미지 정보 수정 (예: 태그, 설명 등)
-- **이미지 변환:** 업로드 시 리사이징, 포맷 변경 등 자동 변환 기능 제공
-- **이미지 제공:** OCI Object Storage에 저장된 이미지를 효율적으로 제공
-- **API 엔드포인트:** 외부 서비스 연동을 위한 API 제공
+### 🔐 사용자 관리
 
-## 프로젝트 구조 (Feature-Sliced Design 기반)
+- **안전한 인증**: iron-session 기반 세션 관리
+- **환경변수 기반 인증**: 간편한 루트 계정 설정
 
-이 프로젝트는 Feature-Sliced Design (FSD) 아키텍처 패턴을 따릅니다. FSD는 확장 가능하고 유지보수하기 쉬운 프론트엔드 애플리케이션을 구축하기 위한 구조적 방법론입니다.
+### 📁 프로젝트 관리
 
-주요 레이어는 다음과 같습니다:
+- **프로젝트 단위 관리**: 이미지를 프로젝트별로 체계적으로 구성
+- **권한 관리**: 프로젝트별 접근 권한 제어
 
-- **`/app`**: Next.js App Router의 핵심 디렉토리입니다. 페이지 라우팅, 레이아웃, 로딩 UI 등 애플리케이션 레벨의 설정과 진입점을 관리합니다.
-- **`/widgets`**: 여러 기능(features)이나 엔티티(entities)를 조합하여 구성된 독립적인 UI 블록입니다. 예: 헤더, 푸터, 사이드바, 카드 목록 등.
-- **`/features`**: 특정 사용자 시나리오나 유스케이스를 나타내는 기능 단위입니다. 여러 엔티티와 UI 컴포넌트를 포함할 수 있습니다. 예: 사용자 인증, 이미지 업로드, 프로젝트 생성 등.
-- **`/entities`**: 핵심 비즈니스 도메인 객체를 나타냅니다. 재사용 가능한 데이터 모델과 관련 UI 컴포넌트(예: User 카드, Project 정보 표시)를 포함합니다.
-- **`/shared`**: 모든 레이어에서 사용될 수 있는 재사용 가능한 코드(UI 컴포넌트, 유틸리티 함수, 설정 등)를 포함합니다. 다른 레이어에 대한 의존성이 없습니다. 예: 버튼, 입력 필드, 로고, 타입 정의, 공통 훅 등.
+### 🖼️ 이미지 관리
 
-FSD는 계층 간 의존성 규칙(상위 레이어는 하위 레이어에 의존 가능, 하위 레이어는 상위 레이어에 의존 불가)을 통해 코드의 결합도를 낮추고 재사용성을 높입니다.
-트리쉐이킹 문제로 인해 배럴 파일을 사용하지 않습니다.
+- **업로드**: 간편한 이미지 업로드
+- **자동 변환**: 업로드 시 리사이징, 포맷 변경 등 자동 처리
+- **메타데이터 관리**: 태그, 설명, 카테고리 등 상세 정보 관리
 
-## 환경변수
+### 🔗 API 통합
 
-```
-# Local Environment Variables
+- **RESTful API**: 외부 서비스 연동을 위한 완전한 API 제공
+- **API 키 관리**: 안전한 API 키 기반 인증
 
-# Root User Credentials
-ROOT_USER_EMAIL= #루트 계정 이메일
-ROOT_USER_PASSWORD= #루트 계정 비밀번호
+### 🌐 국제화 (i18n)
 
-# PostgreSQL Database Credentials (for Docker Compose and Prisma)
-POSTGRES_PASSWORD= # Docker Compose에서 사용할 비밀번호
-DATABASE_URL=# 데이터베이스 URL
+- **다국어 지원**: next-intl을 활용한 다국어 지원
+- **지원 언어**: 한국어 (ko), 영어 (en)
 
-# OCI Object Storage Credentials (Placeholder - Add your actual credentials)
-OCI_TENANCY_OCID=
-OCI_USER_OCID=
-OCI_FINGERPRINT=
-OCI_PRIVATE_KEY_PATH= # oci private key 경로
-OCI_REGION=
-OCI_NAMESPACE=
-OCI_BUCKET_NAME=
-OCI_OBJECT_STORAGE_HOST=
+## 기술 스택
 
-IRON_SESSION_COOKIE_NAME=
-IRON_SESSION_PASSWORD= # 세션 비밀번호 32자 이상 설정
-```
+### Frontend
 
-## 설치 및 실행
+- **Framework**: Next.js 15 (App Router)
+- **언어**: TypeScript
+- **스타일링**: Tailwind CSS
+- **UI Components**: Shadcn/ui
+- **상태 관리**: React Query (TanStack Query)
+
+### Backend
+
+- **Runtime**: Next.js 15 (App Router) API routes
+- **Database**: PostgreSQL
+- **ORM**: Prisma
+- **인증**: iron-session
+- **이미지 처리**: sharp
+- **스토리지**: Oracle Cloud Infrastructure (OCI) Object Storage
+
+### DevOps
+
+- **컨테이너화**: Docker & Docker Compose
+
+## 프로젝트 구조
+
+이 프로젝트는 **Feature-Sliced Design (FSD)** 아키텍처 패턴을 따릅니다. FSD는 확장 가능하고 유지보수하기 쉬운 프론트엔드 애플리케이션을 구축하기 위한 구조적 방법론입니다.
+
+### 주요 레이어
+
+| 레이어          | 설명                             | 예시                                      |
+| --------------- | -------------------------------- | ----------------------------------------- |
+| **`/app`**      | Next.js App Router 핵심 디렉토리 | 페이지 라우팅, 레이아웃, 로딩 UI          |
+| **`/widgets`**  | 독립적인 UI 블록 조합            | 헤더, 푸터, 사이드바, 카드 목록           |
+| **`/features`** | 특정 사용자 시나리오 기능        | 사용자 인증, 이미지 업로드, 프로젝트 생성 |
+| **`/entities`** | 핵심 비즈니스 도메인 객체        | User 카드, Project 정보, Image 컴포넌트   |
+| **`/shared`**   | 재사용 가능한 공통 코드          | UI 컴포넌트, 유틸리티, 설정, 타입         |
+
+### 의존성 규칙
+
+- ✅ 상위 레이어는 하위 레이어에 의존 가능
+- ❌ 하위 레이어는 상위 레이어에 의존 불가
+- 🚫 배럴 파일 사용 금지 (트리쉐이킹 최적화)
+
+## 시작하기
+
+### 사전 요구사항
+
+- **Node.js**: v18.0.0 이상
+- **npm** 또는 **yarn**: 최신 버전
+- **Docker**: v20.0.0 이상 (로컬 데이터베이스용)
+- **OCI 계정**: Object Storage 사용을 위한 Oracle Cloud 계정
+
+### 설치
 
 ```bash
 # 저장소 복제
@@ -77,27 +154,168 @@ cd leemage
 npm install
 # 또는
 yarn install
+```
 
-# 환경 변수 설정 (.env 파일 생성)
+### 환경 설정
 
-# 도커 컴포즈로 데이터베이스 실행
+`.env.local` 파일을 생성하고 다음 환경 변수를 설정하세요:
+
+```env
+# 루트 사용자 인증 정보
+ROOT_USER_EMAIL=admin@example.com
+ROOT_USER_PASSWORD=your-secure-password
+
+# PostgreSQL 데이터베이스
+POSTGRES_PASSWORD=your-db-password
+DATABASE_URL=postgresql://postgres:your-db-password@localhost:5432/leemage
+
+# OCI Object Storage 설정
+OCI_TENANCY_OCID=ocid1.tenancy.oc1..your-tenancy-id
+OCI_USER_OCID=ocid1.user.oc1..your-user-id
+OCI_FINGERPRINT=your-key-fingerprint
+OCI_PRIVATE_KEY_PATH=./path/to/your/private-key.pem
+OCI_REGION=us-phoenix-1
+OCI_NAMESPACE=your-namespace
+OCI_BUCKET_NAME=your-bucket-name
+OCI_OBJECT_STORAGE_HOST=https://objectstorage.us-phoenix-1.oraclecloud.com
+
+# 세션 관리
+IRON_SESSION_COOKIE_NAME=leemage-session
+IRON_SESSION_PASSWORD=your-32-character-session-password
+```
+
+### 실행
+
+```bash
+# PostgreSQL 데이터베이스 시작 (Docker)
 docker compose up -d
-# 서버 실행
-npm run start
+
+# 데이터베이스 마이그레이션
+npx prisma migrate dev
+
+# 개발 서버 시작
+npm run dev
 # 또는
-yarn start
+yarn dev
+```
+
+애플리케이션이 [http://localhost:3000](http://localhost:3000)에서 실행됩니다.
+
+## API 문서
+
+### 인증
+
+모든 API 요청에는 HTTP 헤더에 API 키가 필요합니다:
+
+```http
+Authorization: Bearer <YOUR_API_KEY>
+```
+
+API 키는 애플리케이션의 계정 설정 페이지에서 생성할 수 있습니다.
+
+## 폴더 구조
+
+```
+leemage/
+├── app/                 # Next.js App Router
+│   ├── [locale]/         # 국제화 라우팅
+├── widgets/             # 독립적인 UI 블록 (FSD)
+├── features/            # 기능별 모듈 (FSD)
+├── entities/            # 비즈니스 엔티티 (FSD)
+├── shared/              # 공통 코드 (FSD)
+├── lib/                 # 서버사이드 라이브러리
+├── providers/           # 전역 프로바이더
+├── i18n/                # 국제화 설정
+├── messages/            # 다국어 메시지 파일
+├── prisma/              # 데이터베이스
+├── public/              # 정적 자산
+```
+
+## 개발 가이드
+
+### 코딩 규칙
+
+- FSD 아키텍처 패턴 준수
+- 컴포넌트는 단일 책임 원칙 적용
+- 타입 안정성을 위한 strict TypeScript 설정
+- 재사용 가능한 컴포넌트는 shared 레이어에 배치
+
+## 문제 해결
+
+### 일반적인 문제
+
+**Q: 데이터베이스 연결 오류**
+
+```bash
+# PostgreSQL 컨테이너 상태 확인
+docker compose ps
+
+# 데이터베이스 재시작
+docker compose restart postgres
+```
+
+**Q: OCI Object Storage 연결 실패**
+
+- OCI 인증 정보가 올바른지 확인
+- 버킷 권한 설정 확인
+- 네트워크 연결 상태 확인
+
+**Q: 세션 관련 오류**
+
+- `IRON_SESSION_PASSWORD`가 32자 이상인지 확인
+- 쿠키 설정이 올바른지 확인
+
+## 기여하기
+
+Leemage 프로젝트에 기여해주셔서 감사합니다!
+
+### 기여 방법
+
+1. **이슈 리포트**: 버그나 기능 요청은 GitHub Issues에 등록
+2. **코드 기여**: Fork → 브랜치 생성 → 개발 → Pull Request
+3. **문서 개선**: README, API 문서 등 개선 사항 제안
+
+### 개발 환경 설정
+
+```bash
+# 프로젝트 포크 후 클론
+git clone https://github.com/your-username/leemage.git
+
+# 의존성 설치 및 환경 설정
+npm install
+cp .env.example .env.local
+
+# 개발 서버 실행
+npm run dev
+```
+
+### 커밋 규칙
+
+```
+feat: 새로운 기능 추가
+fix: 버그 수정
+docs: 문서 수정
+style: 코드 스타일 변경
+refactor: 코드 리팩토링
+test: 테스트 추가/수정
+chore: 빌드 설정 등 기타 변경
 ```
 
 ## 향후 계획
 
-- 팀/협업 기능 구현
-- 상세한 사용 통계 및 분석 기능
+- [ ] **팀 협업 기능**: 다중 사용자 지원 및 권한 관리
+- [ ] **고급 분석**: 상세한 사용 통계 및 성능 분석
 
-## 외부 API (v1) 명세
+## 라이선스
 
-이 API는 외부 서비스와의 연동을 위해 제공되며, 모든 요청에는 API 키를 사용한 인증이 필요합니다.
+이 프로젝트는 MIT 라이선스 하에 배포됩니다. 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.
 
-**인증 방식:**
+---
 
-- 모든 요청의 HTTP 헤더에 `Authorization: Bearer <YOUR_API_KEY>` 를 포함해야 합니다.
-- API 키는 애플리케이션의 계정 설정 페이지에서 발급받을 수 있습니다.
+<p align="center">
+  <strong>Leemage</strong>로 이미지 관리의 새로운 경험을 시작하세요! 🚀
+</p>
+
+<p align="center">
+  문의사항이 있으시면 <a href="mailto:dbstndla1212@naver.com">dbstndla1212@naver.com</a>로 연락주세요.
+</p>
