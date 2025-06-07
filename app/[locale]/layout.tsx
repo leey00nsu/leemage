@@ -17,7 +17,7 @@ const pretendard = localFont({
 
 export const metadata: Metadata = {
   title: "Leemage", // 정적 메타데이터 예시
-  description: "Leemage Project",
+  description: "Upload everything on Leemage",
 };
 
 export default async function RootLayout({
