@@ -107,7 +107,7 @@ Next.js와 최신 웹 기술을 사용하여 직관적이고 반응형 사용자
 
 ### Frontend
 
-- **Framework**: Next.js 15 (App Router)
+- **Framework**: Next.js 16 (App Router)
 - **언어**: TypeScript
 - **스타일링**: Tailwind CSS
 - **UI Components**: Shadcn/ui
@@ -115,7 +115,7 @@ Next.js와 최신 웹 기술을 사용하여 직관적이고 반응형 사용자
 
 ### Backend
 
-- **Runtime**: Next.js 15 (App Router) API routes
+- **Runtime**: Next.js 16 (App Router) API routes
 - **Database**: PostgreSQL
 - **ORM**: Prisma
 - **인증**: iron-session
@@ -170,16 +170,21 @@ yarn install
 
 ### 환경 설정
 
-`.env.local` 파일을 생성하고 다음 환경 변수를 설정하세요:
+`.env` 파일을 생성하고 다음 환경 변수를 설정하세요:
 
 ```env
 # 루트 사용자 인증 정보
 ROOT_USER_EMAIL=admin@example.com
 ROOT_USER_PASSWORD=your-secure-password
 
-# PostgreSQL 데이터베이스
+# PostgreSQL 데이터베이스 (Docker Compose용)
+POSTGRES_USER=leemage_user
 POSTGRES_PASSWORD=your-db-password
-DATABASE_URL=postgresql://postgres:your-db-password@localhost:5432/leemage
+POSTGRES_DB=leemage_db
+POSTGRES_PORT=5432
+
+# Prisma 데이터베이스 연결
+DATABASE_URL=postgresql://leemage_user:your-db-password@localhost:5432/leemage_db
 
 # OCI Object Storage 설정
 OCI_TENANCY_OCID=ocid1.tenancy.oc1..your-tenancy-id

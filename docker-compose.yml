@@ -1,16 +1,14 @@
-version: "3.8"
-
 services:
   db:
-    image: postgres:15 # PostgreSQL 15 버전 사용 (원하는 버전으로 변경 가능)
-    container_name: leemage # 컨테이너 이름 명시적으로 설정
+    image: postgres:15
+    container_name: leemage
     restart: always
     environment:
-      POSTGRES_USER: leemage_user # 데이터베이스 사용자 이름
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-your_fallback_password} # .env.local 또는 환경 변수에서 비밀번호 로드 (없을 경우 기본값 사용)
-      POSTGRES_DB: leemage_db # 데이터베이스 이름
+      POSTGRES_USER: ${POSTGRES_USER:-leemage_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-your_fallback_password}
+      POSTGRES_DB: ${POSTGRES_DB:-leemage_db}
     ports:
-      - "5432:5432" # 로컬 5432 포트를 컨테이너 5432 포트에 매핑
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data # 데이터 영속성을 위한 볼륨 매핑
 

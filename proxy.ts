@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getSessionFromEdge } from "@/lib/session"; // Edge용 세션 함수 임포트
+import { getSessionFromEdge } from "@/lib/session";
 import createMiddleware from "next-intl/middleware";
-import { routing } from "@/i18n/routing"; // 수정된 경로
+import { routing } from "@/i18n/routing";
 
 const intlMiddleware = createMiddleware(routing);
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // next-intl 미들웨어 실행
   const intlResponse = intlMiddleware(request);
 
@@ -65,7 +65,7 @@ export async function middleware(request: NextRequest) {
   return intlResponse;
 }
 
-// 미들웨어를 적용할 경로 설정
+// proxy를 적용할 경로 설정
 export const config = {
   matcher: [
     // Match all pathnames except for
