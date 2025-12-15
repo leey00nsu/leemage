@@ -1,7 +1,7 @@
 "use client";
 
-import { ImageUploadDialog } from "@/features/images/upload/ui/image-upload-dialog";
-import { ImageList } from "@/features/images/list/ui/image-list";
+import { FileUploadDialog } from "@/features/files/upload/ui/file-upload-dialog";
+import { FileList } from "@/features/files/list/ui/file-list";
 import { DeleteProjectButton } from "@/features/projects/delete/ui/delete-project-button";
 import { Check, Copy, Loader2, Upload } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert";
@@ -82,14 +82,14 @@ export function ProjectDetailsWidget({ projectId }: ProjectDetailsWidgetProps) {
       <p className="text-muted-foreground mb-6">{project.description}</p>
 
       <div className="flex justify-start mb-4">
-        <ImageUploadDialog projectId={projectId}>
+        <FileUploadDialog projectId={projectId}>
           <Button size="sm">
             <Upload className="mr-2 h-4 w-4" /> {t("uploadImageButton")}
           </Button>
-        </ImageUploadDialog>
+        </FileUploadDialog>
       </div>
 
-      <ImageList images={project.images || []} />
+      <FileList files={project.files || []} />
     </div>
   );
 }

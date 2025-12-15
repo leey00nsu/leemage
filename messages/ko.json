@@ -82,14 +82,15 @@
     "noImagesInProject": "이 프로젝트에는 아직 이미지가 없습니다."
   },
   "ImageUploadDialog": {
-    "uploadSuccess": "이미지 \"{fileName}\" 업로드 성공!",
+    "uploadSuccess": "파일 \"{fileName}\" 업로드 성공!",
     "selectFileWarning": "업로드할 파일을 선택해주세요.",
-    "title": "새 이미지 업로드",
-    "description": "파일을 선택하고 생성할 이미지 버전 옵션을 선택하세요.",
+    "title": "새 파일 업로드",
+    "description": "파일을 선택하세요. 이미지 파일의 경우 변환 옵션을 선택할 수 있습니다.",
     "fileInputLabel": "파일",
     "cancelButton": "취소",
     "uploadingButton": "업로드 중...",
-    "uploadButton": "업로드"
+    "uploadButton": "업로드",
+    "nonImageFileInfo": "이 파일은 원본 그대로 업로드됩니다."
   },
   "DeleteImageDialog": {
     "deleteSuccess": "이미지가 삭제되었습니다.",
@@ -161,8 +162,8 @@
   "FeaturesSection": {
     "item1Title": "프로젝트별 관리",
     "item1Description": "이미지를 프로젝트 단위로 그룹화하여 효율적으로 관리할 수 있습니다.",
-    "item2Title": "간편한 이미지 관리",
-    "item2Description": "직관적인 인터페이스를 통해 이미지를 손쉽게 업로드, 삭제하고 정보를 수정할 수 있습니다.",
+    "item2Title": "간편한 파일 관리",
+    "item2Description": "직관적인 인터페이스를 통해 파일을 손쉽게 업로드, 삭제하고 정보를 수정할 수 있습니다.",
     "item3Title": "이미지 변환",
     "item3Description": "업로드 시 자동으로 이미지를 리사이징하고 원하는 포맷으로 변환하는 기능을 제공합니다.",
     "item4Title": "간편 인증",
@@ -179,7 +180,7 @@
     "fetchErrorDescription": "프로젝트 정보를 불러오는 중 오류가 발생했습니다.",
     "notFoundTitle": "정보 없음",
     "notFoundDescription": "프로젝트를 찾을 수 없습니다.",
-    "uploadImageButton": "이미지 업로드",
+    "uploadImageButton": "파일 업로드",
     "copyId": "프로젝트 ID 복사",
     "idCopied": "프로젝트 ID가 클립보드에 복사되었습니다.",
     "idLabel": "프로젝트 ID:"
@@ -187,6 +188,22 @@
   "ImageDetailsWidget": {
     "noInfoTitle": "이미지 정보 없음",
     "noInfoDescription": "이미지 버전을 표시할 수 없습니다."
+  },
+  "FileInfo": {
+    "title": "상세 정보",
+    "fileName": "파일명",
+    "size": "파일 크기",
+    "type": "파일 종류",
+    "uploadDate": "업로드 날짜",
+    "lastModifiedDate": "최종 수정 날짜",
+    "url": "URL"
+  },
+  "FileActions": {
+    "download": "다운로드",
+    "open": "열기"
+  },
+  "EmptyFileState": {
+    "noFiles": "아직 파일이 없습니다."
   },
   "Header": {
     "projectsLink": "프로젝트",
@@ -294,9 +311,9 @@
                 "example": {
                   "name": "샘플 프로젝트",
                   "description": "이것은 샘플 프로젝트입니다.",
-                  "images": {
+                  "files": {
                     "0": {
-                      "name": "샘플 이미지"
+                      "name": "샘플 파일"
                     }
                   }
                 }
@@ -357,44 +374,30 @@
           }
         }
       },
-      "images": {
-        "name": "이미지",
-        "description": "이미지 관련 API 엔드포인트",
+      "files": {
+        "name": "파일",
+        "description": "파일 관련 API 엔드포인트",
         "endpoints": {
-          "uploadImage": {
-            "description": "특정 프로젝트에 새 이미지를 업로드하고 지정된 형식/크기로 변환하여 저장합니다.",
+          "uploadFile": {
+            "description": "특정 프로젝트에 파일을 업로드합니다. 이미지 파일의 경우 지정된 형식/크기로 변환하여 저장합니다.",
             "parameters": {
               "projectId": {
-                "description": "이미지를 업로드할 프로젝트의 ID"
+                "description": "파일을 업로드할 프로젝트의 ID"
               }
             },
             "requestBody": {
               "properties": {
                 "file": {
-                  "description": "업로드할 이미지 파일"
+                  "description": "업로드할 파일"
                 },
                 "variants": {
-                  "description": "생성할 이미지 버전 옵션. 각 요소는 '{ ' \"sizeLabel\": \"original\" | \"300x300\" | \"800x800\" | \"1920x1080\", \"format\": \"png\" | \"jpeg\" | \"avif\" | \"webp\" '}' 형태"
-                },
-                "saveOriginal": {
-                  "description": "\"true\" 또는 \"false\". 원본 이미지 저장 여부 (기본값: true)"
+                  "description": "(이미지 전용) 생성할 이미지 버전 옵션. 각 요소는 '{ ' \"sizeLabel\": \"original\" | \"300x300\" | \"800x800\" | \"1920x1080\", \"format\": \"png\" | \"jpeg\" | \"avif\" | \"webp\" '}' 형태"
                 }
               }
             },
             "responses": {
               "201": {
-                "description": "모든 버전 처리 성공 시"
-              },
-              "207": {
-                "description": "일부 버전 처리 실패 시",
-                "example": {
-                  "message": "일부 이미지 변환 처리 실패",
-                  "errors": {
-                    "0": {
-                      "error": "이미지 변환 처리 중 오류가 발생했습니다."
-                    }
-                  }
-                }
+                "description": "파일 업로드 성공"
               },
               "400": {
                 "description": "잘못된 요청",
@@ -423,32 +426,32 @@
               "500": {
                 "description": "서버 오류",
                 "example": {
-                  "message": "이미지 처리 중 오류가 발생했습니다."
+                  "message": "파일 업로드 중 오류가 발생했습니다."
                 }
               }
             }
           },
-          "deleteImage": {
-            "description": "특정 ID를 가진 이미지 및 관련된 모든 버전의 파일을 삭제합니다. (OCI 스토리지 포함)",
+          "deleteFile": {
+            "description": "특정 ID를 가진 파일 및 관련된 모든 버전을 삭제합니다. (OCI 스토리지 포함)",
             "parameters": {
               "projectId": {
-                "description": "이미지가 속한 프로젝트의 ID (경로 검증용)"
+                "description": "파일이 속한 프로젝트의 ID (경로 검증용)"
               },
-              "imageId": {
-                "description": "삭제할 이미지의 ID"
+              "fileId": {
+                "description": "삭제할 파일의 ID"
               }
             },
             "responses": {
               "200": {
-                "description": "이미지 삭제 성공",
+                "description": "파일 삭제 성공",
                 "example": {
-                  "message": "이미지가 삭제되었습니다."
+                  "message": "파일이 삭제되었습니다."
                 }
               },
               "400": {
                 "description": "잘못된 요청",
                 "example": {
-                  "message": "imageId가 누락되었습니다."
+                  "message": "fileId가 누락되었습니다."
                 }
               },
               "401": {
@@ -458,15 +461,15 @@
                 }
               },
               "404": {
-                "description": "이미지를 찾을 수 없음",
+                "description": "파일을 찾을 수 없음",
                 "example": {
-                  "message": "해당 imageId의 이미지가 없거나 projectId가 일치하지 않습니다."
+                  "message": "해당 fileId의 파일이 없거나 projectId가 일치하지 않습니다."
                 }
               },
               "500": {
                 "description": "서버 오류",
                 "example": {
-                  "message": "이미지 삭제 중 오류가 발생했습니다."
+                  "message": "파일 삭제 중 오류가 발생했습니다."
                 }
               }
             }

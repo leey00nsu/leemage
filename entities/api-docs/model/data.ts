@@ -179,17 +179,23 @@ export const getApiDocsData = async (
                 ),
                 createdAt: "2023-01-01T00:00:00.000Z",
                 updatedAt: "2023-01-01T00:00:00.000Z",
-                images: [
+                files: [
                   {
-                    id: "img1234abcd",
+                    id: "file1234abcd",
                     name: t(
-                      "categories.projects.endpoints.getProjectById.responses.200.example.images.0.name"
+                      "categories.projects.endpoints.getProjectById.responses.200.example.files.0.name"
                     ),
+                    mimeType: "image/jpeg",
+                    isImage: true,
+                    size: 102400,
                     variants: [
                       {
-                        id: "var1234abcd",
                         url: "https://example.com/image.jpg",
-                        type: "original",
+                        label: "original",
+                        format: "jpeg",
+                        width: 1920,
+                        height: 1080,
+                        size: 102400,
                       },
                     ],
                     createdAt: "2023-01-01T00:00:00.000Z",
@@ -301,13 +307,13 @@ export const getApiDocsData = async (
       ],
     },
     {
-      name: t("categories.images.name"),
-      description: t("categories.images.description"),
+      name: t("categories.files.name"),
+      description: t("categories.files.description"),
       endpoints: [
         {
           method: "POST",
-          path: "/api/v1/projects/[projectId]/images",
-          description: t("categories.images.endpoints.uploadImage.description"),
+          path: "/api/v1/projects/[projectId]/files",
+          description: t("categories.files.endpoints.uploadFile.description"),
           auth: true,
           parameters: [
             {
@@ -315,7 +321,7 @@ export const getApiDocsData = async (
               type: "string",
               required: true,
               description: t(
-                "categories.images.endpoints.uploadImage.parameters.projectId.description"
+                "categories.files.endpoints.uploadFile.parameters.projectId.description"
               ),
             },
           ],
@@ -327,7 +333,7 @@ export const getApiDocsData = async (
                 type: "file",
                 required: true,
                 description: t(
-                  "categories.images.endpoints.uploadImage.requestBody.properties.file.description"
+                  "categories.files.endpoints.uploadFile.requestBody.properties.file.description"
                 ),
               },
               {
@@ -335,7 +341,7 @@ export const getApiDocsData = async (
                 type: "json array",
                 required: true,
                 description: t(
-                  "categories.images.endpoints.uploadImage.requestBody.properties.variants.description"
+                  "categories.files.endpoints.uploadFile.requestBody.properties.variants.description"
                 ),
               },
             ],
@@ -344,7 +350,7 @@ export const getApiDocsData = async (
             {
               status: 201,
               description: t(
-                "categories.images.endpoints.uploadImage.responses.201.description"
+                "categories.files.endpoints.uploadFile.responses.201.description"
               ),
               example: {
                 id: "img1234abcd",
@@ -364,44 +370,44 @@ export const getApiDocsData = async (
             {
               status: 400,
               description: t(
-                "categories.images.endpoints.uploadImage.responses.400.description"
+                "categories.files.endpoints.uploadFile.responses.400.description"
               ),
               example: {
                 message: t(
-                  "categories.images.endpoints.uploadImage.responses.400.example.message"
+                  "categories.files.endpoints.uploadFile.responses.400.example.message"
                 ),
               },
             },
             {
               status: 401,
               description: t(
-                "categories.images.endpoints.uploadImage.responses.401.description"
+                "categories.files.endpoints.uploadFile.responses.401.description"
               ),
               example: {
                 message: t(
-                  "categories.images.endpoints.uploadImage.responses.401.example.message"
+                  "categories.files.endpoints.uploadFile.responses.401.example.message"
                 ),
               },
             },
             {
               status: 404,
               description: t(
-                "categories.images.endpoints.uploadImage.responses.404.description"
+                "categories.files.endpoints.uploadFile.responses.404.description"
               ),
               example: {
                 message: t(
-                  "categories.images.endpoints.uploadImage.responses.404.example.message"
+                  "categories.files.endpoints.uploadFile.responses.404.example.message"
                 ),
               },
             },
             {
               status: 500,
               description: t(
-                "categories.images.endpoints.uploadImage.responses.500.description"
+                "categories.files.endpoints.uploadFile.responses.500.description"
               ),
               example: {
                 message: t(
-                  "categories.images.endpoints.uploadImage.responses.500.example.message"
+                  "categories.files.endpoints.uploadFile.responses.500.example.message"
                 ),
               },
             },
@@ -409,8 +415,8 @@ export const getApiDocsData = async (
         },
         {
           method: "DELETE",
-          path: "/api/v1/projects/[projectId]/images/[imageId]",
-          description: t("categories.images.endpoints.deleteImage.description"),
+          path: "/api/v1/projects/[projectId]/files/[fileId]",
+          description: t("categories.files.endpoints.deleteFile.description"),
           auth: true,
           parameters: [
             {
@@ -418,15 +424,15 @@ export const getApiDocsData = async (
               type: "string",
               required: true,
               description: t(
-                "categories.images.endpoints.deleteImage.parameters.projectId.description"
+                "categories.files.endpoints.deleteFile.parameters.projectId.description"
               ),
             },
             {
-              name: "imageId",
+              name: "fileId",
               type: "string",
               required: true,
               description: t(
-                "categories.images.endpoints.deleteImage.parameters.imageId.description"
+                "categories.files.endpoints.deleteFile.parameters.fileId.description"
               ),
             },
           ],
@@ -434,44 +440,44 @@ export const getApiDocsData = async (
             {
               status: 200,
               description: t(
-                "categories.images.endpoints.deleteImage.responses.200.description"
+                "categories.files.endpoints.deleteFile.responses.200.description"
               ),
               example: {
                 message: t(
-                  "categories.images.endpoints.deleteImage.responses.200.example.message"
+                  "categories.files.endpoints.deleteFile.responses.200.example.message"
                 ),
               },
             },
             {
               status: 401,
               description: t(
-                "categories.images.endpoints.deleteImage.responses.401.description"
+                "categories.files.endpoints.deleteFile.responses.401.description"
               ),
               example: {
                 message: t(
-                  "categories.images.endpoints.deleteImage.responses.401.example.message"
+                  "categories.files.endpoints.deleteFile.responses.401.example.message"
                 ),
               },
             },
             {
               status: 404,
               description: t(
-                "categories.images.endpoints.deleteImage.responses.404.description"
+                "categories.files.endpoints.deleteFile.responses.404.description"
               ),
               example: {
                 message: t(
-                  "categories.images.endpoints.deleteImage.responses.404.example.message"
+                  "categories.files.endpoints.deleteFile.responses.404.example.message"
                 ),
               },
             },
             {
               status: 500,
               description: t(
-                "categories.images.endpoints.deleteImage.responses.500.description"
+                "categories.files.endpoints.deleteFile.responses.500.description"
               ),
               example: {
                 message: t(
-                  "categories.images.endpoints.deleteImage.responses.500.example.message"
+                  "categories.files.endpoints.deleteFile.responses.500.example.message"
                 ),
               },
             },

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { deleteObject } from "@/lib/oci";
-import { ImageVariantData } from "@/entities/images/model/types";
+import { ImageVariantData } from "@/entities/files";
 
 export async function getProjectDetailsHandler(projectId: string) {
   if (!projectId) {
@@ -21,6 +21,10 @@ export async function getProjectDetailsHandler(projectId: string) {
           select: {
             id: true,
             name: true,
+            mimeType: true,
+            isImage: true,
+            size: true,
+            url: true,
             variants: true,
             createdAt: true,
             updatedAt: true,
@@ -40,11 +44,13 @@ export async function getProjectDetailsHandler(projectId: string) {
       );
     }
 
+    // API 응답에서 images를 files로 변환
+    const { images, ...projectData } = project;
     const processedProject = {
-      ...project,
-      images: project.images.map((img) => ({
-        ...img,
-        variants: img.variants as unknown as ImageVariantData[],
+      ...projectData,
+      files: images.map((file) => ({
+        ...file,
+        variants: file.variants as unknown as ImageVariantData[],
       })),
     };
 

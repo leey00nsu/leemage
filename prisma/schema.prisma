@@ -30,13 +30,17 @@ model Project {
 
 model Image {
   id          String   @id @default(cuid())
-  name        String // 원본 파일명
-  variants    Json     @default("[]") // 처리된 이미지 버전 정보 배열 추가
+  name        String   // 원본 파일명
+  mimeType    String   @default("application/octet-stream") // MIME 타입 (예: image/png, application/pdf)
+  isImage     Boolean  @default(true) // 이미지 파일 여부
+  size        Int      @default(0) // 파일 크기 (bytes)
+  url         String?  // 비이미지 파일의 원본 URL (이미지는 variants에 URL 포함)
+  variants    Json     @default("[]") // 처리된 이미지 버전 정보 배열 (이미지만 해당)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  projectId   String   // 이 이미지가 속한 프로젝트의 ID (외래 키)
-  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade) // N:1 관계 정의, 프로젝트 삭제 시 이미지도 삭제
+  projectId   String   // 이 파일이 속한 프로젝트의 ID (외래 키)
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade) // N:1 관계 정의, 프로젝트 삭제 시 파일도 삭제
 }
 
 model ApiKey {

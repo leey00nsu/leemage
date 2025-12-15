@@ -82,14 +82,15 @@
     "noImagesInProject": "This project does not have any images yet."
   },
   "ImageUploadDialog": {
-    "uploadSuccess": "Image \"{fileName}\" uploaded successfully!",
+    "uploadSuccess": "File \"{fileName}\" uploaded successfully!",
     "selectFileWarning": "Please select a file to upload.",
-    "title": "Upload New Image",
-    "description": "Select a file and choose options for the image versions to create.",
+    "title": "Upload New File",
+    "description": "Select a file. For image files, you can choose transformation options.",
     "fileInputLabel": "File",
     "cancelButton": "Cancel",
     "uploadingButton": "Uploading...",
-    "uploadButton": "Upload"
+    "uploadButton": "Upload",
+    "nonImageFileInfo": "This file will be uploaded as-is."
   },
   "DeleteImageDialog": {
     "deleteSuccess": "Image deleted successfully.",
@@ -161,8 +162,8 @@
   "FeaturesSection": {
     "item1Title": "Project-Based Management",
     "item1Description": "Efficiently manage images by grouping them into projects.",
-    "item2Title": "Easy Image Management",
-    "item2Description": "Easily upload, delete, and modify image information through an intuitive interface.",
+    "item2Title": "Easy File Management",
+    "item2Description": "Easily upload, delete, and modify file information through an intuitive interface.",
     "item3Title": "Image Transformation",
     "item3Description": "Provides functionality to automatically resize images and convert them to desired formats upon upload.",
     "item4Title": "Simple Authentication",
@@ -179,7 +180,7 @@
     "fetchErrorDescription": "An error occurred while fetching project information.",
     "notFoundTitle": "Not Found",
     "notFoundDescription": "Project not found.",
-    "uploadImageButton": "Upload Image",
+    "uploadImageButton": "Upload File",
     "copyId": "Copy Project ID",
     "idCopied": "Project ID copied to clipboard.",
     "idLabel": "Project ID:"
@@ -187,6 +188,22 @@
   "ImageDetailsWidget": {
     "noInfoTitle": "No Image Information",
     "noInfoDescription": "Cannot display image versions."
+  },
+  "FileInfo": {
+    "title": "Details",
+    "fileName": "File Name",
+    "size": "File Size",
+    "type": "File Type",
+    "uploadDate": "Upload Date",
+    "lastModifiedDate": "Last Modified Date",
+    "url": "URL"
+  },
+  "FileActions": {
+    "download": "Download",
+    "open": "Open"
+  },
+  "EmptyFileState": {
+    "noFiles": "No files yet."
   },
   "Header": {
     "projectsLink": "Projects",
@@ -294,9 +311,9 @@
                 "example": {
                   "name": "Sample Project",
                   "description": "This is a sample project.",
-                  "images": {
+                  "files": {
                     "0": {
-                      "name": "Sample Image"
+                      "name": "Sample File"
                     }
                   }
                 }
@@ -357,44 +374,30 @@
           }
         }
       },
-      "images": {
-        "name": "Images",
-        "description": "Image related API endpoints",
+      "files": {
+        "name": "Files",
+        "description": "File related API endpoints",
         "endpoints": {
-          "uploadImage": {
-            "description": "Upload a new image to a specific project and save it with specified format/size conversions.",
+          "uploadFile": {
+            "description": "Upload a file to a specific project. For image files, save with specified format/size conversions.",
             "parameters": {
               "projectId": {
-                "description": "ID of the project to upload the image to"
+                "description": "ID of the project to upload the file to"
               }
             },
             "requestBody": {
               "properties": {
                 "file": {
-                  "description": "Image file to upload"
+                  "description": "File to upload"
                 },
                 "variants": {
-                  "description": "Image version options to create. Each element is of the form '{' \"sizeLabel\": \"original\" | \"300x300\" | \"800x800\" | \"1920x1080\", \"format\": \"png\" | \"jpeg\" | \"avif\" | \"webp\" '}'"
-                },
-                "saveOriginal": {
-                  "description": "\"true\" or \"false\". Whether to save the original image (default: true)"
+                  "description": "(Images only) Image version options to create. Each element is of the form '{' \"sizeLabel\": \"original\" | \"300x300\" | \"800x800\" | \"1920x1080\", \"format\": \"png\" | \"jpeg\" | \"avif\" | \"webp\" '}'"
                 }
               }
             },
             "responses": {
               "201": {
-                "description": "On success of all version processing"
-              },
-              "207": {
-                "description": "On partial failure of version processing",
-                "example": {
-                  "message": "Partial image conversion processing failure",
-                  "errors": {
-                    "0": {
-                      "error": "An error occurred during image conversion processing."
-                    }
-                  }
-                }
+                "description": "File upload successful"
               },
               "400": {
                 "description": "Bad request",
@@ -423,32 +426,32 @@
               "500": {
                 "description": "Server error",
                 "example": {
-                  "message": "An error occurred while processing the image."
+                  "message": "An error occurred while uploading the file."
                 }
               }
             }
           },
-          "deleteImage": {
-            "description": "Delete an image with a specific ID and all related version files (including OCI storage).",
+          "deleteFile": {
+            "description": "Delete a file with a specific ID and all related versions (including OCI storage).",
             "parameters": {
               "projectId": {
-                "description": "ID of the project the image belongs to (for path validation)"
+                "description": "ID of the project the file belongs to (for path validation)"
               },
-              "imageId": {
-                "description": "ID of the image to delete"
+              "fileId": {
+                "description": "ID of the file to delete"
               }
             },
             "responses": {
               "200": {
-                "description": "Image deletion successful",
+                "description": "File deletion successful",
                 "example": {
-                  "message": "Image deleted successfully"
+                  "message": "File deleted successfully"
                 }
               },
               "400": {
                 "description": "Bad request",
                 "example": {
-                  "message": "imageId is missing"
+                  "message": "fileId is missing"
                 }
               },
               "401": {
@@ -458,15 +461,15 @@
                 }
               },
               "404": {
-                "description": "Image not found",
+                "description": "File not found",
                 "example": {
-                  "message": "Image with the given imageId not found or projectId mismatch."
+                  "message": "File with the given fileId not found or projectId mismatch."
                 }
               },
               "500": {
                 "description": "Server error",
                 "example": {
-                  "message": "An error occurred while deleting the image."
+                  "message": "An error occurred while deleting the file."
                 }
               }
             }
