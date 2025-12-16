@@ -2,13 +2,13 @@ import "@/lib/openapi/setup";
 import { z } from "zod";
 import { registry } from "../registry";
 import { fileResponseSchema } from "./files";
-import { StorageProvider } from "@/lib/storage/types";
+
 
 // 스토리지 프로바이더 스키마
 export const storageProviderSchema = z
-  .nativeEnum(StorageProvider)
+  .enum(["OCI", "R2"])
   .openapi({
-    description: "스토리지 프로바이더 타입",
+    description: "스토리지 프로바이더 타입. 허용 값: OCI (Oracle Cloud Infrastructure Object Storage), R2 (Cloudflare R2)",
     example: "OCI",
   });
 
@@ -40,9 +40,9 @@ export const createProjectRequestSchema = z
         example: "웹사이트에서 사용할 이미지 모음",
       }),
     storageProvider: storageProviderSchema
-      .default(StorageProvider.OCI)
+      .default("OCI")
       .openapi({
-        description: "스토리지 프로바이더 (기본값: OCI)",
+        description: "스토리지 프로바이더 (기본값: OCI). 허용 값: OCI, R2",
         example: "OCI",
       }),
   })
