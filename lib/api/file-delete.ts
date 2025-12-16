@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { deleteObject } from "@/lib/oci";
+import { StorageFactory } from "@/lib/storage";
+import { fromPrismaStorageProvider } from "@/lib/storage/utils";
 import { ImageVariantData } from "@/entities/files/model/types";
 
 export async function deleteFileHandler(fileId: string, projectId?: string) {
@@ -12,14 +13,24 @@ export async function deleteFileHandler(fileId: string, projectId?: string) {
       );
     }
 
-    // 데이터베이스에서 파일 정보 조회 (variants 포함)
+    // 데이터베이스에서 파일 정보 조회 (variants 포함, 프로젝트 정보도 함께)
     const whereCondition = projectId
       ? { id: fileId, projectId: projectId }
       : { id: fileId };
 
     const file = await prisma.image.findUnique({
       where: whereCondition,
-      select: { id: true, name: true, url: true, variants: true, projectId: true },
+      select: {
+        id: true,
+        name: true,
+        url: true,
+        objectName: true,
+        variants: true,
+        projectId: true,
+        project: {
+          select: { storageProvider: true },
+        },
+      },
     });
 
     if (!file) {
@@ -29,44 +40,41 @@ export async function deleteFileHandler(fileId: string, projectId?: string) {
       );
     }
 
+    // 프로젝트의 스토리지 프로바이더에 맞는 어댑터 가져오기
+    const storageProvider = fromPrismaStorageProvider(file.project.storageProvider);
+    const storageAdapter = await StorageFactory.getAdapter(storageProvider);
+
     const objectDeletionPromises: Promise<void>[] = [];
     const deletedObjectNames: string[] = [];
 
-    // 비이미지 파일의 경우 url에서 직접 삭제
-    if (file.url) {
-      try {
-        const urlParts = file.url.split("/o/");
-        if (urlParts.length >= 2) {
-          const objectName = urlParts[1];
-          deletedObjectNames.push(objectName);
-          objectDeletionPromises.push(deleteObject(objectName));
-        }
-      } catch (e) {
-        console.error(`Error preparing deletion for file URL ${file.url}:`, e);
-      }
+    // 원본 파일 삭제 (objectName이 있는 경우)
+    if (file.objectName) {
+      deletedObjectNames.push(file.objectName);
+      objectDeletionPromises.push(storageAdapter.deleteObject(file.objectName));
     }
 
-    // 이미지 파일의 경우 모든 variants에서 OCI 객체 삭제
+    // 이미지 파일의 경우 모든 variants에서 스토리지 객체 삭제
     const variants = file.variants as ImageVariantData[];
     variants?.forEach((variant) => {
       if (typeof variant?.url === "string") {
         try {
-          const urlParts = variant.url.split("/o/");
-          if (urlParts.length < 2) {
-            console.warn(`Invalid OCI URL format in variant: ${variant.url}`);
-            return;
-          }
-          const objectName = urlParts[1];
+          // URL에서 객체 이름 추출
+          const url = new URL(variant.url);
+          const pathParts = url.pathname.split("/");
+          // 마지막 두 부분이 projectId/filename 형태
+          const objectName = pathParts.slice(-2).join("/");
 
-          if (projectId && !objectName.startsWith(`${projectId}/`)) {
-            console.warn(
-              `Object name ${objectName} does not match project ID ${projectId}`
-            );
-            return;
-          }
+          if (objectName && !deletedObjectNames.includes(objectName)) {
+            if (projectId && !objectName.startsWith(`${projectId}/`)) {
+              console.warn(
+                `Object name ${objectName} does not match project ID ${projectId}`
+              );
+              return;
+            }
 
-          deletedObjectNames.push(objectName);
-          objectDeletionPromises.push(deleteObject(objectName));
+            deletedObjectNames.push(objectName);
+            objectDeletionPromises.push(storageAdapter.deleteObject(objectName));
+          }
         } catch (e) {
           console.error(
             `Error preparing deletion for variant URL ${variant.url}:`,
@@ -76,19 +84,19 @@ export async function deleteFileHandler(fileId: string, projectId?: string) {
       }
     });
 
-    // 모든 OCI 객체 삭제 시도
+    // 모든 스토리지 객체 삭제 시도
     if (objectDeletionPromises.length > 0) {
       const deletionResults = await Promise.allSettled(objectDeletionPromises);
       deletionResults.forEach((result, index) => {
         if (result.status === "rejected") {
           console.error(
-            `Failed to delete OCI object ${deletedObjectNames[index]}:`,
+            `Failed to delete storage object ${deletedObjectNames[index]}:`,
             result.reason
           );
         }
       });
     } else {
-      console.warn(`No valid OCI objects found to delete for file ${fileId}.`);
+      console.warn(`No valid storage objects found to delete for file ${fileId}.`);
     }
 
     // 데이터베이스에서 파일 레코드 삭제
@@ -97,7 +105,7 @@ export async function deleteFileHandler(fileId: string, projectId?: string) {
     });
 
     console.log(
-      `File deleted: DB ID = ${fileId}, OCI Objects = [${deletedObjectNames.join(
+      `File deleted: DB ID = ${fileId}, Storage Objects = [${deletedObjectNames.join(
         ", "
       )}]`
     );

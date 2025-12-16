@@ -77,7 +77,7 @@ export async function GET(
       downloadUrl = file.url;
     }
 
-    // OCI URL에서 파일 가져오기
+    // 스토리지 URL에서 파일 가져오기 (OCI, R2 등 프로바이더에 관계없이 URL로 접근)
     const response = await fetch(downloadUrl);
 
     if (!response.ok) {

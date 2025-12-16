@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createPresignedUploadUrl } from "@/lib/oci";
 import { prisma } from "@/lib/prisma";
+import { StorageFactory } from "@/lib/storage";
+import { fromPrismaStorageProvider } from "@/lib/storage/utils";
 import cuid from "cuid";
 import { z } from "zod";
 import {
@@ -22,7 +23,7 @@ export interface PresignResponse {
 
 /**
  * Presigned URL 생성 핸들러
- * 클라이언트가 OCI에 직접 업로드할 수 있는 PAR URL을 생성합니다.
+ * 클라이언트가 스토리지에 직접 업로드할 수 있는 Presigned URL을 생성합니다.
  * pending 상태의 DB 레코드를 먼저 생성하여 고아 오브젝트 문제를 방지합니다.
  */
 export async function presignHandler(
@@ -39,6 +40,19 @@ export async function presignHandler(
   }
 
   try {
+    // 프로젝트 조회하여 스토리지 프로바이더 확인
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      select: { storageProvider: true },
+    });
+
+    if (!project) {
+      return NextResponse.json(
+        { message: "프로젝트를 찾을 수 없습니다." },
+        { status: 404 }
+      );
+    }
+
     const body = await request.json();
 
     // 요청 검증
@@ -69,8 +83,12 @@ export async function presignHandler(
     const objectName = `${projectId}/${fileId}.${extension}`;
     const isImage = isImageMimeType(contentType);
 
-    // PAR 생성
-    const parResult = await createPresignedUploadUrl({
+    // 프로젝트의 스토리지 프로바이더에 맞는 어댑터 가져오기
+    const storageProvider = fromPrismaStorageProvider(project.storageProvider);
+    const storageAdapter = await StorageFactory.getAdapter(storageProvider);
+
+    // Presigned URL 생성
+    const parResult = await storageAdapter.createPresignedUploadUrl({
       objectName,
       contentType,
       expiresInMinutes: 15,

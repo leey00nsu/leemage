@@ -121,9 +121,18 @@
     "namePlaceholder": "예: 내 웹사이트 에셋",
     "descriptionLabel": "설명 (선택 사항)",
     "descriptionPlaceholder": "프로젝트에 대한 간단한 설명을 입력하세요.",
+    "storageProviderLabel": "스토리지 프로바이더",
+    "storageProviderDescription": "파일을 저장할 클라우드 스토리지를 선택하세요.",
+    "noProvidersAvailable": "사용 가능한 스토리지 프로바이더가 없습니다. 환경 변수를 확인해주세요.",
     "cancelButton": "취소",
     "creatingButton": "생성 중...",
     "createButton": "프로젝트 생성"
+  },
+  "StorageProvider": {
+    "OCI": "OCI Object Storage",
+    "R2": "Cloudflare R2",
+    "OCI_description": "Oracle Cloud Infrastructure Object Storage",
+    "R2_description": "Cloudflare R2 - S3 호환 오브젝트 스토리지"
   },
   "LogoutButton": {
     "logoutErrorToast": "로그아웃 오류",

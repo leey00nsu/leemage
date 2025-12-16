@@ -71,7 +71,7 @@
 
 ## 프로젝트 개요
 
-**Leemage**는 Oracle Cloud Infrastructure (OCI) Object Storage를 활용하여 구축된 이미지 관리 플랫폼입니다. Cloudinary와 유사한 기능을 제공하며, 프로젝트 단위로 이미지를 효율적으로 관리할 수 있습니다.
+**Leemage**는 다양한 클라우드 스토리지(OCI Object Storage, Cloudflare R2)를 활용하여 구축된 이미지 관리 플랫폼입니다. Cloudinary와 유사한 기능을 제공하며, 프로젝트 단위로 이미지를 효율적으로 관리할 수 있습니다. 프로젝트 생성 시 원하는 스토리지 프로바이더를 선택할 수 있습니다.
 
 Next.js와 최신 웹 기술을 사용하여 직관적이고 반응형 사용자 인터페이스를 제공하며, 개발자 친화적인 API를 통해 외부 서비스와 쉽게 통합할 수 있습니다.
 
@@ -121,7 +121,7 @@ Next.js와 최신 웹 기술을 사용하여 직관적이고 반응형 사용자
 - **ORM**: Prisma
 - **인증**: iron-session
 - **이미지 처리**: sharp
-- **스토리지**: Oracle Cloud Infrastructure (OCI) Object Storage
+- **스토리지**: Oracle Cloud Infrastructure (OCI) Object Storage, Cloudflare R2
 
 ### DevOps
 
@@ -187,7 +187,7 @@ POSTGRES_PORT=5432
 # Prisma 데이터베이스 연결
 DATABASE_URL=postgresql://leemage_user:your-db-password@localhost:5432/leemage_db
 
-# OCI Object Storage 설정
+# OCI Object Storage 설정 (기본 스토리지)
 OCI_TENANCY_OCID=ocid1.tenancy.oc1..your-tenancy-id
 OCI_USER_OCID=ocid1.user.oc1..your-user-id
 OCI_FINGERPRINT=your-key-fingerprint
@@ -196,6 +196,13 @@ OCI_REGION=us-phoenix-1
 OCI_NAMESPACE=your-namespace
 OCI_BUCKET_NAME=your-bucket-name
 OCI_OBJECT_STORAGE_HOST=https://objectstorage.us-phoenix-1.oraclecloud.com
+
+# Cloudflare R2 설정
+R2_ACCOUNT_ID=your-cloudflare-account-id
+R2_ACCESS_KEY_ID=your-r2-access-key-id
+R2_SECRET_ACCESS_KEY=your-r2-secret-access-key
+R2_BUCKET_NAME=your-r2-bucket-name
+R2_PUBLIC_URL=your-public-url
 
 # 세션 관리
 IRON_SESSION_COOKIE_NAME=leemage-session

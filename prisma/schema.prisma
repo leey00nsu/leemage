@@ -18,14 +18,21 @@ datasource db {
 //          Application Models
 // ====================================
 
-model Project {
-  id          String   @id @default(cuid()) // CUID를 기본 ID로 사용
-  name        String
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+// 스토리지 프로바이더 타입
+enum StorageProvider {
+  OCI // Oracle Cloud Infrastructure Object Storage
+  R2  // Cloudflare R2
+}
 
-  images      Image[] // 프로젝트에 속한 이미지 목록 (1:N 관계)
+model Project {
+  id              String          @id @default(cuid()) // CUID를 기본 ID로 사용
+  name            String
+  description     String?
+  storageProvider StorageProvider @default(OCI) // 프로젝트에서 사용하는 스토리지 프로바이더
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  images          Image[] // 프로젝트에 속한 이미지 목록 (1:N 관계)
 }
 
 // 파일 업로드 상태

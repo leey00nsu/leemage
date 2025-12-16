@@ -32,6 +32,7 @@ export function ProjectList() {
           id={project.id}
           name={project.name}
           description={project.description}
+          storageProvider={project.storageProvider}
         />
       ))}
     </ProjectGrid>

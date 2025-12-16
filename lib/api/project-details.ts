@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { deleteObject } from "@/lib/oci";
+import { StorageFactory } from "@/lib/storage";
+import { fromPrismaStorageProvider } from "@/lib/storage/utils";
 import { projectDetailsResponseSchema } from "@/lib/openapi/schemas/projects";
 import {
   errorResponseSchema,
@@ -64,6 +65,7 @@ export async function getProjectDetailsHandler(
     const { images, ...projectData } = project;
     const response: ProjectDetailsResponse = {
       ...projectData,
+      storageProvider: fromPrismaStorageProvider(projectData.storageProvider),
       createdAt: projectData.createdAt.toISOString(),
       updatedAt: projectData.updatedAt.toISOString(),
       files: images.map((file) => ({
@@ -99,7 +101,7 @@ export async function deleteProjectHandler(
       where: { id: projectId },
       include: {
         images: {
-          select: { id: true, name: true, variants: true },
+          select: { id: true, name: true, variants: true, objectName: true },
         },
       },
     });
@@ -111,31 +113,37 @@ export async function deleteProjectHandler(
       );
     }
 
-    // OCI 객체 삭제 로직
+    // 프로젝트의 스토리지 프로바이더에 맞는 어댑터 가져오기
+    const storageProvider = fromPrismaStorageProvider(projectToDelete.storageProvider);
+    const storageAdapter = await StorageFactory.getAdapter(storageProvider);
+
+    // 스토리지 객체 삭제 로직
     const objectDeletionPromises: Promise<void>[] = [];
     projectToDelete.images.forEach((image) => {
+      // 원본 파일 삭제
+      if (image.objectName) {
+        objectDeletionPromises.push(storageAdapter.deleteObject(image.objectName));
+      }
+      
+      // variant 파일들 삭제
       const variants = image.variants as unknown as ImageVariantData[];
       variants.forEach((variant) => {
         if (typeof variant?.url === "string") {
           try {
-            const urlParts = variant.url.split("/o/");
-            if (urlParts.length < 2) {
-              console.warn(`Invalid OCI URL format in variant: ${variant.url}`);
-              return;
+            // URL에서 객체 이름 추출 (프로바이더별로 다를 수 있음)
+            const url = new URL(variant.url);
+            const pathParts = url.pathname.split("/");
+            // 마지막 두 부분이 projectId/filename 형태
+            const objectName = pathParts.slice(-2).join("/");
+            if (objectName) {
+              objectDeletionPromises.push(storageAdapter.deleteObject(objectName));
             }
-            const objectName = urlParts[1];
-            objectDeletionPromises.push(deleteObject(objectName));
           } catch (e) {
             console.error(
               `Error preparing deletion for variant URL ${variant.url}:`,
               e
             );
           }
-        } else {
-          console.warn(
-            `Variant object is missing or has invalid URL:`,
-            variant
-          );
         }
       });
     });
@@ -144,7 +152,7 @@ export async function deleteProjectHandler(
     deletionResults.forEach((result, index) => {
       if (result.status === "rejected") {
         console.error(
-          `Failed to delete OCI object (index ${index}):`,
+          `Failed to delete storage object (index ${index}):`,
           result.reason
         );
       }

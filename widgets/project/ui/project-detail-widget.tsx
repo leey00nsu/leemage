@@ -10,6 +10,7 @@ import { useGetProjectDetails } from "@/features/projects/details/model/get";
 import { useTranslations } from "next-intl";
 import { useCopyToClipboard } from "@/shared/model/copy-text";
 import { toast } from "sonner";
+import { StorageProviderBadge } from "@/shared/ui/storage-provider-badge";
 
 interface ProjectDetailsWidgetProps {
   projectId: string;
@@ -63,21 +64,26 @@ export function ProjectDetailsWidget({ projectId }: ProjectDetailsWidgetProps) {
           projectName={project.name}
         />
       </div>
-      <div
-        onClick={handleCopy}
-        className="inline-flex items-center gap-2 cursor-pointer"
-      >
-        <span className="text-xs text-muted-foreground break-all ">
-          <span className="font-medium text-foreground">{t("idLabel")}</span>{" "}
-          {project.id}
-        </span>
-        <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0">
-          {copied ? (
-            <Check className="h-3 w-3 text-green-600" />
-          ) : (
-            <Copy className="h-3 w-3" />
-          )}
-        </Button>
+      <div className="flex items-center gap-4 flex-wrap">
+        <div
+          onClick={handleCopy}
+          className="inline-flex items-center gap-2 cursor-pointer"
+        >
+          <span className="text-xs text-muted-foreground break-all ">
+            <span className="font-medium text-foreground">{t("idLabel")}</span>{" "}
+            {project.id}
+          </span>
+          <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0">
+            {copied ? (
+              <Check className="h-3 w-3 text-green-600" />
+            ) : (
+              <Copy className="h-3 w-3" />
+            )}
+          </Button>
+        </div>
+        {project.storageProvider && (
+          <StorageProviderBadge provider={project.storageProvider} />
+        )}
       </div>
       <p className="text-muted-foreground mb-6">{project.description}</p>
 

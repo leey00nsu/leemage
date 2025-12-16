@@ -7,6 +7,8 @@ import {
 } from "@/lib/openapi/schemas/projects";
 import { errorResponseSchema } from "@/lib/openapi/schemas/common";
 import { prisma } from "@/lib/prisma";
+import { StorageProvider, StorageFactory } from "@/lib/storage";
+import { toPrismaStorageProvider, fromPrismaStorageProvider } from "@/lib/storage/utils";
 
 // 응답 타입 추론
 type ProjectListResponse = z.infer<typeof projectListResponseSchema>;
@@ -25,14 +27,16 @@ export async function getProjectsHandler(): Promise<
         id: true,
         name: true,
         description: true,
+        storageProvider: true,
         createdAt: true,
         updatedAt: true,
       },
     });
 
-    // Date를 ISO 문자열로 변환
+    // Date를 ISO 문자열로 변환하고 storageProvider 변환
     const response: ProjectListResponse = projects.map((p) => ({
       ...p,
+      storageProvider: fromPrismaStorageProvider(p.storageProvider),
       createdAt: p.createdAt.toISOString(),
       updatedAt: p.updatedAt.toISOString(),
     }));
@@ -64,18 +68,31 @@ export async function createProjectHandler(
       );
     }
 
-    const { name, description } = validationResult.data;
+    const { name, description, storageProvider } = validationResult.data;
+
+    // 선택된 스토리지 프로바이더가 사용 가능한지 확인
+    const provider = storageProvider || StorageProvider.OCI;
+    const isAvailable = await StorageFactory.isProviderAvailable(provider);
+    
+    if (!isAvailable) {
+      return NextResponse.json(
+        { message: `선택한 스토리지 프로바이더(${provider})가 설정되지 않았습니다.` },
+        { status: 400 }
+      );
+    }
 
     const newProject = await prisma.project.create({
       data: {
         name,
         description,
+        storageProvider: toPrismaStorageProvider(provider),
       },
     });
 
-    // Date를 ISO 문자열로 변환
+    // Date를 ISO 문자열로 변환하고 storageProvider 변환
     const response: ProjectResponse = {
       ...newProject,
+      storageProvider: fromPrismaStorageProvider(newProject.storageProvider),
       createdAt: newProject.createdAt.toISOString(),
       updatedAt: newProject.updatedAt.toISOString(),
     };

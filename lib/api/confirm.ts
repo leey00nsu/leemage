@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { downloadObject, uploadObject } from "@/lib/oci";
+import { StorageFactory, StorageAdapter } from "@/lib/storage";
+import { fromPrismaStorageProvider } from "@/lib/storage/utils";
 import sharp from "sharp";
 import { Prisma } from "@/lib/generated/prisma";
 import { z } from "zod";
@@ -26,13 +27,14 @@ export type ImageVariantData = {
 type VariantOption = z.infer<typeof variantOptionSchema>;
 
 /**
- * 이미지 variant 처리 (OCI에서 원본 다운로드 후 처리)
+ * 이미지 variant 처리 (스토리지에서 원본 다운로드 후 처리)
  */
 async function processImageVariants(
   originalBuffer: Buffer,
   projectId: string,
   fileId: string,
-  requestedVariants: VariantOption[]
+  requestedVariants: VariantOption[],
+  storageAdapter: StorageAdapter
 ): Promise<ImageVariantData[]> {
   const originalMetadata = await sharp(originalBuffer).metadata();
 
@@ -47,6 +49,7 @@ async function processImageVariants(
 
   const allVariantData: ImageVariantData[] = [];
   const processingPromises: Promise<void>[] = [];
+
 
   requestedVariants.forEach((variantOption) => {
     processingPromises.push(
@@ -89,7 +92,7 @@ async function processImageVariants(
             }
 
             const objectName = `${projectId}/${fileId}-${variantLabel}.${finalFormat}`;
-            const url = await uploadObject(objectName, bufferToUpload, finalMimeType);
+            const url = await storageAdapter.uploadObject(objectName, bufferToUpload, finalMimeType);
 
             allVariantData.push({
               url,
@@ -129,7 +132,7 @@ async function processImageVariants(
             const processedMetadata = await sharp(processedBuffer).metadata();
             const objectName = `${projectId}/${fileId}-${variantLabel}.${reqFormat}`;
             const variantMimeType = `image/${reqFormat}`;
-            const url = await uploadObject(objectName, processedBuffer, variantMimeType);
+            const url = await storageAdapter.uploadObject(objectName, processedBuffer, variantMimeType);
 
             allVariantData.push({
               url,
@@ -152,9 +155,10 @@ async function processImageVariants(
   return allVariantData;
 }
 
+
 /**
  * 업로드 완료 확인 핸들러
- * 클라이언트가 OCI에 직접 업로드한 후 호출하여 pending 레코드를 completed로 업데이트합니다.
+ * 클라이언트가 스토리지에 직접 업로드한 후 호출하여 pending 레코드를 completed로 업데이트합니다.
  */
 export async function confirmHandler(
   request: NextRequest,
@@ -168,6 +172,19 @@ export async function confirmHandler(
   }
 
   try {
+    // 프로젝트 조회하여 스토리지 프로바이더 확인
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      select: { storageProvider: true },
+    });
+
+    if (!project) {
+      return NextResponse.json(
+        { message: "프로젝트를 찾을 수 없습니다." },
+        { status: 404 }
+      );
+    }
+
     const body = await request.json();
 
     // 요청 검증
@@ -201,18 +218,19 @@ export async function confirmHandler(
       );
     }
 
+    // 프로젝트의 스토리지 프로바이더에 맞는 어댑터 가져오기
+    const storageProvider = fromPrismaStorageProvider(project.storageProvider);
+    const storageAdapter = await StorageFactory.getAdapter(storageProvider);
+
     const isImage = isImageMimeType(contentType);
 
     // 객체 URL 생성
-    const regionId = process.env.OCI_REGION;
-    const namespaceName = process.env.OCI_NAMESPACE;
-    const bucketName = process.env.OCI_BUCKET_NAME;
-    const objectUrl = `https://objectstorage.${regionId}.oraclecloud.com/n/${namespaceName}/b/${bucketName}/o/${objectName}`;
+    const objectUrl = storageAdapter.getObjectUrl(objectName);
 
     if (isImage && variants && variants.length > 0) {
-      // 이미지 파일: OCI에서 원본 다운로드 후 variants 처리
-      console.log(`Downloading original image from OCI: ${objectName}`);
-      const originalBuffer = await downloadObject(objectName);
+      // 이미지 파일: 스토리지에서 원본 다운로드 후 variants 처리
+      console.log(`Downloading original image from storage: ${objectName}`);
+      const originalBuffer = await storageAdapter.downloadObject(objectName);
 
       console.log(
         `Processing ${variants.length} variants for image: ${fileName}`
@@ -221,7 +239,8 @@ export async function confirmHandler(
         originalBuffer,
         projectId,
         fileId,
-        variants
+        variants,
+        storageAdapter
       );
 
       // pending 레코드를 completed로 업데이트
@@ -273,7 +292,7 @@ export async function confirmHandler(
   } catch (error) {
     console.error("Confirm API error:", error);
 
-    // OCI 다운로드 실패 시 특별 처리
+    // 다운로드 실패 시 특별 처리
     if (error instanceof Error && error.message.includes("다운로드")) {
       return NextResponse.json(
         { message: "업로드된 파일을 찾을 수 없습니다." },

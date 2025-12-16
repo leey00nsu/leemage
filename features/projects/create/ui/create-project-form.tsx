@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/shared/ui/button";
 import {
@@ -14,27 +14,55 @@ import {
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { Textarea } from "@/shared/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/ui/select";
 import { createProjectSchema, CreateProjectFormValues } from "../model/schema";
 import { useRouter } from "@/i18n/navigation";
 import { useCreateProject } from "../model/create";
+import { useAvailableStorageProviders } from "../model/storage-providers";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
+import { StorageProvider } from "@/lib/storage/types";
+import { useEffect } from "react";
 
 export function CreateProjectForm() {
   const router = useRouter();
   const t = useTranslations("CreateProjectForm");
+  const tStorage = useTranslations("StorageProvider");
+
+  const {
+    data: availableProvidersData,
+    isLoading: isLoadingProviders,
+  } = useAvailableStorageProviders();
+
+  const availableProviders = availableProvidersData?.providers ?? [];
 
   const {
     register,
     handleSubmit,
+    control,
+    setValue,
     formState: { errors },
-  } = useForm<CreateProjectFormValues>({
+  } = useForm({
     resolver: zodResolver(createProjectSchema),
     defaultValues: {
       name: "",
       description: "",
+      storageProvider: StorageProvider.OCI,
     },
   });
+
+  // 사용 가능한 프로바이더가 로드되면 첫 번째 프로바이더를 기본값으로 설정
+  useEffect(() => {
+    if (availableProviders.length > 0) {
+      setValue("storageProvider", availableProviders[0]);
+    }
+  }, [availableProviders, setValue]);
 
   const {
     mutate: createProject,
@@ -96,6 +124,52 @@ export function CreateProjectForm() {
               </p>
             )}
           </div>
+          <div className="grid gap-2">
+            <Label htmlFor="storageProvider">{t("storageProviderLabel")}</Label>
+            {isLoadingProviders ? (
+              <div className="h-10 bg-muted animate-pulse rounded-md" />
+            ) : availableProviders.length === 0 ? (
+              <p className="text-sm text-red-500 bg-red-100 p-3 rounded">
+                {t("noProvidersAvailable")}
+              </p>
+            ) : (
+              <Controller
+                name="storageProvider"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    disabled={isCreating || availableProviders.length === 0}
+                  >
+                    <SelectTrigger id="storageProvider">
+                      <SelectValue placeholder={t("storageProviderLabel")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableProviders.map((provider) => (
+                        <SelectItem key={provider} value={provider}>
+                          <div className="flex flex-col">
+                            <span>{tStorage(provider)}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {tStorage(`${provider}_description`)}
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            )}
+            <p className="text-xs text-muted-foreground">
+              {t("storageProviderDescription")}
+            </p>
+            {errors.storageProvider && (
+              <p className="text-xs text-red-500 mt-1">
+                {errors.storageProvider.message}
+              </p>
+            )}
+          </div>
         </CardContent>
         <CardFooter className="mt-6 flex justify-end gap-2">
           <Button
@@ -106,7 +180,10 @@ export function CreateProjectForm() {
           >
             {t("cancelButton")}
           </Button>
-          <Button type="submit" disabled={isCreating}>
+          <Button
+            type="submit"
+            disabled={isCreating || isLoadingProviders || availableProviders.length === 0}
+          >
             {isCreating ? t("creatingButton") : t("createButton")}
           </Button>
         </CardFooter>

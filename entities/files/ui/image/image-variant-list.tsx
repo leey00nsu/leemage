@@ -12,12 +12,20 @@ export function ImageVariantList({
   displayVariantLabel,
 }: ImageVariantListProps) {
   const t = useTranslations("ImageVariantList");
+
+  // original을 먼저, 나머지는 크기(width) 내림차순으로 정렬
+  const sortedVariants = [...variants].sort((a, b) => {
+    if (a.label === "original") return -1;
+    if (b.label === "original") return 1;
+    return b.width - a.width;
+  });
+
   return (
     <div className="mt-6 pt-4 border-t">
       <h4 className="text-md font-semibold mb-3">{t("savedVersions")}</h4>
-      {variants && variants.length > 0 ? (
+      {sortedVariants && sortedVariants.length > 0 ? (
         <ul className="space-y-2 text-xs">
-          {variants.map((variant, index) => (
+          {sortedVariants.map((variant, index) => (
             <ImageVariantListItem
               key={index}
               variant={variant}

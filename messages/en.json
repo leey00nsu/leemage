@@ -121,9 +121,18 @@
     "namePlaceholder": "e.g., My Website Assets",
     "descriptionLabel": "Description (optional)",
     "descriptionPlaceholder": "Enter a brief description for your project.",
+    "storageProviderLabel": "Storage Provider",
+    "storageProviderDescription": "Select the cloud storage to store your files.",
+    "noProvidersAvailable": "No storage providers available. Please check your environment variables.",
     "cancelButton": "Cancel",
     "creatingButton": "Creating...",
     "createButton": "Create Project"
+  },
+  "StorageProvider": {
+    "OCI": "OCI Object Storage",
+    "R2": "Cloudflare R2",
+    "OCI_description": "Oracle Cloud Infrastructure Object Storage",
+    "R2_description": "Cloudflare R2 - S3 Compatible Object Storage"
   },
   "LogoutButton": {
     "logoutErrorToast": "Logout Error",

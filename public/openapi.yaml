@@ -284,6 +284,14 @@ components:
           maxLength: 200
           description: 프로젝트 설명 (최대 200자)
           example: 웹사이트에서 사용할 이미지 모음
+        storageProvider:
+          type: string
+          enum:
+            - OCI
+            - R2
+          default: OCI
+          description: "스토리지 프로바이더 (기본값: OCI)"
+          example: OCI
       required:
         - name
     ProjectResponse:
@@ -302,6 +310,13 @@ components:
           nullable: true
           description: 프로젝트 설명
           example: 웹사이트에서 사용할 이미지 모음
+        storageProvider:
+          type: string
+          enum:
+            - OCI
+            - R2
+          description: 스토리지 프로바이더
+          example: OCI
         createdAt:
           type: string
           description: 생성 일시 (ISO 8601)
@@ -314,6 +329,7 @@ components:
         - id
         - name
         - description
+        - storageProvider
         - createdAt
         - updatedAt
     ProjectDetailsResponse:

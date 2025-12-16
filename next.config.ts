@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "objectstorage.ap-chuncheon-1.oraclecloud.com",
       },
+      {
+        protocol: "https",
+        hostname: "assets.leey00nsu.com",
+      },
     ],
   },
 };

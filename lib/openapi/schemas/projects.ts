@@ -2,6 +2,15 @@ import "@/lib/openapi/setup";
 import { z } from "zod";
 import { registry } from "../registry";
 import { fileResponseSchema } from "./files";
+import { StorageProvider } from "@/lib/storage/types";
+
+// 스토리지 프로바이더 스키마
+export const storageProviderSchema = z
+  .nativeEnum(StorageProvider)
+  .openapi({
+    description: "스토리지 프로바이더 타입",
+    example: "OCI",
+  });
 
 // 프로젝트 ID 파라미터 스키마
 export const projectIdParamSchema = z.object({
@@ -30,6 +39,12 @@ export const createProjectRequestSchema = z
         description: "프로젝트 설명 (최대 200자)",
         example: "웹사이트에서 사용할 이미지 모음",
       }),
+    storageProvider: storageProviderSchema
+      .default(StorageProvider.OCI)
+      .openapi({
+        description: "스토리지 프로바이더 (기본값: OCI)",
+        example: "OCI",
+      }),
   })
   .openapi("CreateProjectRequest");
 
@@ -51,6 +66,10 @@ export const projectResponseSchema = z
         description: "프로젝트 설명",
         example: "웹사이트에서 사용할 이미지 모음",
       }),
+    storageProvider: storageProviderSchema.openapi({
+      description: "스토리지 프로바이더",
+      example: "OCI",
+    }),
     createdAt: z.string().openapi({
       description: "생성 일시 (ISO 8601)",
       example: "2023-01-01T00:00:00.000Z",
