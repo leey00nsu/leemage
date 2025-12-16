@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { deleteObject } from "@/lib/oci";
-import { ImageVariantData } from "@/entities/files";
+import { ImageVariantData } from "@/entities/files/model/types";
 
 export async function getProjectDetailsHandler(projectId: string) {
   if (!projectId) {
@@ -18,6 +18,9 @@ export async function getProjectDetailsHandler(projectId: string) {
       },
       include: {
         images: {
+          where: {
+            status: "COMPLETED", // COMPLETED 상태의 파일만 조회
+          },
           select: {
             id: true,
             name: true,

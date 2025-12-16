@@ -378,8 +378,8 @@
         "name": "Files",
         "description": "File related API endpoints",
         "endpoints": {
-          "uploadFile": {
-            "description": "Upload a file to a specific project. For image files, save with specified format/size conversions.",
+          "presignFile": {
+            "description": "Generate a Presigned URL for file upload. Clients can use this URL to upload files directly to OCI.",
             "parameters": {
               "projectId": {
                 "description": "ID of the project to upload the file to"
@@ -387,22 +387,78 @@
             },
             "requestBody": {
               "properties": {
-                "file": {
-                  "description": "File to upload"
+                "fileName": {
+                  "description": "Name of the file to upload"
+                },
+                "contentType": {
+                  "description": "MIME type of the file (e.g., image/jpeg, application/pdf)"
+                },
+                "fileSize": {
+                  "description": "File size in bytes"
+                }
+              }
+            },
+            "responses": {
+              "200": {
+                "description": "Presigned URL generated successfully."
+              },
+              "400": {
+                "description": "Bad request",
+                "example": {
+                  "message": "Invalid request format."
+                }
+              },
+              "401": {
+                "description": "Authentication failed",
+                "example": {
+                  "message": "Authentication failed: Invalid API key"
+                }
+              },
+              "413": {
+                "description": "File size exceeded",
+                "example": {
+                  "message": "File size exceeds the limit (50MB)."
+                }
+              }
+            }
+          },
+          "confirmFile": {
+            "description": "Call after direct upload to OCI to create a file record in the database. For image files, you can request transformation processing with variants option.",
+            "parameters": {
+              "projectId": {
+                "description": "ID of the project the file belongs to"
+              }
+            },
+            "requestBody": {
+              "properties": {
+                "fileId": {
+                  "description": "File ID received from presign response"
+                },
+                "objectName": {
+                  "description": "Object name received from presign response"
+                },
+                "fileName": {
+                  "description": "Original file name"
+                },
+                "contentType": {
+                  "description": "MIME type of the file"
+                },
+                "fileSize": {
+                  "description": "File size in bytes"
                 },
                 "variants": {
-                  "description": "(Images only) Image version options to create. Each element is of the form '{' \"sizeLabel\": \"original\" | \"300x300\" | \"800x800\" | \"1920x1080\", \"format\": \"png\" | \"jpeg\" | \"avif\" | \"webp\" '}'"
+                  "description": "(Images only, optional) Array of image version options to create"
                 }
               }
             },
             "responses": {
               "201": {
-                "description": "File upload successful"
+                "description": "File record created successfully."
               },
               "400": {
                 "description": "Bad request",
                 "example": {
-                  "message": "Required parameters are missing."
+                  "message": "Invalid file ID."
                 }
               },
               "401": {
@@ -412,21 +468,9 @@
                 }
               },
               "404": {
-                "description": "Project not found",
+                "description": "File not found",
                 "example": {
-                  "message": "Project not found."
-                }
-              },
-              "415": {
-                "description": "Unsupported media type",
-                "example": {
-                  "message": "Content-Type is not multipart/form-data."
-                }
-              },
-              "500": {
-                "description": "Server error",
-                "example": {
-                  "message": "An error occurred while uploading the file."
+                  "message": "Uploaded file not found."
                 }
               }
             }

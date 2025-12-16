@@ -1,5 +1,5 @@
 import { Project as PrismaProject } from "@/lib/generated/prisma";
-import { FileWithVariants, ImageVariantData } from "@/entities/files";
+import { FileWithVariants } from "@/entities/files/model/types";
 
 // API 응답 타입 정의 - files 필드 사용
 export type ProjectDetailsApiResponse = Omit<PrismaProject, "images"> & {

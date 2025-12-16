@@ -3,6 +3,7 @@ export type ApiEndpoint = {
   path: string;
   description: string;
   auth: boolean;
+  deprecated?: boolean;
   parameters?: {
     name: string;
     type: string;

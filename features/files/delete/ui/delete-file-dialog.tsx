@@ -1,6 +1,6 @@
 "use client";
 
-import { FileWithVariants } from "@/entities/files";
+import { FileWithVariants } from "@/entities/files/model/types";
 import {
   AlertDialog,
   AlertDialogAction,

@@ -1,11 +1,9 @@
 "use client";
 
-import {
-  ImageVariantData,
-  EmptyFileState,
-  ImageCard,
-  FileGrid,
-} from "@/entities/files";
+import { ImageVariantData } from "@/entities/files/model/types";
+import { EmptyFileState } from "@/entities/files/ui/empty-file-state";
+import { ImageCard } from "@/entities/files/ui/image/image-card";
+import { FileGrid } from "@/entities/files/ui/file-grid";
 import { Image as PrismaImageType } from "@/lib/generated/prisma";
 import { useTranslations } from "next-intl";
 

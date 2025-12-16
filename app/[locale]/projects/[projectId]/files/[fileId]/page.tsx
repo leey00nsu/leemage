@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { FileDetailWidget } from "@/widgets/file/ui/file-detail-widget";
-import { FileWithVariants } from "@/entities/files";
+import { FileWithVariants } from "@/entities/files/model/types";
 
 interface FileDetailPageProps {
   params: Promise<{

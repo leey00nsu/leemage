@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { deleteObject } from "@/lib/oci";
-import { ImageVariantData } from "@/entities/files";
+import { ImageVariantData } from "@/entities/files/model/types";
 
 export async function deleteFileHandler(fileId: string, projectId?: string) {
   try {

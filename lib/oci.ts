@@ -141,6 +141,150 @@ export async function deleteObject(objectName: string): Promise<void> {
   }
 }
 
+// PAR 생성 옵션 인터페이스
+export interface CreatePAROptions {
+  objectName: string;
+  contentType: string;
+  expiresInMinutes?: number; // default: 15
+}
+
+// PAR 생성 결과 인터페이스
+export interface PARResult {
+  presignedUrl: string;
+  objectUrl: string;
+  expiresAt: Date;
+}
+
+/**
+ * OCI Object Storage에 파일을 업로드할 수 있는 Presigned URL (PAR)을 생성합니다.
+ * @param options PAR 생성 옵션
+ * @returns Presigned URL과 만료 시간
+ */
+export async function createPresignedUploadUrl(
+  options: CreatePAROptions
+): Promise<PARResult> {
+  const { client, config } = getOCIClient();
+
+  if (
+    !client ||
+    !config?.namespaceName ||
+    !config?.bucketName ||
+    !config?.regionId
+  ) {
+    throw new Error(
+      "OCI 클라이언트 또는 필수 정보(네임스페이스, 버킷 이름, 리전)가 초기화되지 않았습니다."
+    );
+  }
+
+  const { objectName, expiresInMinutes = 15 } = options;
+
+  // 만료 시간 계산
+  const expiresAt = new Date();
+  expiresAt.setMinutes(expiresAt.getMinutes() + expiresInMinutes);
+
+  console.log(
+    `Creating PAR for object: ${objectName} in bucket: ${config.bucketName}`
+  );
+
+  try {
+    const createPreauthenticatedRequestDetails: os.models.CreatePreauthenticatedRequestDetails =
+      {
+        name: `upload-${objectName}-${Date.now()}`,
+        objectName: objectName,
+        accessType:
+          os.models.CreatePreauthenticatedRequestDetails.AccessType
+            .ObjectWrite,
+        timeExpires: expiresAt,
+      };
+
+    const createPreauthenticatedRequestRequest: os.requests.CreatePreauthenticatedRequestRequest =
+      {
+        namespaceName: config.namespaceName,
+        bucketName: config.bucketName,
+        createPreauthenticatedRequestDetails:
+          createPreauthenticatedRequestDetails,
+      };
+
+    const response = await client.createPreauthenticatedRequest(
+      createPreauthenticatedRequestRequest
+    );
+
+    const par = response.preauthenticatedRequest;
+
+    if (!par.accessUri) {
+      throw new Error("PAR 생성 응답에 accessUri가 없습니다.");
+    }
+
+    // PAR URL 생성 (accessUri는 상대 경로이므로 전체 URL 구성 필요)
+    const presignedUrl = `https://objectstorage.${config.regionId}.oraclecloud.com${par.accessUri}`;
+
+    // 객체의 최종 URL (업로드 완료 후 접근 가능한 URL)
+    const objectUrl = `https://objectstorage.${config.regionId}.oraclecloud.com/n/${config.namespaceName}/b/${config.bucketName}/o/${objectName}`;
+
+    console.log(`Successfully created PAR for object: ${objectName}`);
+
+    return {
+      presignedUrl,
+      objectUrl,
+      expiresAt,
+    };
+  } catch (error) {
+    console.error(`Error creating PAR for object ${objectName}:`, error);
+    throw new Error(`PAR 생성 중 오류 발생: ${objectName}`);
+  }
+}
+
+/**
+ * OCI Object Storage에서 객체를 다운로드합니다.
+ * @param objectName 다운로드할 객체의 이름
+ * @returns 객체의 Buffer
+ */
+export async function downloadObject(objectName: string): Promise<Buffer> {
+  const { client, config } = getOCIClient();
+
+  if (!client || !config?.namespaceName || !config?.bucketName) {
+    throw new Error(
+      "OCI 클라이언트 또는 필수 정보(네임스페이스, 버킷 이름)가 초기화되지 않았습니다."
+    );
+  }
+
+  console.log(
+    `Downloading OCI object: ${objectName} from bucket: ${config.bucketName}`
+  );
+
+  try {
+    const getObjectRequest: os.requests.GetObjectRequest = {
+      namespaceName: config.namespaceName,
+      bucketName: config.bucketName,
+      objectName: objectName,
+    };
+
+    const response = await client.getObject(getObjectRequest);
+
+    if (!response.value) {
+      throw new Error("객체 다운로드 응답에 데이터가 없습니다.");
+    }
+
+    // ReadableStream을 Buffer로 변환
+    const chunks: Uint8Array[] = [];
+    const reader = (
+      response.value as ReadableStream<Uint8Array>
+    ).getReader();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+    }
+
+    console.log(`Successfully downloaded OCI object: ${objectName}`);
+    return Buffer.concat(chunks);
+  } catch (error) {
+    console.error(`Error downloading OCI object ${objectName}:`, error);
+    throw new Error(`OCI 객체 다운로드 중 오류 발생: ${objectName}`);
+  }
+}
+
 /**
  * OCI Object Storage에 파일을 업로드하고 해당 객체의 URL을 반환합니다.
  * @param objectName 저장될 객체의 이름 (경로 포함 가능, 예: 'projectId/imageName.jpg')

@@ -12,22 +12,21 @@ import {
   DialogTrigger,
   DialogClose,
 } from "@/shared/ui/dialog";
-import { useUploadFile } from "../model/upload";
+import { usePresignedUpload } from "../model/presigned-upload";
 import { toast } from "sonner";
 import {
   AVAILABLE_FORMATS,
   AVAILABLE_SIZES,
 } from "@/shared/config/image-options";
-import {
-  TransformOptions,
-  UploadProgress,
-  FileInput,
-} from "@/entities/files";
+import { TransformOptions } from "@/entities/files/ui/image/transform-options";
+import { FileInput } from "@/entities/files/ui/file-input";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FileUploadFormValues, fileUploadSchema } from "../model/schema";
 import { useTranslations } from "next-intl";
 import { isImageFile } from "@/shared/lib/file-utils";
+import { Progress } from "@/shared/ui/progress";
+import { Loader2, X, CheckCircle, AlertCircle } from "lucide-react";
 
 type FormatType = (typeof AVAILABLE_FORMATS)[number];
 type SizeType = (typeof AVAILABLE_SIZES)[number];
@@ -52,7 +51,7 @@ export function FileUploadDialog({
     setValue,
     watch,
     reset,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<FileUploadFormValues>({
     resolver: zodResolver(fileUploadSchema),
     defaultValues: {
@@ -64,15 +63,26 @@ export function FileUploadDialog({
     mode: "onChange",
   });
 
-  // API 요청 훅
-  const uploadMutation = useUploadFile(projectId, {
-    onSuccessCallback: () => {
+  // Presigned Upload 훅
+  const {
+    status,
+    progress,
+    error,
+    upload,
+    cancel,
+    reset: resetUpload,
+    isUploading,
+  } = usePresignedUpload({
+    projectId,
+    onSuccess: () => {
       toast.success(t("uploadSuccess", { fileName: fileState?.name || "" }));
       setIsOpen(false);
       setFileState(null);
     },
-    onErrorCallback: (error: Error) => {
-      toast.error(error.message);
+    onError: (error: Error) => {
+      if (error.message !== "업로드가 취소되었습니다.") {
+        toast.error(error.message);
+      }
     },
   });
 
@@ -94,8 +104,7 @@ export function FileUploadDialog({
     Object.keys(errors).length === 0 &&
     fileState &&
     (!isImage || (selectedFormats.length > 0 && selectedSizes.length > 0)) &&
-    !isSubmitting &&
-    !uploadMutation.isPending;
+    !isUploading;
 
   // 포맷 변경 핸들러
   const handleFormatChange = (format: string, checked: boolean | string) => {
@@ -148,18 +157,15 @@ export function FileUploadDialog({
       return;
     }
 
-    const formData = new FormData();
-    formData.append("file", file);
-
-    // 이미지 파일인 경우에만 variants 추가
+    // 이미지 파일인 경우 variants 생성
+    let variants;
     if (isImage && formats && sizes) {
-      const requestedVariants = sizes.flatMap((sizeLabel) =>
+      variants = sizes.flatMap((sizeLabel) =>
         formats.map((format) => ({ sizeLabel, format }))
       );
-      formData.append("variants", JSON.stringify(requestedVariants));
     }
 
-    uploadMutation.mutate({ formData });
+    upload(file, variants);
   };
 
   // 다이얼로그 상태 변경 핸들러
@@ -174,7 +180,33 @@ export function FileUploadDialog({
       });
       setFileState(null);
       setIsImage(false);
-      uploadMutation.reset();
+      resetUpload();
+    }
+  };
+
+  // 업로드 취소 핸들러
+  const handleCancel = () => {
+    cancel();
+    toast.info("업로드가 취소되었습니다.");
+  };
+
+  // 상태별 메시지
+  const getStatusMessage = () => {
+    switch (status) {
+      case "presigning":
+        return "업로드 준비 중...";
+      case "uploading":
+        return `업로드 중... ${progress}%`;
+      case "confirming":
+        return "업로드 완료 확인 중...";
+      case "processing":
+        return "이미지 처리 중...";
+      case "complete":
+        return "업로드 완료!";
+      case "error":
+        return error || "업로드 실패";
+      default:
+        return "";
     }
   };
 
@@ -191,7 +223,7 @@ export function FileUploadDialog({
             <FileInput
               onChange={handleFileChange}
               selectedFile={fileState}
-              disabled={isSubmitting || uploadMutation.isPending}
+              disabled={isUploading}
               id="file-input"
               label={t("fileInputLabel")}
               accept="*/*"
@@ -210,7 +242,7 @@ export function FileUploadDialog({
                   selectedFormats={new Set(selectedFormats)}
                   onSizeChange={handleSizeChange}
                   onFormatChange={handleFormatChange}
-                  disabled={isSubmitting || uploadMutation.isPending}
+                  disabled={isUploading}
                 />
                 {errors.formats && (
                   <p className="text-sm text-destructive">
@@ -233,30 +265,47 @@ export function FileUploadDialog({
               </p>
             )}
 
-            <UploadProgress
-              isUploading={isSubmitting || uploadMutation.isPending}
-              error={
-                uploadMutation.error instanceof Error
-                  ? uploadMutation.error
-                  : null
-              }
-            />
+            {/* 업로드 진행 상태 */}
+            {status !== "idle" && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  {status === "error" ? (
+                    <AlertCircle className="h-4 w-4 text-destructive" />
+                  ) : status === "complete" ? (
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  )}
+                  <span
+                    className={`text-sm ${status === "error" ? "text-destructive" : ""}`}
+                  >
+                    {getStatusMessage()}
+                  </span>
+                </div>
+                {(status === "uploading" || status === "presigning") && (
+                  <Progress value={progress} className="h-2" />
+                )}
+              </div>
+            )}
           </div>
           <DialogFooter>
-            <DialogClose asChild>
-              <Button
-                type="button"
-                variant="outline"
-                disabled={isSubmitting || uploadMutation.isPending}
-              >
-                {t("cancelButton")}
+            {isUploading ? (
+              <Button type="button" variant="destructive" onClick={handleCancel}>
+                <X className="h-4 w-4 mr-2" />
+                취소
               </Button>
-            </DialogClose>
-            <Button type="submit" disabled={!isFormValid}>
-              {isSubmitting || uploadMutation.isPending
-                ? t("uploadingButton")
-                : t("uploadButton")}
-            </Button>
+            ) : (
+              <>
+                <DialogClose asChild>
+                  <Button type="button" variant="outline" disabled={isUploading}>
+                    {t("cancelButton")}
+                  </Button>
+                </DialogClose>
+                <Button type="submit" disabled={!isFormValid}>
+                  {t("uploadButton")}
+                </Button>
+              </>
+            )}
           </DialogFooter>
         </form>
       </DialogContent>

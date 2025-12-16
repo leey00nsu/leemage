@@ -310,10 +310,11 @@ export const getApiDocsData = async (
       name: t("categories.files.name"),
       description: t("categories.files.description"),
       endpoints: [
+        // Presigned URL 요청 (신규)
         {
           method: "POST",
-          path: "/api/v1/projects/[projectId]/files",
-          description: t("categories.files.endpoints.uploadFile.description"),
+          path: "/api/v1/projects/[projectId]/files/presign",
+          description: t("categories.files.endpoints.presignFile.description"),
           auth: true,
           parameters: [
             {
@@ -321,27 +322,153 @@ export const getApiDocsData = async (
               type: "string",
               required: true,
               description: t(
-                "categories.files.endpoints.uploadFile.parameters.projectId.description"
+                "categories.files.endpoints.presignFile.parameters.projectId.description"
               ),
             },
           ],
           requestBody: {
-            type: "multipart/form-data",
+            type: "object",
             properties: [
               {
-                name: "file",
-                type: "file",
+                name: "fileName",
+                type: "string",
                 required: true,
                 description: t(
-                  "categories.files.endpoints.uploadFile.requestBody.properties.file.description"
+                  "categories.files.endpoints.presignFile.requestBody.properties.fileName.description"
+                ),
+              },
+              {
+                name: "contentType",
+                type: "string",
+                required: true,
+                description: t(
+                  "categories.files.endpoints.presignFile.requestBody.properties.contentType.description"
+                ),
+              },
+              {
+                name: "fileSize",
+                type: "number",
+                required: true,
+                description: t(
+                  "categories.files.endpoints.presignFile.requestBody.properties.fileSize.description"
+                ),
+              },
+            ],
+          },
+          responses: [
+            {
+              status: 200,
+              description: t(
+                "categories.files.endpoints.presignFile.responses.200.description"
+              ),
+              example: {
+                presignedUrl: "https://objectstorage.ap-seoul-1.oraclecloud.com/p/...",
+                objectName: "clq1234abcd/file5678efgh.jpg",
+                objectUrl: "https://objectstorage.ap-seoul-1.oraclecloud.com/n/.../o/...",
+                fileId: "file5678efgh",
+                expiresAt: "2023-01-01T00:15:00.000Z",
+              },
+            },
+            {
+              status: 400,
+              description: t(
+                "categories.files.endpoints.presignFile.responses.400.description"
+              ),
+              example: {
+                message: t(
+                  "categories.files.endpoints.presignFile.responses.400.example.message"
+                ),
+              },
+            },
+            {
+              status: 401,
+              description: t(
+                "categories.files.endpoints.presignFile.responses.401.description"
+              ),
+              example: {
+                message: t(
+                  "categories.files.endpoints.presignFile.responses.401.example.message"
+                ),
+              },
+            },
+            {
+              status: 413,
+              description: t(
+                "categories.files.endpoints.presignFile.responses.413.description"
+              ),
+              example: {
+                message: t(
+                  "categories.files.endpoints.presignFile.responses.413.example.message"
+                ),
+              },
+            },
+          ],
+        },
+        // 업로드 완료 확인 (신규)
+        {
+          method: "POST",
+          path: "/api/v1/projects/[projectId]/files/confirm",
+          description: t("categories.files.endpoints.confirmFile.description"),
+          auth: true,
+          parameters: [
+            {
+              name: "projectId",
+              type: "string",
+              required: true,
+              description: t(
+                "categories.files.endpoints.confirmFile.parameters.projectId.description"
+              ),
+            },
+          ],
+          requestBody: {
+            type: "object",
+            properties: [
+              {
+                name: "fileId",
+                type: "string",
+                required: true,
+                description: t(
+                  "categories.files.endpoints.confirmFile.requestBody.properties.fileId.description"
+                ),
+              },
+              {
+                name: "objectName",
+                type: "string",
+                required: true,
+                description: t(
+                  "categories.files.endpoints.confirmFile.requestBody.properties.objectName.description"
+                ),
+              },
+              {
+                name: "fileName",
+                type: "string",
+                required: true,
+                description: t(
+                  "categories.files.endpoints.confirmFile.requestBody.properties.fileName.description"
+                ),
+              },
+              {
+                name: "contentType",
+                type: "string",
+                required: true,
+                description: t(
+                  "categories.files.endpoints.confirmFile.requestBody.properties.contentType.description"
+                ),
+              },
+              {
+                name: "fileSize",
+                type: "number",
+                required: true,
+                description: t(
+                  "categories.files.endpoints.confirmFile.requestBody.properties.fileSize.description"
                 ),
               },
               {
                 name: "variants",
-                type: "json array",
-                required: true,
+                type: "array",
+                required: false,
                 description: t(
-                  "categories.files.endpoints.uploadFile.requestBody.properties.variants.description"
+                  "categories.files.endpoints.confirmFile.requestBody.properties.variants.description"
                 ),
               },
             ],
@@ -350,64 +477,59 @@ export const getApiDocsData = async (
             {
               status: 201,
               description: t(
-                "categories.files.endpoints.uploadFile.responses.201.description"
+                "categories.files.endpoints.confirmFile.responses.201.description"
               ),
               example: {
-                id: "img1234abcd",
-                name: "새 이미지.jpg",
-                variants: [
-                  {
-                    id: "var1234abcd",
-                    url: "https://example.com/image_300x300.jpg",
-                    type: "300x300",
-                  },
-                ],
-                createdAt: "2023-01-01T00:00:00.000Z",
-                updatedAt: "2023-01-01T00:00:00.000Z",
-                projectId: "clq1234abcd",
+                message: "파일 업로드 완료",
+                file: {
+                  id: "file5678efgh",
+                  name: "example.jpg",
+                  mimeType: "image/jpeg",
+                  isImage: true,
+                  size: 102400,
+                  variants: [
+                    {
+                      url: "https://example.com/image.jpg",
+                      label: "original",
+                      format: "jpeg",
+                      width: 1920,
+                      height: 1080,
+                      size: 102400,
+                    },
+                  ],
+                },
               },
             },
             {
               status: 400,
               description: t(
-                "categories.files.endpoints.uploadFile.responses.400.description"
+                "categories.files.endpoints.confirmFile.responses.400.description"
               ),
               example: {
                 message: t(
-                  "categories.files.endpoints.uploadFile.responses.400.example.message"
+                  "categories.files.endpoints.confirmFile.responses.400.example.message"
                 ),
               },
             },
             {
               status: 401,
               description: t(
-                "categories.files.endpoints.uploadFile.responses.401.description"
+                "categories.files.endpoints.confirmFile.responses.401.description"
               ),
               example: {
                 message: t(
-                  "categories.files.endpoints.uploadFile.responses.401.example.message"
+                  "categories.files.endpoints.confirmFile.responses.401.example.message"
                 ),
               },
             },
             {
               status: 404,
               description: t(
-                "categories.files.endpoints.uploadFile.responses.404.description"
+                "categories.files.endpoints.confirmFile.responses.404.description"
               ),
               example: {
                 message: t(
-                  "categories.files.endpoints.uploadFile.responses.404.example.message"
-                ),
-              },
-            },
-            {
-              status: 500,
-              description: t(
-                "categories.files.endpoints.uploadFile.responses.500.description"
-              ),
-              example: {
-                message: t(
-                  "categories.files.endpoints.uploadFile.responses.500.example.message"
+                  "categories.files.endpoints.confirmFile.responses.404.example.message"
                 ),
               },
             },

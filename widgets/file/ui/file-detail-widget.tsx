@@ -4,15 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Badge } from "@/shared/ui/badge";
 import { ImageIcon } from "lucide-react";
 import { findVariantByLabel } from "@/shared/lib/image-utils";
-import {
-  FileWithVariants,
-  FileTypeIcon,
-  FileInfo,
-  FileActions,
-  ImagePreview,
-  ImageInfo,
-  ImageVariantList,
-} from "@/entities/files";
+import { FileWithVariants } from "@/entities/files/model/types";
+import { FileTypeIcon } from "@/entities/files/ui/file-type-icon";
+import { FileInfo } from "@/entities/files/ui/file-info";
+import { FileActions } from "@/entities/files/ui/file-actions";
+import { ImagePreview } from "@/entities/files/ui/image/image-preview";
+import { ImageInfo } from "@/entities/files/ui/image/image-info";
+import { ImageVariantList } from "@/entities/files/ui/image/image-variant-list";
 import { DeleteFileDialog } from "@/features/files/delete/ui/delete-file-dialog";
 import { useTranslations } from "next-intl";
 

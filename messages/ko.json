@@ -378,8 +378,8 @@
         "name": "파일",
         "description": "파일 관련 API 엔드포인트",
         "endpoints": {
-          "uploadFile": {
-            "description": "특정 프로젝트에 파일을 업로드합니다. 이미지 파일의 경우 지정된 형식/크기로 변환하여 저장합니다.",
+          "presignFile": {
+            "description": "파일 업로드를 위한 Presigned URL을 생성합니다. 클라이언트는 이 URL을 사용하여 OCI에 직접 파일을 업로드할 수 있습니다.",
             "parameters": {
               "projectId": {
                 "description": "파일을 업로드할 프로젝트의 ID"
@@ -387,22 +387,78 @@
             },
             "requestBody": {
               "properties": {
-                "file": {
-                  "description": "업로드할 파일"
+                "fileName": {
+                  "description": "업로드할 파일의 이름"
+                },
+                "contentType": {
+                  "description": "파일의 MIME 타입 (예: image/jpeg, application/pdf)"
+                },
+                "fileSize": {
+                  "description": "파일 크기 (바이트)"
+                }
+              }
+            },
+            "responses": {
+              "200": {
+                "description": "Presigned URL이 성공적으로 생성되었습니다."
+              },
+              "400": {
+                "description": "잘못된 요청",
+                "example": {
+                  "message": "잘못된 요청 형식입니다."
+                }
+              },
+              "401": {
+                "description": "인증 실패",
+                "example": {
+                  "message": "인증 실패: 유효하지 않은 API 키"
+                }
+              },
+              "413": {
+                "description": "파일 크기 초과",
+                "example": {
+                  "message": "파일 크기가 제한(50MB)을 초과했습니다."
+                }
+              }
+            }
+          },
+          "confirmFile": {
+            "description": "OCI에 직접 업로드 완료 후 호출하여 DB에 파일 레코드를 생성합니다. 이미지 파일의 경우 variants 옵션으로 변환 처리를 요청할 수 있습니다.",
+            "parameters": {
+              "projectId": {
+                "description": "파일이 속한 프로젝트의 ID"
+              }
+            },
+            "requestBody": {
+              "properties": {
+                "fileId": {
+                  "description": "presign 응답에서 받은 파일 ID"
+                },
+                "objectName": {
+                  "description": "presign 응답에서 받은 객체 이름"
+                },
+                "fileName": {
+                  "description": "원본 파일 이름"
+                },
+                "contentType": {
+                  "description": "파일의 MIME 타입"
+                },
+                "fileSize": {
+                  "description": "파일 크기 (바이트)"
                 },
                 "variants": {
-                  "description": "(이미지 전용) 생성할 이미지 버전 옵션. 각 요소는 '{ ' \"sizeLabel\": \"original\" | \"300x300\" | \"800x800\" | \"1920x1080\", \"format\": \"png\" | \"jpeg\" | \"avif\" | \"webp\" '}' 형태"
+                  "description": "(이미지 전용, 선택) 생성할 이미지 버전 옵션 배열"
                 }
               }
             },
             "responses": {
               "201": {
-                "description": "파일 업로드 성공"
+                "description": "파일 레코드가 성공적으로 생성되었습니다."
               },
               "400": {
                 "description": "잘못된 요청",
                 "example": {
-                  "message": "필수 파라미터가 누락되었습니다."
+                  "message": "유효하지 않은 파일 ID입니다."
                 }
               },
               "401": {
@@ -412,21 +468,9 @@
                 }
               },
               "404": {
-                "description": "프로젝트를 찾을 수 없음",
+                "description": "파일을 찾을 수 없음",
                 "example": {
-                  "message": "프로젝트를 찾을 수 없습니다."
-                }
-              },
-              "415": {
-                "description": "지원하지 않는 미디어 타입",
-                "example": {
-                  "message": "Content-Type이 multipart/form-data가 아닙니다."
-                }
-              },
-              "500": {
-                "description": "서버 오류",
-                "example": {
-                  "message": "파일 업로드 중 오류가 발생했습니다."
+                  "message": "업로드된 파일을 찾을 수 없습니다."
                 }
               }
             }
