@@ -4,27 +4,12 @@ import { downloadObject, uploadObject } from "@/lib/oci";
 import sharp from "sharp";
 import { Prisma } from "@/lib/generated/prisma";
 import { z } from "zod";
-import {
-  AVAILABLE_FORMATS,
-  AVAILABLE_SIZES,
-} from "@/shared/config/image-options";
+import { AVAILABLE_FORMATS, AVAILABLE_SIZES } from "@/shared/config/image-options";
 import { isImageMimeType } from "@/shared/lib/file-utils";
-
-// Variant 옵션 스키마
-const variantOptionSchema = z.object({
-  sizeLabel: z.enum(AVAILABLE_SIZES),
-  format: z.enum(AVAILABLE_FORMATS),
-});
-
-// Confirm 요청 스키마
-const confirmRequestSchema = z.object({
-  fileId: z.string().min(1, "파일 ID가 필요합니다."),
-  objectName: z.string().min(1, "객체 이름이 필요합니다."),
-  fileName: z.string().min(1, "파일명이 필요합니다."),
-  contentType: z.string().min(1, "Content-Type이 필요합니다."),
-  fileSize: z.number().positive("파일 크기는 양수여야 합니다."),
-  variants: z.array(variantOptionSchema).optional(),
-});
+import {
+  confirmRequestSchema,
+  variantOptionSchema,
+} from "@/lib/openapi/schemas/files";
 
 export type ConfirmRequest = z.infer<typeof confirmRequestSchema>;
 

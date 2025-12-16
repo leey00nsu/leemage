@@ -1,16 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createProjectSchema } from "@/features/projects/create/model/schema";
+import { z } from "zod";
+import {
+  createProjectRequestSchema,
+  projectResponseSchema,
+  projectListResponseSchema,
+} from "@/lib/openapi/schemas/projects";
+import { errorResponseSchema } from "@/lib/openapi/schemas/common";
 import { prisma } from "@/lib/prisma";
 
-export async function getProjectsHandler() {
+// 응답 타입 추론
+type ProjectListResponse = z.infer<typeof projectListResponseSchema>;
+type ProjectResponse = z.infer<typeof projectResponseSchema>;
+type ErrorResponse = z.infer<typeof errorResponseSchema>;
+
+export async function getProjectsHandler(): Promise<
+  NextResponse<ProjectListResponse | ErrorResponse>
+> {
   try {
     const projects = await prisma.project.findMany({
       orderBy: {
         createdAt: "desc",
       },
-      select: { id: true, name: true, description: true, createdAt: true },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
-    return NextResponse.json(projects);
+
+    // Date를 ISO 문자열로 변환
+    const response: ProjectListResponse = projects.map((p) => ({
+      ...p,
+      createdAt: p.createdAt.toISOString(),
+      updatedAt: p.updatedAt.toISOString(),
+    }));
+
+    return NextResponse.json(response);
   } catch (error) {
     console.error("Fetch projects API error:", error);
     return NextResponse.json(
@@ -20,10 +47,12 @@ export async function getProjectsHandler() {
   }
 }
 
-export async function createProjectHandler(req: NextRequest) {
+export async function createProjectHandler(
+  req: NextRequest
+): Promise<NextResponse<ProjectResponse | ErrorResponse>> {
   try {
     const body = await req.json();
-    const validationResult = createProjectSchema.safeParse(body);
+    const validationResult = createProjectRequestSchema.safeParse(body);
 
     if (!validationResult.success) {
       return NextResponse.json(
@@ -44,7 +73,14 @@ export async function createProjectHandler(req: NextRequest) {
       },
     });
 
-    return NextResponse.json(newProject, { status: 201 });
+    // Date를 ISO 문자열로 변환
+    const response: ProjectResponse = {
+      ...newProject,
+      createdAt: newProject.createdAt.toISOString(),
+      updatedAt: newProject.updatedAt.toISOString(),
+    };
+
+    return NextResponse.json(response, { status: 201 });
   } catch (error) {
     console.error("Project creation API error:", error);
     return NextResponse.json(

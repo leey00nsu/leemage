@@ -1,9 +1,22 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { deleteObject } from "@/lib/oci";
+import { projectDetailsResponseSchema } from "@/lib/openapi/schemas/projects";
+import {
+  errorResponseSchema,
+  messageResponseSchema,
+} from "@/lib/openapi/schemas/common";
 import { ImageVariantData } from "@/entities/files/model/types";
 
-export async function getProjectDetailsHandler(projectId: string) {
+// 응답 타입 추론
+type ProjectDetailsResponse = z.infer<typeof projectDetailsResponseSchema>;
+type ErrorResponse = z.infer<typeof errorResponseSchema>;
+type MessageResponse = z.infer<typeof messageResponseSchema>;
+
+export async function getProjectDetailsHandler(
+  projectId: string
+): Promise<NextResponse<ProjectDetailsResponse | ErrorResponse>> {
   if (!projectId) {
     return NextResponse.json(
       { message: "Project ID가 필요합니다." },
@@ -47,17 +60,21 @@ export async function getProjectDetailsHandler(projectId: string) {
       );
     }
 
-    // API 응답에서 images를 files로 변환
+    // API 응답에서 images를 files로 변환하고 Date를 ISO 문자열로 변환
     const { images, ...projectData } = project;
-    const processedProject = {
+    const response: ProjectDetailsResponse = {
       ...projectData,
+      createdAt: projectData.createdAt.toISOString(),
+      updatedAt: projectData.updatedAt.toISOString(),
       files: images.map((file) => ({
         ...file,
+        createdAt: file.createdAt.toISOString(),
+        updatedAt: file.updatedAt.toISOString(),
         variants: file.variants as unknown as ImageVariantData[],
       })),
     };
 
-    return NextResponse.json(processedProject);
+    return NextResponse.json(response);
   } catch (error) {
     console.error(`Fetch project ${projectId} API error:`, error);
     return NextResponse.json(
@@ -67,7 +84,9 @@ export async function getProjectDetailsHandler(projectId: string) {
   }
 }
 
-export async function deleteProjectHandler(projectId: string) {
+export async function deleteProjectHandler(
+  projectId: string
+): Promise<NextResponse<MessageResponse | ErrorResponse>> {
   if (!projectId) {
     return NextResponse.json(
       { message: "Project ID가 필요합니다." },

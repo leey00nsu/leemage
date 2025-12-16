@@ -8,13 +8,7 @@ import {
   getFileExtension,
   isImageMimeType,
 } from "@/shared/lib/file-utils";
-
-// Presign 요청 스키마
-const presignRequestSchema = z.object({
-  fileName: z.string().min(1, "파일명이 필요합니다."),
-  contentType: z.string().min(1, "Content-Type이 필요합니다."),
-  fileSize: z.number().positive("파일 크기는 양수여야 합니다."),
-});
+import { presignRequestSchema } from "@/lib/openapi/schemas/files";
 
 export type PresignRequest = z.infer<typeof presignRequestSchema>;
 

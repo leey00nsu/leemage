@@ -17,6 +17,7 @@
     "start:production": "npm run db:deploy && next start"
   },
   "dependencies": {
+    "@asteasolutions/zod-to-openapi": "^7.3.4",
     "@hookform/resolvers": "^5.0.1",
     "@prisma/client": "^6.7.0",
     "@radix-ui/react-alert-dialog": "^1.1.11",
