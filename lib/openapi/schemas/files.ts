@@ -18,13 +18,19 @@ export const fileIdParamSchema = z.object({
   }),
 });
 
+// 사이즈 레이블 스키마 (프리셋 또는 커스텀 해상도 "WIDTHxHEIGHT" 형식)
+const sizeLabelSchema = z.union([
+  z.enum(AVAILABLE_SIZES),
+  z.string().regex(/^\d+x\d+$/, "커스텀 해상도는 'WIDTHxHEIGHT' 형식이어야 합니다 (예: 1200x800)"),
+]).openapi({
+  description: "이미지 크기 레이블. 프리셋(original, 300x300, 800x800, 1920x1080) 또는 커스텀 해상도(WIDTHxHEIGHT 형식)",
+  example: "original",
+});
+
 // Variant 옵션 스키마
 export const variantOptionSchema = z
   .object({
-    sizeLabel: z.enum(AVAILABLE_SIZES).openapi({
-      description: "이미지 크기 레이블",
-      example: "original",
-    }),
+    sizeLabel: sizeLabelSchema,
     format: z.enum(AVAILABLE_FORMATS).openapi({
       description: "이미지 포맷",
       example: "webp",

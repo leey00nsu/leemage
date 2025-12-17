@@ -43,6 +43,11 @@ export function FileUploadDialog({
   const [isOpen, setIsOpen] = useState(false);
   const [fileState, setFileState] = useState<File | null>(null);
   const [isImage, setIsImage] = useState(false);
+  const [customResolutions, setCustomResolutions] = useState<string[]>([]);
+  const [imageDimensions, setImageDimensions] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
   const t = useTranslations("ImageUploadDialog");
 
   // react-hook-form 설정
@@ -59,6 +64,7 @@ export function FileUploadDialog({
       sizes: [
         AVAILABLE_SIZES.find((s) => s === "original") || AVAILABLE_SIZES[0],
       ],
+      customResolutions: [],
     },
     mode: "onChange",
   });
@@ -99,11 +105,12 @@ export function FileUploadDialog({
     }
   }, [fileState]);
 
-  // 폼 유효성 검사
+  // 폼 유효성 검사 (프리셋 사이즈 또는 커스텀 해상도 중 하나 이상 선택)
+  const hasValidSizes = selectedSizes.length > 0 || customResolutions.length > 0;
   const isFormValid =
     Object.keys(errors).length === 0 &&
     fileState &&
-    (!isImage || (selectedFormats.length > 0 && selectedSizes.length > 0)) &&
+    (!isImage || (selectedFormats.length > 0 && hasValidSizes)) &&
     !isUploading;
 
   // 포맷 변경 핸들러
@@ -148,6 +155,22 @@ export function FileUploadDialog({
     }
   };
 
+  // 커스텀 해상도 추가 핸들러
+  const handleCustomResolutionAdd = (resolution: string) => {
+    if (!customResolutions.includes(resolution)) {
+      const newResolutions = [...customResolutions, resolution];
+      setCustomResolutions(newResolutions);
+      setValue("customResolutions", newResolutions, { shouldValidate: true });
+    }
+  };
+
+  // 커스텀 해상도 제거 핸들러
+  const handleCustomResolutionRemove = (resolution: string) => {
+    const newResolutions = customResolutions.filter((r) => r !== resolution);
+    setCustomResolutions(newResolutions);
+    setValue("customResolutions", newResolutions, { shouldValidate: true });
+  };
+
   // 폼 제출 핸들러
   const onSubmit: SubmitHandler<FileUploadFormValues> = (data) => {
     const { file, formats, sizes } = data;
@@ -159,8 +182,10 @@ export function FileUploadDialog({
 
     // 이미지 파일인 경우 variants 생성
     let variants;
-    if (isImage && formats && sizes) {
-      variants = sizes.flatMap((sizeLabel) =>
+    if (isImage && formats) {
+      // 프리셋 사이즈와 커스텀 해상도 합치기
+      const allSizes = [...(sizes || []), ...customResolutions];
+      variants = allSizes.flatMap((sizeLabel) =>
         formats.map((format) => ({ sizeLabel, format }))
       );
     }
@@ -177,9 +202,12 @@ export function FileUploadDialog({
         sizes: [
           AVAILABLE_SIZES.find((s) => s === "original") || AVAILABLE_SIZES[0],
         ],
+        customResolutions: [],
       });
       setFileState(null);
       setIsImage(false);
+      setCustomResolutions([]);
+      setImageDimensions(null);
       resetUpload();
     }
   };
@@ -227,6 +255,7 @@ export function FileUploadDialog({
               id="file-input"
               label={t("fileInputLabel")}
               accept="*/*"
+              onDimensionsLoad={setImageDimensions}
             />
             {errors.file && (
               <p className="text-sm text-destructive pl-[25%]">
@@ -240,9 +269,14 @@ export function FileUploadDialog({
                 <TransformOptions
                   selectedSizes={new Set(selectedSizes)}
                   selectedFormats={new Set(selectedFormats)}
+                  customResolutions={customResolutions}
                   onSizeChange={handleSizeChange}
                   onFormatChange={handleFormatChange}
+                  onCustomResolutionAdd={handleCustomResolutionAdd}
+                  onCustomResolutionRemove={handleCustomResolutionRemove}
                   disabled={isUploading}
+                  originalWidth={imageDimensions?.width}
+                  originalHeight={imageDimensions?.height}
                 />
                 {errors.formats && (
                   <p className="text-sm text-destructive">

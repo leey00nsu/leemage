@@ -256,5 +256,20 @@
     "placeholder": "스토리지 선택",
     "all": "전체",
     "noResults": "검색 결과가 없습니다."
+  },
+  "FormatDescriptions": {
+    "png": "무손실 압축, 투명도 지원",
+    "jpeg": "손실 압축, 작은 파일 크기, 사진에 적합",
+    "avif": "최신 포맷, 높은 압축률, 제한된 브라우저 지원",
+    "webp": "구글 개발, 좋은 압축률, 넓은 브라우저 지원"
+  },
+  "CustomResolution": {
+    "title": "커스텀 해상도",
+    "widthPlaceholder": "너비",
+    "heightPlaceholder": "높이",
+    "invalidNumber": "유효한 숫자를 입력해주세요.",
+    "maxReached": "최대 10개까지 추가할 수 있습니다.",
+    "remove": "제거",
+    "aspectRatioLocked": "원본 비율이 유지됩니다"
   }
 }

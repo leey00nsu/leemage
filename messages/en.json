@@ -256,5 +256,20 @@
     "placeholder": "Select storage",
     "all": "All",
     "noResults": "No projects found."
+  },
+  "FormatDescriptions": {
+    "png": "Lossless compression, transparency support",
+    "jpeg": "Lossy compression, small file size, ideal for photos",
+    "avif": "Modern format, high compression, limited browser support",
+    "webp": "Google developed, good compression, wide browser support"
+  },
+  "CustomResolution": {
+    "title": "Custom Resolution",
+    "widthPlaceholder": "Width",
+    "heightPlaceholder": "Height",
+    "invalidNumber": "Please enter a valid number.",
+    "maxReached": "Maximum of 10 custom resolutions allowed.",
+    "remove": "Remove",
+    "aspectRatioLocked": "Aspect ratio is preserved"
   }
 }
