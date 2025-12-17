@@ -278,5 +278,53 @@
     "maxReached": "Maximum of 10 custom resolutions allowed.",
     "remove": "Remove",
     "aspectRatioLocked": "Aspect ratio is preserved"
+  },
+  "LandingHeader": {
+    "features": "Features",
+    "pricing": "Pricing",
+    "docs": "Docs",
+    "signIn": "Sign in",
+    "getStarted": "Get started"
+  },
+  "LandingHero": {
+    "headline1": "Manage all your files",
+    "headline2": "in one place",
+    "subtitle": "Multi-object storage file management opensource platform built on OCI Object Storage and Cloudflare R2.",
+    "primaryCta": "Get started",
+    "secondaryCta": "Read docs",
+    "floatingCard1": "Presigned Upload",
+    "floatingCard2": "Image Transformations",
+    "floatingCard3": "Project Management",
+    "floatingCard4": "REST API"
+  },
+  "SolutionsSection": {
+    "title": "Why Leemage?",
+    "subtitle": "Solving the pain points of traditional file management",
+    "beforeLabel": "Traditional Way",
+    "afterLabel": "Leemage",
+    "compare1Before": "Uploading through server increases server load",
+    "compare1After": "Zero server load with direct-to-storage presigned URL uploads",
+    "compare2Before": "Separate service needed for image transformation",
+    "compare2After": "Automatic resize and WebP/AVIF conversion on upload",
+    "compare3Before": "Different APIs to learn for each storage provider",
+    "compare3After": "Unified API for OCI and R2 management",
+    "compare4Before": "Files scattered across locations, hard to manage",
+    "compare4After": "Systematic file organization by project",
+    "compare5Before": "Commercial services cost money and are hard to customize",
+    "compare5After": "Open source - free to use and fully customizable"
+  },
+  "LandingFeatures": {
+    "title": "Keep everything in one place",
+    "feature1Title": "Presigned URL Upload",
+    "feature1Description": "Direct upload to OCI and R2 without server load",
+    "feature2Title": "Image Transformation",
+    "feature2Description": "Automatic resize and WebP/AVIF format conversion",
+    "feature3Title": "RESTful API",
+    "feature3Description": "External integration with API key support",
+    "feature4Title": "Project Management",
+    "feature4Description": "Systematic file management by project"
+  },
+  "IntegrationsSection": {
+    "title": "Tech stacks"
   }
 }

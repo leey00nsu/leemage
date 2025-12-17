@@ -99,11 +99,11 @@ export function CustomResolutionInput({
             value={height}
             onChange={(e) => !hasOriginalDimensions && setHeight(e.target.value)}
             onKeyDown={handleKeyDown}
-            disabled={disabled || isMaxReached || hasOriginalDimensions}
+            disabled={disabled || isMaxReached || !!hasOriginalDimensions}
             className={`w-24 ${hasOriginalDimensions ? "pr-8 bg-muted/50" : ""}`}
             min={1}
             max={10000}
-            readOnly={hasOriginalDimensions}
+            readOnly={!!hasOriginalDimensions}
           />
           {hasOriginalDimensions && (
             <Lock className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />

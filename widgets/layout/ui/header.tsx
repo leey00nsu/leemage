@@ -17,7 +17,7 @@ export function Header() {
             height={100}
             className="object-contain"
           />
-          <span className="text-lg font-semibold bg-clip-text text-transparent bg-gradient-to-r from-black to-gray-500">
+          <span className="text-lg font-semibold">
             Leemage
           </span>
         </Link>

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import "../globals.css"; // 경로 수정
-import { PageLayout } from "@/widgets/layout/ui/page-layout";
+import "../globals.css";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { Toaster } from "@/shared/ui/sonner";
 import localFont from "next/font/local";
@@ -9,25 +8,25 @@ import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 
 const pretendard = localFont({
-  src: "../../public/PretendardVariable.woff2", // 경로 수정
+  src: "../../public/PretendardVariable.woff2",
   display: "swap",
   weight: "45 920",
   variable: "--font-pretendard",
 });
 
 export const metadata: Metadata = {
-  title: "Leemage", // 정적 메타데이터 예시
+  title: "Leemage",
   description: "Upload everything on Leemage",
 };
 
 export default async function RootLayout({
   children,
-  params, // 타입 변경: Promise<{locale: string}>
+  params,
 }: {
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 }) {
-  const { locale } = await params; // await 제거 (또는 params 타입을 Promise로 변경 후 await 사용)
+  const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) {
     notFound();
   }
@@ -37,7 +36,7 @@ export default async function RootLayout({
       <body className={pretendard.className}>
         <NextIntlClientProvider locale={locale}>
           <QueryProvider>
-            <PageLayout>{children}</PageLayout>
+            {children}
             <Toaster richColors position="top-right" />
           </QueryProvider>
         </NextIntlClientProvider>
