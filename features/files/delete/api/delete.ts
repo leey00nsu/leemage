@@ -23,6 +23,3 @@ export const deleteFile = async ({
     return { message: "파일이 성공적으로 삭제되었습니다." };
   }
 };
-
-// 이전 함수명과의 호환성을 위한 별칭
-export const deleteImage = deleteFile;

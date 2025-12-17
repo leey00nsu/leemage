@@ -159,6 +159,3 @@ export function usePresignedUpload(options: UsePresignedUploadOptions) {
     isPending: mutation.isPending,
   };
 }
-
-// 이전 훅과의 호환성을 위한 별칭
-export const usePresignedImageUpload = usePresignedUpload;

@@ -99,13 +99,13 @@ export function getOCINamespace(): string | undefined {
   return config?.namespaceName;
 }
 
-// 기존 코드와의 호환성을 위해 클라이언트를 export하는 함수
+// OCI Object Storage 클라이언트 반환
 export function getObjectStorageClient(): os.ObjectStorageClient | null {
   const { client } = getOCIClient();
   return client;
 }
 
-// 호환성을 위한 export (동적으로 평가됨)
+// 환경 변수 직접 접근용 export
 export const bucketName = process.env.OCI_BUCKET_NAME;
 export const ociNamespace = process.env.OCI_NAMESPACE;
 export const ociBucketName = process.env.OCI_BUCKET_NAME;

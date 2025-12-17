@@ -122,6 +122,3 @@ export async function deleteFileHandler(fileId: string, projectId?: string) {
     );
   }
 }
-
-// 이전 함수명과의 호환성을 위한 별칭
-export const deleteImageHandler = deleteFileHandler;

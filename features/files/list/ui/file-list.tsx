@@ -39,6 +39,3 @@ export function FileList({ files }: FileListProps) {
     </FileGrid>
   );
 }
-
-// 이전 컴포넌트명과의 호환성을 위한 별칭
-export const ImageList = FileList;

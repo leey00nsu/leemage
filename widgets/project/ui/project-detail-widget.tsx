@@ -4,7 +4,8 @@ import { FileUploadDialog } from "@/features/files/upload/ui/file-upload-dialog"
 import { FileList } from "@/features/files/list/ui/file-list";
 import { DeleteProjectButton } from "@/features/projects/delete/ui/delete-project-button";
 import { EditProjectDialog } from "@/features/projects/edit/ui/edit-project-dialog";
-import { Check, Copy, Loader2, Upload, Pencil } from "lucide-react";
+import { Check, Copy, Upload, Pencil } from "lucide-react";
+import { ProjectDetailSkeleton } from "./project-detail-skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert";
 import { Button } from "@/shared/ui/button";
 import { useGetProjectDetails } from "@/features/projects/details/model/get";
@@ -29,11 +30,7 @@ export function ProjectDetailsWidget({ projectId }: ProjectDetailsWidgetProps) {
   });
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <ProjectDetailSkeleton />;
   }
 
   if (error) {

@@ -27,6 +27,3 @@ export type FileData = {
 export type FileWithVariants = Omit<PrismaImageType, "variants"> & {
   variants: ImageVariantData[];
 };
-
-// 이전 타입명과의 호환성을 위한 별칭
-export type ImageWithVariants = FileWithVariants;

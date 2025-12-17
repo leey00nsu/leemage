@@ -29,6 +29,3 @@ export const useDeleteFile = (options?: UseDeleteFileMutationOptions) => {
     },
   });
 };
-
-// 이전 함수명과의 호환성을 위한 별칭
-export const useDeleteImage = useDeleteFile;

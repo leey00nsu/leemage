@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useGetProjects } from "../model/get";
-import { ProjectSkeleton } from "@/entities/projects/ui/project-skeleton";
+import { ProjectListSkeleton } from "@/entities/projects/ui/project-list-skeleton";
 import { ProjectError } from "@/entities/projects/ui/project-error";
 import { EmptyProjectState } from "@/entities/projects/ui/empty-project-state";
 import { ProjectCard } from "@/entities/projects/ui/project-card";
@@ -28,7 +28,7 @@ export function ProjectList() {
   }, [projects, searchTerm, storageFilter]);
 
   if (isLoading) {
-    return <ProjectSkeleton count={3} />;
+    return <ProjectListSkeleton count={3} />;
   }
 
   if (isError) {

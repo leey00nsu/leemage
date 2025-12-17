@@ -346,6 +346,3 @@ export function FileUploadDialog({
     </Dialog>
   );
 }
-
-// 이전 컴포넌트명과의 호환성을 위한 별칭
-export const ImageUploadDialog = FileUploadDialog;
