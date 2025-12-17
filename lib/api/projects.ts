@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import {
   createProjectRequestSchema,
+  updateProjectRequestSchema,
   projectResponseSchema,
   projectListResponseSchema,
 } from "@/lib/openapi/schemas/projects";
@@ -71,7 +72,7 @@ export async function createProjectHandler(
     const { name, description, storageProvider } = validationResult.data;
 
     // 선택된 스토리지 프로바이더가 사용 가능한지 확인
-    const provider = storageProvider || StorageProvider.OCI;
+    const provider = (storageProvider || StorageProvider.OCI) as StorageProvider;
     const isAvailable = await StorageFactory.isProviderAvailable(provider);
     
     if (!isAvailable) {
@@ -102,6 +103,89 @@ export async function createProjectHandler(
     console.error("Project creation API error:", error);
     return NextResponse.json(
       { message: "프로젝트 생성 중 오류가 발생했습니다." },
+      { status: 500 }
+    );
+  }
+}
+
+
+export async function updateProjectHandler(
+  req: NextRequest,
+  projectId: string
+): Promise<NextResponse<ProjectResponse | ErrorResponse>> {
+  try {
+    const body = await req.json();
+    const validationResult = updateProjectRequestSchema.safeParse(body);
+
+    if (!validationResult.success) {
+      return NextResponse.json(
+        {
+          message: "잘못된 요청 형식입니다.",
+          errors: validationResult.error.flatten().fieldErrors,
+        },
+        { status: 400 }
+      );
+    }
+
+    const { name, description } = validationResult.data;
+
+    // 이름이 제공되었지만 공백만 있는 경우 거부
+    if (name !== undefined && name.trim().length === 0) {
+      return NextResponse.json(
+        { message: "프로젝트 이름은 필수입니다." },
+        { status: 400 }
+      );
+    }
+
+    // 프로젝트 존재 여부 확인
+    const existingProject = await prisma.project.findUnique({
+      where: { id: projectId },
+    });
+
+    if (!existingProject) {
+      return NextResponse.json(
+        { message: "프로젝트를 찾을 수 없습니다." },
+        { status: 404 }
+      );
+    }
+
+    // 업데이트할 데이터 구성
+    const updateData: { name?: string; description?: string } = {};
+    if (name !== undefined) {
+      updateData.name = name.trim();
+    }
+    if (description !== undefined) {
+      updateData.description = description;
+    }
+
+    // 업데이트할 내용이 없으면 기존 프로젝트 반환
+    if (Object.keys(updateData).length === 0) {
+      const response: ProjectResponse = {
+        ...existingProject,
+        storageProvider: fromPrismaStorageProvider(existingProject.storageProvider),
+        createdAt: existingProject.createdAt.toISOString(),
+        updatedAt: existingProject.updatedAt.toISOString(),
+      };
+      return NextResponse.json(response);
+    }
+
+    const updatedProject = await prisma.project.update({
+      where: { id: projectId },
+      data: updateData,
+    });
+
+    const response: ProjectResponse = {
+      ...updatedProject,
+      storageProvider: fromPrismaStorageProvider(updatedProject.storageProvider),
+      createdAt: updatedProject.createdAt.toISOString(),
+      updatedAt: updatedProject.updatedAt.toISOString(),
+    };
+
+    return NextResponse.json(response);
+  } catch (error) {
+    console.error("Project update API error:", error);
+    return NextResponse.json(
+      { message: "프로젝트 수정 중 오류가 발생했습니다." },
       { status: 500 }
     );
   }

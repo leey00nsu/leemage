@@ -3,7 +3,8 @@
 import { FileUploadDialog } from "@/features/files/upload/ui/file-upload-dialog";
 import { FileList } from "@/features/files/list/ui/file-list";
 import { DeleteProjectButton } from "@/features/projects/delete/ui/delete-project-button";
-import { Check, Copy, Loader2, Upload } from "lucide-react";
+import { EditProjectDialog } from "@/features/projects/edit/ui/edit-project-dialog";
+import { Check, Copy, Loader2, Upload, Pencil } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert";
 import { Button } from "@/shared/ui/button";
 import { useGetProjectDetails } from "@/features/projects/details/model/get";
@@ -59,10 +60,21 @@ export function ProjectDetailsWidget({ projectId }: ProjectDetailsWidgetProps) {
     <div className="space-y-6">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-3xl font-bold">{project.name}</h1>
-        <DeleteProjectButton
-          projectId={project.id}
-          projectName={project.name}
-        />
+        <div className="flex gap-2">
+          <EditProjectDialog
+            projectId={project.id}
+            currentName={project.name}
+            currentDescription={project.description}
+          >
+            <Button variant="outline" size="sm">
+              <Pencil className="mr-2 h-4 w-4" /> {t("editButton")}
+            </Button>
+          </EditProjectDialog>
+          <DeleteProjectButton
+            projectId={project.id}
+            projectName={project.name}
+          />
+        </div>
       </div>
       <div className="flex items-center gap-4 flex-wrap">
         <div

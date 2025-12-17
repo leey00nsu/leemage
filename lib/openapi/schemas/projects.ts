@@ -95,8 +95,32 @@ export const projectListResponseSchema = z
   .array(projectResponseSchema)
   .openapi("ProjectListResponse");
 
+// 프로젝트 수정 요청 스키마
+export const updateProjectRequestSchema = z
+  .object({
+    name: z
+      .string()
+      .min(1, { message: "프로젝트 이름은 필수입니다." })
+      .max(50, { message: "프로젝트 이름은 50자를 초과할 수 없습니다." })
+      .optional()
+      .openapi({
+        description: "프로젝트 이름 (1-50자)",
+        example: "수정된 프로젝트 이름",
+      }),
+    description: z
+      .string()
+      .max(200, { message: "설명은 200자를 초과할 수 없습니다." })
+      .optional()
+      .openapi({
+        description: "프로젝트 설명 (최대 200자)",
+        example: "수정된 프로젝트 설명",
+      }),
+  })
+  .openapi("UpdateProjectRequest");
+
 // 스키마 등록
 registry.register("CreateProjectRequest", createProjectRequestSchema);
+registry.register("UpdateProjectRequest", updateProjectRequestSchema);
 registry.register("ProjectResponse", projectResponseSchema);
 registry.register("ProjectDetailsResponse", projectDetailsResponseSchema);
 registry.register("ProjectListResponse", projectListResponseSchema);

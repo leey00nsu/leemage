@@ -190,9 +190,22 @@
     "notFoundTitle": "Not Found",
     "notFoundDescription": "Project not found.",
     "uploadImageButton": "Upload File",
+    "editButton": "Edit",
     "copyId": "Copy Project ID",
     "idCopied": "Project ID copied to clipboard.",
     "idLabel": "Project ID:"
+  },
+  "EditProjectDialog": {
+    "title": "Edit Project",
+    "description": "Edit the project name and description.",
+    "nameLabel": "Project Name",
+    "namePlaceholder": "e.g., My Website Assets",
+    "descriptionLabel": "Description (optional)",
+    "descriptionPlaceholder": "Enter a brief description for your project.",
+    "cancelButton": "Cancel",
+    "saveButton": "Save",
+    "savingButton": "Saving...",
+    "updateSuccessToast": "Project updated successfully."
   },
   "ImageDetailsWidget": {
     "noInfoTitle": "No Image Information",
@@ -234,5 +247,14 @@
     "sizeLabel": "Size",
     "formatLabel": "Format",
     "originalSizeDescription": "Save the original image without processing."
+  },
+  "ProjectSearch": {
+    "placeholder": "Search projects...",
+    "clear": "Clear search"
+  },
+  "ProjectFilter": {
+    "placeholder": "Select storage",
+    "all": "All",
+    "noResults": "No projects found."
   }
 }

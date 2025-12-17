@@ -3,6 +3,7 @@ import {
   getProjectDetailsHandler,
   deleteProjectHandler,
 } from "@/lib/api/project-details";
+import { updateProjectHandler } from "@/lib/api/projects";
 
 // GET 핸들러: 특정 프로젝트 정보 및 포함된 이미지 목록(variants 포함) 조회 (세션 기반 인증)
 export async function GET(
@@ -24,4 +25,12 @@ export async function DELETE(
   return deleteProjectHandler(projectId);
 }
 
-// TODO: 프로젝트 수정(PUT), 삭제(DELETE) 핸들러 추가 (필요시)
+// PATCH 핸들러: 프로젝트 이름/설명 수정 (세션 기반 인증)
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ projectId: string }> }
+) {
+  // TODO: 세션 기반 사용자 인증 및 프로젝트 접근 권한 확인 로직 추가
+  const { projectId } = await params;
+  return updateProjectHandler(request, projectId);
+}
