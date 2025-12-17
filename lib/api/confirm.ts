@@ -6,11 +6,12 @@ import sharp from "sharp";
 import { Prisma } from "@/lib/generated/prisma";
 import { z } from "zod";
 import { AVAILABLE_FORMATS, AVAILABLE_SIZES } from "@/shared/config/image-options";
-import { isImageMimeType } from "@/shared/lib/file-utils";
+import { isImageMimeType, isVideoMimeType } from "@/shared/lib/file-utils";
 import {
   confirmRequestSchema,
   variantOptionSchema,
 } from "@/lib/openapi/schemas/files";
+import { generateThumbnailFromBuffer, getVideoMetadataFromBuffer, VideoMetadata } from "@/lib/video/thumbnail";
 
 export type ConfirmRequest = z.infer<typeof confirmRequestSchema>;
 
@@ -21,7 +22,7 @@ export type ImageVariantData = {
   height: number;
   size: number;
   format: string;
-  label: (typeof AVAILABLE_SIZES)[number];
+  label: string; // 프리셋 사이즈, 커스텀 해상도(WIDTHxHEIGHT), 또는 "thumbnail"
 };
 
 type VariantOption = z.infer<typeof variantOptionSchema>;
@@ -155,6 +156,55 @@ async function processImageVariants(
   return allVariantData;
 }
 
+/**
+ * 비디오 썸네일 처리
+ */
+async function processVideoThumbnail(
+  originalBuffer: Buffer,
+  mimeType: string,
+  projectId: string,
+  fileId: string,
+  storageAdapter: StorageAdapter
+): Promise<ImageVariantData | null> {
+  try {
+    console.log(`Generating thumbnail for video: ${fileId}`);
+    
+    const result = await generateThumbnailFromBuffer(originalBuffer, mimeType, {
+      maxDimension: 800,
+      format: "jpeg",
+      timestamp: "00:00:01",
+      timeout: 30000,
+    });
+
+    if (!result.success || !result.buffer) {
+      console.warn(`Video thumbnail generation failed: ${result.error}`);
+      return null;
+    }
+
+    // 썸네일 메타데이터 가져오기
+    const thumbnailMetadata = await sharp(result.buffer).metadata();
+    
+    // 스토리지에 썸네일 업로드
+    const objectName = `${projectId}/${fileId}-thumbnail.jpg`;
+    const url = await storageAdapter.uploadObject(
+      objectName,
+      result.buffer,
+      "image/jpeg"
+    );
+
+    return {
+      url,
+      width: thumbnailMetadata.width || result.width || 800,
+      height: thumbnailMetadata.height || result.height || 450,
+      size: result.buffer.length,
+      format: "jpeg",
+      label: "thumbnail" as (typeof AVAILABLE_SIZES)[number],
+    };
+  } catch (error) {
+    console.error("Video thumbnail processing error:", error);
+    return null;
+  }
+}
 
 /**
  * 업로드 완료 확인 핸들러
@@ -265,8 +315,79 @@ export async function confirmHandler(
         },
         { status: 201 }
       );
+    } else if (isVideoMimeType(contentType)) {
+      // 비디오 파일: 메타데이터 추출 및 썸네일 생성 시도 (실패해도 업로드는 완료)
+      let thumbnail: ImageVariantData | null = null;
+      let videoMetadata: VideoMetadata | null = null;
+      
+      try {
+        console.log(`Downloading video from storage: ${objectName}`);
+        const originalBuffer = await storageAdapter.downloadObject(objectName);
+
+        // 비디오 메타데이터 추출 (해상도)
+        console.log(`Extracting metadata for video: ${fileName}`);
+        videoMetadata = await getVideoMetadataFromBuffer(originalBuffer, contentType);
+
+        // 썸네일 생성
+        console.log(`Processing thumbnail for video: ${fileName}`);
+        thumbnail = await processVideoThumbnail(
+          originalBuffer,
+          contentType,
+          projectId,
+          fileId,
+          storageAdapter
+        );
+      } catch (thumbnailError) {
+        console.warn(`Video processing skipped: ${thumbnailError}`);
+        // 처리 실패해도 비디오 업로드는 계속 진행
+      }
+
+      // 비디오 원본 정보를 variants에 추가 (해상도 포함)
+      const videoVariants: ImageVariantData[] = [];
+      
+      // 원본 비디오 정보 추가
+      if (videoMetadata) {
+        videoVariants.push({
+          url: objectUrl,
+          width: videoMetadata.width,
+          height: videoMetadata.height,
+          size: fileSize,
+          format: contentType.split("/")[1] || "mp4",
+          label: "original",
+        });
+      }
+      
+      // 썸네일 추가
+      if (thumbnail) {
+        videoVariants.push(thumbnail);
+      }
+
+      const savedFile = await prisma.image.update({
+        where: { id: fileId },
+        data: {
+          name: fileName,
+          mimeType: contentType,
+          isImage: false,
+          size: fileSize,
+          url: objectUrl,
+          objectName,
+          status: "COMPLETED",
+          variants: videoVariants as Prisma.JsonArray,
+        },
+      });
+
+      return NextResponse.json(
+        {
+          message: thumbnail
+            ? "비디오 업로드 및 썸네일 생성 완료"
+            : "비디오 업로드 완료",
+          file: savedFile,
+          variants: videoVariants,
+        },
+        { status: 201 }
+      );
     } else {
-      // 비이미지 파일: pending 레코드를 completed로 업데이트
+      // 기타 파일: pending 레코드를 completed로 업데이트
       const savedFile = await prisma.image.update({
         where: { id: fileId },
         data: {

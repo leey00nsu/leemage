@@ -12,6 +12,19 @@ const IMAGE_MIME_TYPES = [
   "image/tiff",
 ] as const;
 
+// 비디오 MIME 타입 목록
+export const VIDEO_MIME_TYPES = [
+  "video/mp4",
+  "video/webm",
+  "video/ogg",
+  "video/quicktime",
+  "video/x-msvideo",
+  "video/x-matroska",
+  "video/mpeg",
+  "video/3gpp",
+  "video/3gpp2",
+] as const;
+
 // 기본 최대 파일 크기 (50MB)
 export const DEFAULT_MAX_FILE_SIZE = 50 * 1024 * 1024;
 
@@ -34,6 +47,27 @@ export function getMimeType(file: File): string {
  */
 export function isImageFile(file: File): boolean {
   return isImageMimeType(getMimeType(file));
+}
+
+/**
+ * MIME 타입이 비디오인지 확인
+ */
+export function isVideoMimeType(mimeType: string): boolean {
+  return mimeType.startsWith("video/");
+}
+
+/**
+ * 파일이 비디오인지 확인
+ */
+export function isVideoFile(file: File): boolean {
+  return isVideoMimeType(getMimeType(file));
+}
+
+/**
+ * MIME 타입 문자열로 비디오인지 확인 (서버사이드용)
+ */
+export function isVideoMimeTypeString(mimeType: string): boolean {
+  return isVideoMimeType(mimeType);
 }
 
 /**

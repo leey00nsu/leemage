@@ -1,7 +1,7 @@
 "use client";
 
 import { formatFileSize } from "@/shared/lib/file-utils";
-import { FileBox, Calendar, Check, Copy, FileType } from "lucide-react";
+import { FileBox, Calendar, Check, Copy, FileType, Ruler } from "lucide-react";
 import { useCopyToClipboard } from "@/shared/model/copy-text";
 import { toast } from "sonner";
 import { Button } from "@/shared/ui/button";
@@ -15,6 +15,7 @@ interface FileInfoProps {
   createdAt: Date;
   updatedAt: Date;
   url?: string | null;
+  resolution?: { width: number; height: number };
 }
 
 export function FileInfo({
@@ -24,6 +25,7 @@ export function FileInfo({
   createdAt,
   updatedAt,
   url,
+  resolution,
 }: FileInfoProps) {
   const t = useTranslations("FileInfo");
   const tCopy = useTranslations("ImageVariantListItem");
@@ -38,6 +40,14 @@ export function FileInfo({
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold border-b pb-2">{t("title")}</h3>
+      {resolution && (
+        <div className="flex items-center text-sm text-muted-foreground">
+          <Ruler className="h-4 w-4 mr-2 flex-shrink-0" />
+          <span>
+            {t("resolution")}: {resolution.width} × {resolution.height} px
+          </span>
+        </div>
+      )}
       <div className="flex items-center text-sm text-muted-foreground">
         <FileType className="h-4 w-4 mr-2 flex-shrink-0" />
         <span>

@@ -35,8 +35,13 @@ export function ImageInfo({ image, displayVariant }: ImageInfoProps) {
       <div className="flex items-center text-sm text-muted-foreground">
         <FileBox className="h-4 w-4 mr-2 flex-shrink-0" />
         <span>
-          {t("fileLabel")} {displayVariant.format.toUpperCase()} (
-          {formatBytes(displayVariant.size)})
+          {t("formatLabel")} {displayVariant.format.toUpperCase()}
+        </span>
+      </div>
+      <div className="flex items-center text-sm text-muted-foreground">
+        <FileBox className="h-4 w-4 mr-2 flex-shrink-0" />
+        <span>
+          {t("fileLabel")} {formatBytes(displayVariant.size)}
         </span>
       </div>
       <div className="flex items-center text-sm text-muted-foreground">

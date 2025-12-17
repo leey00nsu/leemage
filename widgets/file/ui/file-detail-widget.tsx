@@ -11,8 +11,10 @@ import { FileActions } from "@/entities/files/ui/file-actions";
 import { ImagePreview } from "@/entities/files/ui/image/image-preview";
 import { ImageInfo } from "@/entities/files/ui/image/image-info";
 import { ImageVariantList } from "@/entities/files/ui/image/image-variant-list";
+import { VideoPreview, getVideoPreviewProps } from "@/entities/files/ui/video/video-preview";
 import { DeleteFileDialog } from "@/features/files/delete/ui/delete-file-dialog";
 import { useTranslations } from "next-intl";
+import { isVideoMimeType } from "@/shared/lib/file-utils";
 
 interface FileDetailWidgetProps {
   file: FileWithVariants;
@@ -24,6 +26,64 @@ export function FileDetailWidget({ file }: FileDetailWidgetProps) {
   // variants가 비어있으면 비이미지로 처리 (기존 데이터 호환)
   const hasVariants = file.variants && file.variants.length > 0;
   const effectiveIsImage = file.isImage && hasVariants;
+  const isVideo = isVideoMimeType(file.mimeType);
+
+  // 비디오 파일인 경우
+  if (isVideo) {
+    const videoPreviewProps = getVideoPreviewProps(
+      file.variants,
+      file.url || "",
+      file.name
+    );
+    // 원본 비디오 정보 (해상도 포함)
+    const originalVariant = file.variants?.find((v) => v.label === "original");
+
+    return (
+      <div className="container mx-auto py-8 px-4">
+        <Card>
+          <CardHeader className="flex flex-row items-start justify-between">
+            <div>
+              <CardTitle className="truncate" title={file.name}>
+                {file.name}
+              </CardTitle>
+              <Badge variant="secondary" className="w-fit mt-1">
+                {file.mimeType}
+              </Badge>
+            </div>
+            <DeleteFileDialog file={file} />
+          </CardHeader>
+          <CardContent className="space-y-8">
+            <div className="grid md:grid-cols-2 gap-8">
+              {/* 비디오 미리보기 */}
+              <VideoPreview {...videoPreviewProps} />
+
+              {/* 파일 정보 */}
+              <div className="space-y-4">
+                <FileInfo
+                  name={file.name}
+                  size={file.size}
+                  mimeType={file.mimeType}
+                  createdAt={file.createdAt}
+                  updatedAt={file.updatedAt}
+                  url={file.url}
+                  resolution={originalVariant ? { width: originalVariant.width, height: originalVariant.height } : undefined}
+                />
+
+                {/* 다운로드/열기 버튼 */}
+                {file.url && (
+                  <FileActions
+                    projectId={file.projectId}
+                    fileId={file.id}
+                    url={file.url}
+                  />
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   // 비이미지 파일인 경우
   if (!effectiveIsImage) {

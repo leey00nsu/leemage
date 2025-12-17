@@ -29,8 +29,9 @@
   },
   "ImageInfo": {
     "details": "Details",
-    "sizeLabel": "Size:",
-    "fileLabel": "File:",
+    "sizeLabel": "Resolution:",
+    "fileLabel": "File Size:",
+    "formatLabel": "File Type:",
     "uploadDateLabel": "Upload Date:",
     "lastModifiedDateLabel": "Last Modified Date:",
     "urlLabel": "URL ({label}):"
@@ -93,11 +94,11 @@
     "nonImageFileInfo": "This file will be uploaded as-is."
   },
   "DeleteImageDialog": {
-    "deleteSuccess": "Image deleted successfully.",
-    "deleteError": "An error occurred while deleting the image.",
-    "deleteImageSr": "Delete image",
+    "deleteSuccess": "File deleted successfully.",
+    "deleteError": "An error occurred while deleting the file.",
+    "deleteImageSr": "Delete file",
     "confirmTitle": "Are you sure you want to delete?",
-    "confirmDescription": "This action cannot be undone. The image will be permanently deleted.",
+    "confirmDescription": "This action cannot be undone. The file will be permanently deleted.",
     "cancel": "Cancel",
     "deleting": "Deleting...",
     "confirmDelete": "Confirm Delete"
@@ -107,7 +108,7 @@
     "redirectToastDescription": "Redirecting to project list.",
     "deleteProjectButton": "Delete Project",
     "confirmTitle": "Are you sure you want to delete?",
-    "confirmDescription": "This will delete the project \"{projectName}\". This action cannot be undone. All image information within the project will also be deleted.",
+    "confirmDescription": "This will delete the project \"{projectName}\". This action cannot be undone. All files within the project will also be deleted.",
     "cancel": "Cancel",
     "deleting": "Deleting...",
     "confirmDelete": "Confirm Delete"
@@ -209,11 +210,17 @@
   },
   "ImageDetailsWidget": {
     "noInfoTitle": "No Image Information",
-    "noInfoDescription": "Cannot display image versions."
+    "noInfoDescription": "Cannot display image versions.",
+    "thumbnailInfo": "Thumbnail"
+  },
+  "FileDetail": {
+    "openInNewTab": "Open in new tab",
+    "thumbnailInfo": "Thumbnail"
   },
   "FileInfo": {
     "title": "Details",
     "fileName": "File Name",
+    "resolution": "Resolution",
     "size": "File Size",
     "type": "File Type",
     "uploadDate": "Upload Date",

@@ -6,7 +6,9 @@ import { ImageIcon, Layers } from "lucide-react";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { FileCard } from "../file-card";
+import { VideoCard } from "../video/video-card";
 import { ImageVariantData } from "../../model/types";
+import { isVideoMimeType } from "@/shared/lib/file-utils";
 
 interface ImageCardProps {
   id: string;
@@ -31,6 +33,20 @@ export function ImageCard({
   mimeType = "application/octet-stream",
   size = 0,
 }: ImageCardProps) {
+  // 비디오 파일인 경우 VideoCard로 위임
+  if (isVideoMimeType(mimeType)) {
+    return (
+      <VideoCard
+        id={id}
+        projectId={projectId}
+        name={name}
+        variants={variants}
+        mimeType={mimeType}
+        size={size}
+      />
+    );
+  }
+
   // variants가 비어있으면 비이미지로 처리 (기존 데이터 호환)
   const hasVariants = variants && variants.length > 0;
   const effectiveIsImage = isImage && hasVariants;

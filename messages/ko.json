@@ -29,8 +29,9 @@
   },
   "ImageInfo": {
     "details": "상세 정보",
-    "sizeLabel": "크기:",
-    "fileLabel": "파일:",
+    "sizeLabel": "해상도:",
+    "fileLabel": "파일 크기:",
+    "formatLabel": "파일 종류:",
     "uploadDateLabel": "업로드 날짜:",
     "lastModifiedDateLabel": "최종 수정 날짜:",
     "urlLabel": "URL ({label}):"
@@ -93,11 +94,11 @@
     "nonImageFileInfo": "이 파일은 원본 그대로 업로드됩니다."
   },
   "DeleteImageDialog": {
-    "deleteSuccess": "이미지가 삭제되었습니다.",
-    "deleteError": "이미지 삭제 중 오류가 발생했습니다.",
-    "deleteImageSr": "이미지 삭제",
+    "deleteSuccess": "파일이 삭제되었습니다.",
+    "deleteError": "파일 삭제 중 오류가 발생했습니다.",
+    "deleteImageSr": "파일 삭제",
     "confirmTitle": "정말로 삭제하시겠습니까?",
-    "confirmDescription": "이 작업은 되돌릴 수 없습니다. 이미지가 영구적으로 삭제됩니다.",
+    "confirmDescription": "이 작업은 되돌릴 수 없습니다. 파일이 영구적으로 삭제됩니다.",
     "cancel": "취소",
     "deleting": "삭제 중...",
     "confirmDelete": "삭제 확인"
@@ -107,7 +108,7 @@
     "redirectToastDescription": "프로젝트 목록으로 이동합니다.",
     "deleteProjectButton": "프로젝트 삭제",
     "confirmTitle": "정말로 삭제하시겠습니까?",
-    "confirmDescription": "\"{projectName}\" 프로젝트를 삭제합니다. 이 작업은 되돌릴 수 없습니다. 프로젝트에 포함된 모든 이미지 정보도 함께 삭제됩니다.",
+    "confirmDescription": "\"{projectName}\" 프로젝트를 삭제합니다. 이 작업은 되돌릴 수 없습니다. 프로젝트에 포함된 모든 파일도 함께 삭제됩니다.",
     "cancel": "취소",
     "deleting": "삭제 중...",
     "confirmDelete": "삭제 확인"
@@ -209,11 +210,17 @@
   },
   "ImageDetailsWidget": {
     "noInfoTitle": "이미지 정보 없음",
-    "noInfoDescription": "이미지 버전을 표시할 수 없습니다."
+    "noInfoDescription": "이미지 버전을 표시할 수 없습니다.",
+    "thumbnailInfo": "썸네일"
+  },
+  "FileDetail": {
+    "openInNewTab": "새 탭에서 열기",
+    "thumbnailInfo": "썸네일"
   },
   "FileInfo": {
     "title": "상세 정보",
     "fileName": "파일명",
+    "resolution": "해상도",
     "size": "파일 크기",
     "type": "파일 종류",
     "uploadDate": "업로드 날짜",
