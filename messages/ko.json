@@ -292,7 +292,7 @@
     "subtitle": "OCI Object Storage와 Cloudflare R2 기반 멀티 오브젝트 스토리지 파일 관리 오픈소스 플랫폼",
     "primaryCta": "시작하기",
     "secondaryCta": "문서 보기",
-    "floatingCard1": "Presigned 업로드",
+    "floatingCard1": "멀티 스토리지",
     "floatingCard2": "이미지 변환",
     "floatingCard3": "프로젝트 관리",
     "floatingCard4": "REST API"
@@ -315,8 +315,8 @@
   },
   "LandingFeatures": {
     "title": "모든 것을 한 곳에서",
-    "feature1Title": "Presigned URL 업로드",
-    "feature1Description": "서버 부하 없이 OCI와 R2에 직접 업로드",
+    "feature1Title": "멀티 오브젝트 스토리지 지원",
+    "feature1Description": "OCI Object Storage, Cloudflare R2 등 다양한 스토리지 지원",
     "feature2Title": "이미지 변환",
     "feature2Description": "리사이즈, WebP/AVIF 포맷 자동 변환",
     "feature3Title": "RESTful API",

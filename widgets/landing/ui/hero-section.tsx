@@ -3,49 +3,9 @@
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/shared/ui/button";
 import { ScrollFadeIn } from "@/shared/ui/scroll-fade-in";
-import { ArrowRight, FileText, Upload, Wand2, FolderOpen, Code } from "lucide-react";
+import { FloatingCard } from "@/shared/ui/floating-card";
+import { ArrowRight, FileText, Database, Wand2, FolderOpen, Code } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { cn } from "@/shared/lib/utils";
-
-interface FloatingCardProps {
-  label: string;
-  icon: React.ReactNode;
-  gradient: string;
-  className?: string;
-  delay?: number;
-  floatDuration?: number;
-}
-
-function FloatingCard({
-  label,
-  icon,
-  gradient,
-  className = "",
-  delay = 0,
-  floatDuration = 3,
-}: FloatingCardProps) {
-  return (
-    <div
-      className={cn(
-        "absolute z-20 flex flex-col items-center justify-center gap-2 px-5 py-4 rounded-xl shadow-xl backdrop-blur-sm",
-        "bg-white/80 dark:bg-gray-800/80 border border-white/20",
-        "opacity-0 animate-[fadeInFloat_0.6s_ease-out_forwards]",
-        className
-      )}
-      style={{
-        animationDelay: `${delay}ms`,
-        ["--float-duration" as string]: `${floatDuration}s`,
-      }}
-    >
-      <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center shrink-0 mx-auto", gradient)}>
-        {icon}
-      </div>
-      <span className="text-sm font-medium text-gray-700 dark:text-gray-200 text-center w-full">
-        {label}
-      </span>
-    </div>
-  );
-}
 
 interface HeroSectionProps {
   className?: string;
@@ -59,7 +19,7 @@ export function HeroSection({ className = "" }: HeroSectionProps) {
       {/* Floating cards */}
       <FloatingCard
         label={t("floatingCard1")}
-        icon={<Upload className="w-5 h-5 text-white" />}
+        icon={<Database className="w-5 h-5 text-white" />}
         gradient="bg-gradient-to-br from-blue-500 to-blue-600"
         className="hidden lg:block top-20 left-[10%]"
         delay={200}

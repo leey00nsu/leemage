@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { BentoCard, BentoGrid } from "@/shared/ui/bento-grid";
 import { ScrollFadeIn } from "@/shared/ui/scroll-fade-in";
-import { Upload, Wand2, Code, Layers } from "lucide-react";
+import { Database, Wand2, Code, Layers } from "lucide-react";
 import { PresignedUrlAnimation } from "./animations/presigned-url-animation";
 import { ImageTransformAnimation } from "./animations/image-transform-animation";
 import { RestApiAnimation } from "./animations/rest-api-animation";
@@ -18,7 +18,7 @@ export function FeaturesSection({ className = "" }: FeaturesSectionProps) {
 
   const features = [
     {
-      Icon: Upload,
+      Icon: Database,
       name: t("feature1Title"),
       description: t("feature1Description"),
       background: <PresignedUrlAnimation />,

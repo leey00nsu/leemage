@@ -1,14 +1,14 @@
-import { LandingHeader } from "@/widgets/landing/ui/landing-header";
+import { Header } from "@/widgets/layout/ui/header";
+import { Footer } from "@/widgets/layout/ui/footer";
 import { HeroSection } from "@/widgets/landing/ui/hero-section";
 import { SolutionsSection } from "@/widgets/landing/ui/solutions-section";
 import { FeaturesSection } from "@/widgets/landing/ui/features-section";
 import { IntegrationsSection } from "@/widgets/landing/ui/integrations-section";
-import { LandingFooter } from "@/widgets/landing/ui/landing-footer";
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col">
-      <LandingHeader />
+      <Header />
 
       <main className="flex-grow">
         <HeroSection />
@@ -17,7 +17,7 @@ export default function HomePage() {
         <IntegrationsSection />
       </main>
 
-      <LandingFooter />
+      <Footer />
     </div>
   );
 }
