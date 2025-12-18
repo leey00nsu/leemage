@@ -38,6 +38,61 @@ components:
               - 필수 항목입니다.
       required:
         - message
+    UnauthorizedError:
+      type: object
+      properties:
+        message:
+          type: string
+          description: 에러 메시지
+          example: "인증 실패: 유효하지 않은 API 키"
+      required:
+        - message
+    ProjectNotFoundError:
+      type: object
+      properties:
+        message:
+          type: string
+          description: 에러 메시지
+          example: 프로젝트를 찾을 수 없습니다.
+      required:
+        - message
+    FileNotFoundError:
+      type: object
+      properties:
+        message:
+          type: string
+          description: 에러 메시지
+          example: 파일을 찾을 수 없습니다.
+      required:
+        - message
+    ServerError:
+      type: object
+      properties:
+        message:
+          type: string
+          description: 에러 메시지
+          example: 서버 오류가 발생했습니다.
+      required:
+        - message
+    BadRequestError:
+      type: object
+      properties:
+        message:
+          type: string
+          description: 에러 메시지
+          example: 잘못된 요청 형식입니다.
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          description: 필드별 유효성 검사 에러
+          example:
+            name:
+              - 필수 항목입니다.
+      required:
+        - message
     MessageResponse:
       type: object
       properties:
@@ -385,13 +440,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: "#/components/schemas/UnauthorizedError"
         "500":
           description: 서버 오류
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: "#/components/schemas/ServerError"
     post:
       tags:
         - Projects
@@ -416,19 +471,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: "#/components/schemas/BadRequestError"
         "401":
           description: 인증 실패
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: "#/components/schemas/UnauthorizedError"
         "500":
           description: 서버 오류
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: "#/components/schemas/ServerError"
   /api/v1/projects/{projectId}:
     get:
       tags:
@@ -457,19 +512,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: "#/components/schemas/UnauthorizedError"
         "404":
           description: 프로젝트를 찾을 수 없음
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: "#/components/schemas/ProjectNotFoundError"
         "500":
           description: 서버 오류
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: "#/components/schemas/ServerError"
     delete:
       tags:
         - Projects
@@ -491,25 +546,25 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: "#/components/schemas/MessageResponse"
         "401":
           description: 인증 실패
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: "#/components/schemas/UnauthorizedError"
         "404":
           description: 프로젝트를 찾을 수 없음
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: "#/components/schemas/ProjectNotFoundError"
         "500":
           description: 서버 오류
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: "#/components/schemas/ServerError"
   /api/v1/projects/{projectId}/files/presign:
     post:
       tags:
@@ -543,19 +598,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: "#/components/schemas/BadRequestError"
         "401":
           description: 인증 실패
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: "#/components/schemas/UnauthorizedError"
         "413":
           description: 파일 크기 초과
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: "#/components/schemas/BadRequestError"
   /api/v1/projects/{projectId}/files/confirm:
     post:
       tags:
@@ -589,19 +644,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: "#/components/schemas/BadRequestError"
         "401":
           description: 인증 실패
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: "#/components/schemas/UnauthorizedError"
         "404":
           description: 파일을 찾을 수 없음
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: "#/components/schemas/FileNotFoundError"
   /api/v1/projects/{projectId}/files/{fileId}:
     delete:
       tags:
@@ -637,22 +692,22 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: "#/components/schemas/BadRequestError"
         "401":
           description: 인증 실패
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: "#/components/schemas/UnauthorizedError"
         "404":
           description: 파일을 찾을 수 없음
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: "#/components/schemas/FileNotFoundError"
         "500":
           description: 서버 오류
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: "#/components/schemas/ServerError"

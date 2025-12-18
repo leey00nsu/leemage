@@ -7,7 +7,13 @@ import {
   confirmResponseSchema,
 } from "../schemas/files";
 import { projectIdParamSchema } from "../schemas/projects";
-import { errorResponseSchema, messageResponseSchema } from "../schemas/common";
+import {
+  unauthorizedErrorSchema,
+  fileNotFoundErrorSchema,
+  serverErrorSchema,
+  badRequestErrorSchema,
+  messageResponseSchema,
+} from "../schemas/common";
 
 // POST /projects/{projectId}/files/presign - Presigned URL 생성
 registry.registerPath({
@@ -41,7 +47,7 @@ registry.registerPath({
       description: "잘못된 요청",
       content: {
         "application/json": {
-          schema: errorResponseSchema,
+          schema: badRequestErrorSchema,
         },
       },
     },
@@ -49,7 +55,7 @@ registry.registerPath({
       description: "인증 실패",
       content: {
         "application/json": {
-          schema: errorResponseSchema,
+          schema: unauthorizedErrorSchema,
         },
       },
     },
@@ -57,7 +63,7 @@ registry.registerPath({
       description: "파일 크기 초과",
       content: {
         "application/json": {
-          schema: errorResponseSchema,
+          schema: badRequestErrorSchema,
         },
       },
     },
@@ -96,7 +102,7 @@ registry.registerPath({
       description: "잘못된 요청",
       content: {
         "application/json": {
-          schema: errorResponseSchema,
+          schema: badRequestErrorSchema,
         },
       },
     },
@@ -104,7 +110,7 @@ registry.registerPath({
       description: "인증 실패",
       content: {
         "application/json": {
-          schema: errorResponseSchema,
+          schema: unauthorizedErrorSchema,
         },
       },
     },
@@ -112,7 +118,7 @@ registry.registerPath({
       description: "파일을 찾을 수 없음",
       content: {
         "application/json": {
-          schema: errorResponseSchema,
+          schema: fileNotFoundErrorSchema,
         },
       },
     },
@@ -144,7 +150,7 @@ registry.registerPath({
       description: "잘못된 요청",
       content: {
         "application/json": {
-          schema: errorResponseSchema,
+          schema: badRequestErrorSchema,
         },
       },
     },
@@ -152,7 +158,7 @@ registry.registerPath({
       description: "인증 실패",
       content: {
         "application/json": {
-          schema: errorResponseSchema,
+          schema: unauthorizedErrorSchema,
         },
       },
     },
@@ -160,7 +166,7 @@ registry.registerPath({
       description: "파일을 찾을 수 없음",
       content: {
         "application/json": {
-          schema: errorResponseSchema,
+          schema: fileNotFoundErrorSchema,
         },
       },
     },
@@ -168,7 +174,7 @@ registry.registerPath({
       description: "서버 오류",
       content: {
         "application/json": {
-          schema: errorResponseSchema,
+          schema: serverErrorSchema,
         },
       },
     },

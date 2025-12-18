@@ -6,7 +6,13 @@ import {
   projectDetailsResponseSchema,
   projectListResponseSchema,
 } from "../schemas/projects";
-import { errorResponseSchema } from "../schemas/common";
+import {
+  unauthorizedErrorSchema,
+  projectNotFoundErrorSchema,
+  serverErrorSchema,
+  badRequestErrorSchema,
+  messageResponseSchema,
+} from "../schemas/common";
 
 // GET /projects - 프로젝트 목록 조회
 registry.registerPath({
@@ -29,7 +35,7 @@ registry.registerPath({
       description: "인증 실패",
       content: {
         "application/json": {
-          schema: errorResponseSchema,
+          schema: unauthorizedErrorSchema,
         },
       },
     },
@@ -37,7 +43,7 @@ registry.registerPath({
       description: "서버 오류",
       content: {
         "application/json": {
-          schema: errorResponseSchema,
+          schema: serverErrorSchema,
         },
       },
     },
@@ -74,7 +80,7 @@ registry.registerPath({
       description: "잘못된 요청",
       content: {
         "application/json": {
-          schema: errorResponseSchema,
+          schema: badRequestErrorSchema,
         },
       },
     },
@@ -82,7 +88,7 @@ registry.registerPath({
       description: "인증 실패",
       content: {
         "application/json": {
-          schema: errorResponseSchema,
+          schema: unauthorizedErrorSchema,
         },
       },
     },
@@ -90,7 +96,7 @@ registry.registerPath({
       description: "서버 오류",
       content: {
         "application/json": {
-          schema: errorResponseSchema,
+          schema: serverErrorSchema,
         },
       },
     },
@@ -121,7 +127,7 @@ registry.registerPath({
       description: "인증 실패",
       content: {
         "application/json": {
-          schema: errorResponseSchema,
+          schema: unauthorizedErrorSchema,
         },
       },
     },
@@ -129,7 +135,7 @@ registry.registerPath({
       description: "프로젝트를 찾을 수 없음",
       content: {
         "application/json": {
-          schema: errorResponseSchema,
+          schema: projectNotFoundErrorSchema,
         },
       },
     },
@@ -137,7 +143,7 @@ registry.registerPath({
       description: "서버 오류",
       content: {
         "application/json": {
-          schema: errorResponseSchema,
+          schema: serverErrorSchema,
         },
       },
     },
@@ -161,7 +167,7 @@ registry.registerPath({
       description: "프로젝트가 성공적으로 삭제되었습니다.",
       content: {
         "application/json": {
-          schema: errorResponseSchema,
+          schema: messageResponseSchema,
         },
       },
     },
@@ -169,7 +175,7 @@ registry.registerPath({
       description: "인증 실패",
       content: {
         "application/json": {
-          schema: errorResponseSchema,
+          schema: unauthorizedErrorSchema,
         },
       },
     },
@@ -177,7 +183,7 @@ registry.registerPath({
       description: "프로젝트를 찾을 수 없음",
       content: {
         "application/json": {
-          schema: errorResponseSchema,
+          schema: projectNotFoundErrorSchema,
         },
       },
     },
@@ -185,7 +191,7 @@ registry.registerPath({
       description: "서버 오류",
       content: {
         "application/json": {
-          schema: errorResponseSchema,
+          schema: serverErrorSchema,
         },
       },
     },
