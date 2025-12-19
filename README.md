@@ -151,10 +151,10 @@ Next.js와 최신 웹 기술을 사용하여 직관적이고 반응형 사용자
 
 ### 사전 요구사항
 
-- **Node.js**: v18.0.0 이상
+- **Node.js**: v22.0.0 이상
 - **npm** 또는 **yarn**: 최신 버전
 - **Docker**: v20.0.0 이상 (로컬 데이터베이스용)
-- **OCI 계정**: Object Storage 사용을 위한 Oracle Cloud 계정
+- **스토리지 계정**: OCI Object Storage 또는 Cloudflare R2 (프로젝트별 선택 가능)
 
 ### 설치
 
@@ -315,9 +315,17 @@ Leemage 프로젝트에 기여해주셔서 감사합니다!
 # 프로젝트 포크 후 클론
 git clone https://github.com/your-username/leemage.git
 
-# 의존성 설치 및 환경 설정
+# 의존성 설치
 npm install
-cp .env.example .env.local
+
+# .env 파일 생성 후 환경 변수 설정
+# (위 '환경 설정' 섹션 참고)
+
+# PostgreSQL 데이터베이스 시작
+docker compose up -d
+
+# 데이터베이스 마이그레이션
+npx prisma migrate dev
 
 # 개발 서버 실행
 npm run dev

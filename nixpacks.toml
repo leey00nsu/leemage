@@ -1,3 +1,5 @@
 # Nixpacks configuration for Coolify deployment
+# Node.js version is set via NIXPACKS_NODE_VERSION environment variable in Coolify
+
 [phases.setup]
-nixPkgs = ["ffmpeg"]
+aptPkgs = ["ffmpeg"]
