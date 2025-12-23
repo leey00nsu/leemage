@@ -237,7 +237,9 @@
   "Header": {
     "projectsLink": "프로젝트",
     "apiDocsLink": "API 문서",
-    "accountLink": "내 정보"
+    "accountLink": "내 정보",
+    "menu": "메뉴",
+    "loginLink": "로그인"
   },
   "Footer": {
     "copyright": "© 2025 Leemage. All rights reserved."

@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { LanguageSelectorButton } from "@/features/language/ui/langauge-selector-button";
 import { useEffect, useState } from "react";
 import { User, Loader2 } from "lucide-react";
+import { MobileNavigation } from "./mobile-navigation";
 
 interface HeaderProps {
     className?: string;
@@ -59,8 +60,12 @@ export function Header({ className = "" }: HeaderProps) {
 
                 {/* Language selector and Auth */}
                 <div className="flex items-center space-x-4">
+                    {/* Mobile Navigation */}
+                    <div className="md:hidden">
+                        <MobileNavigation isLoggedIn={isLoggedIn} />
+                    </div>
                     <LanguageSelectorButton />
-                    <div className="w-5 h-5 flex items-center justify-center">
+                    <div className="hidden md:flex w-5 h-5 items-center justify-center">
                         {isLoggedIn === null ? (
                             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                         ) : isLoggedIn ? (

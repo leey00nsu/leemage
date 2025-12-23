@@ -5,7 +5,7 @@
 </h1>
 
 <p align="center">
-  <strong>Oracle Cloud Infrastructure를 활용한 이미지 관리 플랫폼</strong>
+  <strong>다양한 클라우드 스토리지(OCI Object Storage, Cloudflare R2)를 활용하여 구축된 파일 관리 플랫폼</strong>
 </p>
 
 <p align="center">

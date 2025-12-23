@@ -29,32 +29,31 @@ export function EndpointCard({ endpoint }: EndpointCardProps) {
 
   return (
     <Card className="mb-6">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-          <div className="flex items-center gap-2">
+      <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-start gap-2">
             <Badge
-              className={
-                endpoint.method === "GET"
+              className={`shrink-0 ${endpoint.method === "GET"
                   ? "bg-blue-500"
                   : endpoint.method === "POST"
-                  ? "bg-green-500"
-                  : endpoint.method === "PUT"
-                  ? "bg-yellow-500"
-                  : endpoint.method === "DELETE"
-                  ? "bg-red-500"
-                  : "bg-purple-500"
-              }
+                    ? "bg-green-500"
+                    : endpoint.method === "PUT"
+                      ? "bg-yellow-500"
+                      : endpoint.method === "DELETE"
+                        ? "bg-red-500"
+                        : "bg-purple-500"
+                }`}
             >
               {endpoint.method}
             </Badge>
             <CardTitle
-              className="font-mono text-sm md:text-base cursor-pointer flex items-center gap-2"
+              className="font-mono text-xs sm:text-sm md:text-base cursor-pointer flex items-center gap-2 break-all min-w-0"
               onClick={() => copyToClipboard(endpoint.path)}
             >
-              {endpoint.path}
+              <span className="break-all">{endpoint.path}</span>
               <Copy
                 size={14}
-                className="text-muted-foreground hover:text-foreground transition-colors"
+                className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
               />
             </CardTitle>
           </div>
@@ -63,7 +62,7 @@ export function EndpointCard({ endpoint }: EndpointCardProps) {
           </CardDescription>
         </div>
         {endpoint.auth && (
-          <Badge variant="outline" className="border-amber-500 text-amber-500">
+          <Badge variant="outline" className="shrink-0 border-amber-500 text-amber-500">
             {t("authRequired")}
           </Badge>
         )}

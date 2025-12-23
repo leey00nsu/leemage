@@ -237,7 +237,9 @@
   "Header": {
     "projectsLink": "Projects",
     "apiDocsLink": "API Docs",
-    "accountLink": "My Account"
+    "accountLink": "My Account",
+    "menu": "Menu",
+    "loginLink": "Login"
   },
   "Footer": {
     "copyright": "© 2025 Leemage. All rights reserved."
