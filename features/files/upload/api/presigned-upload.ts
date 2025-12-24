@@ -1,4 +1,4 @@
-import { Image as PrismaImage } from "@/lib/generated/prisma";
+import { File as PrismaFile } from "@/lib/generated/prisma";
 import { ImageVariantData } from "@/entities/files/model/types";
 
 // Presign API 응답 타입
@@ -13,7 +13,7 @@ export interface PresignResponse {
 // Confirm API 응답 타입
 export interface ConfirmResponse {
   message: string;
-  file: Omit<PrismaImage, "variants"> & { variants: ImageVariantData[] };
+  file: Omit<PrismaFile, "variants"> & { variants: ImageVariantData[] };
   variants?: ImageVariantData[];
 }
 

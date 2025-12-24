@@ -1,4 +1,4 @@
-import { Image as PrismaImageType } from "@/lib/generated/prisma";
+import { File as PrismaFileType } from "@/lib/generated/prisma";
 
 // 이미지 변환 버전 데이터 타입
 export type ImageVariantData = {
@@ -10,7 +10,7 @@ export type ImageVariantData = {
   label: string;
 };
 
-// 파일 기본 데이터 타입 (Prisma Image 모델 기반)
+// 파일 기본 데이터 타입 (Prisma File 모델 기반)
 export type FileData = {
   id: string;
   projectId: string;
@@ -23,7 +23,7 @@ export type FileData = {
   updatedAt: Date;
 };
 
-// PrismaImageType에서 variants를 ImageVariantData[]로 오버라이드
-export type FileWithVariants = Omit<PrismaImageType, "variants"> & {
+// PrismaFileType에서 variants를 ImageVariantData[]로 오버라이드
+export type FileWithVariants = Omit<PrismaFileType, "variants"> & {
   variants: ImageVariantData[];
 };
