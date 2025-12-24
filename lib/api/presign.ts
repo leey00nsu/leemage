@@ -10,6 +10,8 @@ import {
   isImageMimeType,
 } from "@/shared/lib/file-utils";
 import { presignRequestSchema } from "@/lib/openapi/schemas/files";
+import { StorageProvider } from "@/lib/generated/prisma";
+import { ImageVariantData } from "@/entities/files/model/types";
 
 export type PresignRequest = z.infer<typeof presignRequestSchema>;
 
@@ -77,6 +79,22 @@ export async function presignHandler(
       );
     }
 
+    // 스토리지 한도 체크
+    const quotaCheckResult = await checkStorageQuota(
+      project.storageProvider,
+      fileSize
+    );
+    if (!quotaCheckResult.allowed) {
+      return NextResponse.json(
+        {
+          message: quotaCheckResult.message,
+          code: "QUOTA_EXCEEDED",
+          remaining: quotaCheckResult.remaining,
+        },
+        { status: 413 }
+      );
+    }
+
     // 파일 ID 및 객체 이름 생성
     const fileId = cuid();
     const extension = getFileExtension(fileName) || "bin";
@@ -125,4 +143,73 @@ export async function presignHandler(
       { status: 500 }
     );
   }
+}
+
+
+/**
+ * 스토리지 한도 체크
+ * @param provider - 스토리지 프로바이더
+ * @param fileSize - 업로드할 파일 크기 (bytes)
+ * @returns 업로드 허용 여부 및 메시지
+ */
+async function checkStorageQuota(
+  provider: StorageProvider,
+  fileSize: number
+): Promise<{
+  allowed: boolean;
+  message: string;
+  remaining?: number;
+}> {
+  // 해당 프로바이더의 한도 조회
+  const quota = await prisma.storageQuota.findUnique({
+    where: { provider },
+  });
+
+  // 한도가 설정되지 않은 경우 업로드 허용
+  if (!quota || Number(quota.quotaBytes) === 0) {
+    return { allowed: true, message: "" };
+  }
+
+  // 현재 사용량 계산 (원본 + variants 포함)
+  const images = await prisma.image.findMany({
+    where: {
+      project: { storageProvider: provider },
+      status: "COMPLETED",
+    },
+    select: { size: true, variants: true },
+  });
+
+  let currentUsage = 0;
+  for (const img of images) {
+    currentUsage += img.size; // 원본 크기
+    const variants = img.variants as unknown as ImageVariantData[];
+    if (Array.isArray(variants)) {
+      currentUsage += variants.reduce((sum, v) => sum + (v.size || 0), 0);
+    }
+  }
+
+  const quotaBytes = Number(quota.quotaBytes);
+  const remaining = quotaBytes - currentUsage;
+
+  // 업로드 후 한도 초과 여부 체크
+  if (currentUsage + fileSize > quotaBytes) {
+    return {
+      allowed: false,
+      message: `스토리지 한도를 초과합니다. 남은 용량: ${formatBytesSimple(remaining)}`,
+      remaining,
+    };
+  }
+
+  return { allowed: true, message: "", remaining };
+}
+
+/**
+ * 바이트를 읽기 쉬운 형식으로 변환 (간단 버전)
+ */
+function formatBytesSimple(bytes: number): string {
+  if (bytes === 0) return "0 B";
+  const k = 1024;
+  const sizes = ["B", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(Math.max(1, bytes)) / Math.log(k));
+  return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`;
 }

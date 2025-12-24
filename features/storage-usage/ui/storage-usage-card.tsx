@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useStorageUsage } from "../model/use-storage-usage";
 import { formatBytes } from "@/shared/lib/format-bytes";
+import { calculateRemainingSpace } from "@/shared/lib/storage-quota-utils";
 import {
     Card,
     CardContent,
@@ -11,7 +12,15 @@ import {
     CardTitle,
 } from "@/shared/ui/card";
 import { Skeleton } from "@/shared/ui/skeleton";
-import { HardDrive, FolderOpen, FileText, AlertCircle } from "lucide-react";
+import {
+    HardDrive,
+    FolderOpen,
+    FileText,
+    AlertCircle,
+    AlertTriangle,
+} from "lucide-react";
+import { UsageBar } from "./usage-bar";
+import { QuotaSettingDialog } from "./quota-setting-dialog";
 
 interface StorageUsageCardProps {
     className?: string;
@@ -33,7 +42,7 @@ export function StorageUsageCard({ className }: StorageUsageCardProps) {
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-4">
-                        <Skeleton className="h-20 w-full" />
+                        <Skeleton className="h-24 w-full" />
                         <Skeleton className="h-20 w-full" />
                     </div>
                 </CardContent>
@@ -91,30 +100,77 @@ export function StorageUsageCard({ className }: StorageUsageCardProps) {
                         </div>
                     </div>
 
-                    {/* Per Provider Usage */}
+                    {/* Per Provider Usage with Usage Bar */}
                     {data?.providers && data.providers.length > 0 && (
                         <div className="grid gap-3">
-                            {data.providers.map((provider) => (
-                                <div
-                                    key={provider.provider}
-                                    className="flex items-center justify-between rounded-lg border p-3"
-                                >
-                                    <div>
-                                        <div className="font-medium">
-                                            {provider.provider === "OCI"
-                                                ? t("ociStorage")
-                                                : t("r2Storage")}
+                            {data.providers.map((provider) => {
+                                const remaining = provider.quota
+                                    ? calculateRemainingSpace(provider.quota, provider.bytes)
+                                    : undefined;
+
+                                return (
+                                    <div
+                                        key={provider.provider}
+                                        className="rounded-lg border p-4"
+                                    >
+                                        {/* Header */}
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-medium">
+                                                    {provider.provider === "OCI"
+                                                        ? t("ociStorage")
+                                                        : t("r2Storage")}
+                                                </span>
+                                                <QuotaSettingDialog
+                                                    provider={provider.provider}
+                                                    currentQuota={provider.quota}
+                                                />
+                                            </div>
+                                            <div className="text-sm text-muted-foreground">
+                                                {formatBytes(provider.bytes)}
+                                                {provider.quota && (
+                                                    <span> / {formatBytes(provider.quota)}</span>
+                                                )}
+                                            </div>
                                         </div>
-                                        <div className="text-sm text-muted-foreground">
+
+                                        {/* Usage Bar */}
+                                        <UsageBar
+                                            percentage={provider.percentage}
+                                            segments={40}
+                                        />
+
+                                        {/* Stats */}
+                                        <div className="text-xs text-muted-foreground mt-2">
                                             {provider.projects} {t("projects")} · {provider.files}{" "}
                                             {t("files")}
                                         </div>
+
+                                        {/* Warning Messages */}
+                                        {provider.status === "warning" && remaining !== undefined && (
+                                            <div className="flex items-center gap-2 mt-3 p-2 rounded bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 text-sm">
+                                                <AlertTriangle className="h-4 w-4 shrink-0" />
+                                                <span>
+                                                    {t("warningMessage", {
+                                                        remaining: formatBytes(remaining),
+                                                    })}
+                                                </span>
+                                            </div>
+                                        )}
+                                        {provider.status === "critical" &&
+                                            remaining !== undefined && (
+                                                <div className="flex items-center gap-2 mt-3 p-2 rounded bg-red-500/10 text-red-600 dark:text-red-500 text-sm">
+                                                    <AlertCircle className="h-4 w-4 shrink-0" />
+                                                    <span>
+                                                        {t("criticalMessage", {
+                                                            remaining: formatBytes(remaining),
+                                                        })}
+                                                    </span>
+                                                </div>
+                                            )}
                                     </div>
-                                    <div className="text-right font-mono">
-                                        {formatBytes(provider.bytes)}
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     )}
 

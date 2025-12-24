@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Badge } from "@/shared/ui/badge";
 import { ImageIcon } from "lucide-react";
-import { findVariantByLabel } from "@/shared/lib/image-utils";
+import { findSourceVariant } from "@/shared/lib/image-utils";
 import { FileWithVariants } from "@/entities/files/model/types";
 import { FileTypeIcon } from "@/entities/files/ui/file-type-icon";
 import { FileInfo } from "@/entities/files/ui/file-info";
@@ -36,7 +36,7 @@ export function FileDetailWidget({ file }: FileDetailWidgetProps) {
       file.name
     );
     // 원본 비디오 정보 (해상도 포함)
-    const originalVariant = file.variants?.find((v) => v.label === "original");
+    const sourceVariant = findSourceVariant(file.variants || []);
 
     return (
       <div className="container mx-auto py-8 px-4">
@@ -66,7 +66,7 @@ export function FileDetailWidget({ file }: FileDetailWidgetProps) {
                   createdAt={file.createdAt}
                   updatedAt={file.updatedAt}
                   url={file.url}
-                  resolution={originalVariant ? { width: originalVariant.width, height: originalVariant.height } : undefined}
+                  resolution={sourceVariant ? { width: sourceVariant.width, height: sourceVariant.height } : undefined}
                 />
 
                 {/* 다운로드/열기 버튼 */}
@@ -135,9 +135,10 @@ export function FileDetailWidget({ file }: FileDetailWidgetProps) {
     );
   }
 
-  // 이미지 파일인 경우
+  // 이미지 파일인 경우 - 원본(source)을 기본 표시
   const displayVariant =
-    findVariantByLabel(file.variants, "original") || file.variants[0];
+    findSourceVariant(file.variants) ||
+    file.variants[0];
 
   if (!displayVariant) {
     return (

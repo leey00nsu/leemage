@@ -58,6 +58,14 @@ export function CustomResolutionInput({
       return;
     }
 
+    // 원본보다 큰 해상도 제한
+    if (hasOriginalDimensions) {
+      if (widthNum > originalWidth || heightNum > originalHeight) {
+        setError(t("exceedsOriginal"));
+        return;
+      }
+    }
+
     const result = validateCustomResolution(widthNum, heightNum);
     if (!result.success) {
       setError(result.error);
@@ -77,6 +85,9 @@ export function CustomResolutionInput({
     }
   };
 
+  // 최대 입력 가능한 너비 (원본 너비 또는 10000)
+  const maxWidth = hasOriginalDimensions ? originalWidth : 10000;
+
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
@@ -89,7 +100,7 @@ export function CustomResolutionInput({
           disabled={disabled || isMaxReached}
           className="w-24"
           min={1}
-          max={10000}
+          max={maxWidth}
         />
         <span className="text-muted-foreground">×</span>
         <div className="relative">
@@ -102,7 +113,7 @@ export function CustomResolutionInput({
             disabled={disabled || isMaxReached || !!hasOriginalDimensions}
             className={`w-24 ${hasOriginalDimensions ? "pr-8 bg-muted/50" : ""}`}
             min={1}
-            max={10000}
+            max={hasOriginalDimensions ? originalHeight : 10000}
             readOnly={!!hasOriginalDimensions}
           />
           {hasOriginalDimensions && (
@@ -120,7 +131,9 @@ export function CustomResolutionInput({
         </Button>
       </div>
       {hasOriginalDimensions && (
-        <p className="text-xs text-muted-foreground">{t("aspectRatioLocked")}</p>
+        <p className="text-xs text-muted-foreground">
+          {t("aspectRatioLocked")} (max {originalWidth}×{originalHeight})
+        </p>
       )}
       {error && <p className="text-xs text-destructive">{error}</p>}
       {isMaxReached && (

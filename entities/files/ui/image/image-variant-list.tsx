@@ -13,10 +13,11 @@ export function ImageVariantList({
 }: ImageVariantListProps) {
   const t = useTranslations("ImageVariantList");
 
-  // original을 먼저, 나머지는 크기(width) 내림차순으로 정렬
+  // 크기(width) 내림차순으로 정렬 (가장 큰 해상도가 원본)
   const sortedVariants = [...variants].sort((a, b) => {
-    if (a.label === "original") return -1;
-    if (b.label === "original") return 1;
+    // thumbnail은 항상 맨 뒤로
+    if (a.label === "thumbnail") return 1;
+    if (b.label === "thumbnail") return -1;
     return b.width - a.width;
   });
 

@@ -62,7 +62,7 @@ export function FileUploadDialog({
     defaultValues: {
       formats: [AVAILABLE_FORMATS[0]],
       sizes: [
-        AVAILABLE_SIZES.find((s) => s === "original") || AVAILABLE_SIZES[0],
+        AVAILABLE_SIZES.find((s) => s === "source") || AVAILABLE_SIZES[0],
       ],
       customResolutions: [],
     },
@@ -200,7 +200,7 @@ export function FileUploadDialog({
       reset({
         formats: [AVAILABLE_FORMATS[0]],
         sizes: [
-          AVAILABLE_SIZES.find((s) => s === "original") || AVAILABLE_SIZES[0],
+          AVAILABLE_SIZES.find((s) => s === "source") || AVAILABLE_SIZES[0],
         ],
         customResolutions: [],
       });

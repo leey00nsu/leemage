@@ -29,13 +29,15 @@ type VariantOption = z.infer<typeof variantOptionSchema>;
 
 /**
  * 이미지 variant 처리 (스토리지에서 원본 다운로드 후 처리)
+ * @param originalFormat - 원본 이미지 포맷 (중복 방지용)
  */
 async function processImageVariants(
   originalBuffer: Buffer,
   projectId: string,
   fileId: string,
   requestedVariants: VariantOption[],
-  storageAdapter: StorageAdapter
+  storageAdapter: StorageAdapter,
+  originalFormat: string
 ): Promise<ImageVariantData[]> {
   const originalMetadata = await sharp(originalBuffer).metadata();
 
@@ -56,10 +58,15 @@ async function processImageVariants(
     processingPromises.push(
       (async () => {
         const { sizeLabel, format: reqFormat } = variantOption;
-        const variantLabel = `${sizeLabel}-${reqFormat}`;
+
+        // source 크기 + 원본 포맷 조합은 건너뛰기 (source로 이미 제공됨)
+        if (sizeLabel === "source" && reqFormat === originalFormat) {
+          console.log(`Skipping duplicate variant: ${sizeLabel}-${reqFormat} (same as source)`);
+          return;
+        }
 
         try {
-          if (sizeLabel === "original") {
+          if (sizeLabel === "source") {
             const originalImageFormat =
               originalMetadata.format as (typeof AVAILABLE_FORMATS)[number];
             let bufferToUpload = originalBuffer;
@@ -68,6 +75,10 @@ async function processImageVariants(
             const finalWidth = originalMetadata.width!;
             const finalHeight = originalMetadata.height!;
             let finalSize = originalMetadata.size!;
+
+            // 파일명과 label에 해상도 사용
+            const resolutionLabel = `${finalWidth}x${finalHeight}`;
+            const variantLabel = `${resolutionLabel}-${reqFormat}`;
 
             if (reqFormat !== originalImageFormat) {
               const pipeline = sharp(originalBuffer);
@@ -101,14 +112,23 @@ async function processImageVariants(
               height: finalHeight,
               size: finalSize,
               format: finalFormat,
-              label: sizeLabel,
+              label: resolutionLabel,
             });
           } else {
-            const [reqWidth, reqHeight] = sizeLabel.split("x").map(Number);
+            // max300, max800, max1920 또는 WIDTHxHEIGHT 형식 처리
+            let targetWidth: number;
+
+            if (sizeLabel.startsWith("max")) {
+              // max300, max800, max1920 형식 - width 기준으로 리사이즈
+              targetWidth = parseInt(sizeLabel.replace("max", ""), 10);
+            } else {
+              // WIDTHxHEIGHT 형식 - width만 사용
+              [targetWidth] = sizeLabel.split("x").map(Number);
+            }
+
+            // width 기준으로 비율 유지 리사이즈
             const pipeline = sharp(originalBuffer).resize({
-              width: reqWidth,
-              height: reqHeight,
-              fit: sharp.fit.inside,
+              width: targetWidth,
               withoutEnlargement: true,
             });
 
@@ -131,21 +151,32 @@ async function processImageVariants(
             }
 
             const processedMetadata = await sharp(processedBuffer).metadata();
+            const finalWidth = processedMetadata.width!;
+            const finalHeight = processedMetadata.height!;
+
+            // 파일명과 label에 실제 해상도 사용
+            const resolutionLabel = `${finalWidth}x${finalHeight}`;
+            const variantLabel = `${resolutionLabel}-${reqFormat}`;
+
             const objectName = `${projectId}/${fileId}-${variantLabel}.${reqFormat}`;
             const variantMimeType = `image/${reqFormat}`;
-            const url = await storageAdapter.uploadObject(objectName, processedBuffer, variantMimeType);
+            const url = await storageAdapter.uploadObject(
+              objectName,
+              processedBuffer,
+              variantMimeType
+            );
 
             allVariantData.push({
               url,
-              width: processedMetadata.width!,
-              height: processedMetadata.height!,
+              width: finalWidth,
+              height: finalHeight,
               size: processedBuffer.length,
               format: reqFormat,
-              label: sizeLabel,
+              label: resolutionLabel,
             });
           }
         } catch (error) {
-          console.error(`Error processing variant ${variantLabel}:`, error);
+          console.error(`Error processing variant ${sizeLabel}-${reqFormat}:`, error);
           throw error;
         }
       })()
@@ -282,6 +313,12 @@ export async function confirmHandler(
       console.log(`Downloading original image from storage: ${objectName}`);
       const originalBuffer = await storageAdapter.downloadObject(objectName);
 
+      // 원본 이미지 메타데이터 가져오기
+      const originalMetadata = await sharp(originalBuffer).metadata();
+
+      // 원본 파일 포맷 추출
+      const originalFormat = contentType.split("/")[1] || "jpeg";
+
       console.log(
         `Processing ${variants.length} variants for image: ${fileName}`
       );
@@ -290,8 +327,23 @@ export async function confirmHandler(
         projectId,
         fileId,
         variants,
-        storageAdapter
+        storageAdapter,
+        originalFormat
       );
+      // 원본 해상도를 label로 사용 (예: 3024x4032)
+      const sourceLabel = `${originalMetadata.width || 0}x${originalMetadata.height || 0}`;
+      
+      const allVariants: ImageVariantData[] = [
+        {
+          url: objectUrl,
+          width: originalMetadata.width || 0,
+          height: originalMetadata.height || 0,
+          size: fileSize,
+          format: originalFormat,
+          label: sourceLabel,
+        },
+        ...processedVariants,
+      ];
 
       // pending 레코드를 completed로 업데이트
       const savedFile = await prisma.image.update({
@@ -303,7 +355,7 @@ export async function confirmHandler(
           size: fileSize,
           objectName,
           status: "COMPLETED",
-          variants: processedVariants as Prisma.JsonArray,
+          variants: allVariants as Prisma.JsonArray,
         },
       });
 
@@ -311,7 +363,7 @@ export async function confirmHandler(
         {
           message: "이미지 업로드 및 처리 완료",
           file: savedFile,
-          variants: processedVariants,
+          variants: allVariants,
         },
         { status: 201 }
       );
@@ -345,15 +397,16 @@ export async function confirmHandler(
       // 비디오 원본 정보를 variants에 추가 (해상도 포함)
       const videoVariants: ImageVariantData[] = [];
       
-      // 원본 비디오 정보 추가
+      // 원본 비디오 정보 추가 (해상도를 label로 사용)
       if (videoMetadata) {
+        const sourceLabel = `${videoMetadata.width}x${videoMetadata.height}`;
         videoVariants.push({
           url: objectUrl,
           width: videoMetadata.width,
           height: videoMetadata.height,
           size: fileSize,
           format: contentType.split("/")[1] || "mp4",
-          label: "original",
+          label: sourceLabel,
         });
       }
       

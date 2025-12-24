@@ -91,7 +91,8 @@
     "cancelButton": "Cancel",
     "uploadingButton": "Uploading...",
     "uploadButton": "Upload",
-    "nonImageFileInfo": "This file will be uploaded as-is."
+    "nonImageFileInfo": "This file will be uploaded as-is.",
+    "quotaExceeded": "Storage quota exceeded. Remaining: {remaining}"
   },
   "DeleteImageDialog": {
     "deleteSuccess": "File deleted successfully.",
@@ -257,7 +258,10 @@
     "title": "Transform Options",
     "sizeLabel": "Size",
     "formatLabel": "Format",
-    "originalSizeDescription": "Save the original image without processing."
+    "sourceSize": "Source Resolution",
+    "sourceSizeDescription": "Save the original image without processing.",
+    "originalSizeDescription": "Save the original image without processing.",
+    "exceedsOriginal": "Exceeds original"
   },
   "ProjectSearch": {
     "placeholder": "Search projects...",
@@ -281,7 +285,8 @@
     "invalidNumber": "Please enter a valid number.",
     "maxReached": "Maximum of 10 custom resolutions allowed.",
     "remove": "Remove",
-    "aspectRatioLocked": "Aspect ratio is preserved"
+    "aspectRatioLocked": "Aspect ratio is preserved",
+    "exceedsOriginal": "Cannot exceed original resolution"
   },
   "LandingHeader": {
     "features": "Features",
@@ -340,6 +345,23 @@
     "ociStorage": "OCI Object Storage",
     "r2Storage": "Cloudflare R2",
     "noData": "No storage data available.",
-    "error": "Failed to load storage usage."
+    "error": "Failed to load storage usage.",
+    "warningMessage": "Storage usage is getting high. {remaining} remaining.",
+    "criticalMessage": "Critical: Storage almost full! {remaining} remaining."
+  },
+  "QuotaSettingDialog": {
+    "title": "Set Storage Quota",
+    "description": "Set the storage limit for {provider}.",
+    "quotaLabel": "Quota Limit",
+    "quotaPlaceholder": "e.g., 10",
+    "invalidQuota": "Please enter a valid positive number.",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving...",
+    "saveSuccess": "Storage quota saved successfully.",
+    "saveError": "Failed to save storage quota.",
+    "freeTierTip": "Free tier",
+    "ociFreeTier": "OCI Object Storage offers 10 GB free (20 GB total, first 10 GB free)",
+    "r2FreeTier": "Cloudflare R2 offers 10 GB/month free storage"
   }
 }

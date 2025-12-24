@@ -17,3 +17,23 @@ export function findVariantByLabel(
 ): ImageVariantData | undefined {
   return variants.find((v) => v.label === label);
 }
+
+// 원본(source) variant 찾기 - 해상도 패턴(WIDTHxHEIGHT) 또는 "source" 레이블
+export function findSourceVariant(
+  variants: ImageVariantData[]
+): ImageVariantData | undefined {
+  // 먼저 가장 큰 해상도를 가진 variant를 찾음 (원본일 가능성이 높음)
+  // 해상도 패턴: WIDTHxHEIGHT (예: 3024x4032)
+  const resolutionPattern = /^\d+x\d+$/;
+  
+  // 해상도 패턴을 가진 variants 중 가장 큰 것 찾기
+  const resolutionVariants = variants.filter((v) => resolutionPattern.test(v.label));
+  if (resolutionVariants.length > 0) {
+    return resolutionVariants.reduce((max, v) => 
+      (v.width * v.height > max.width * max.height) ? v : max
+    );
+  }
+  
+  // 레거시: "source" 레이블 찾기
+  return variants.find((v) => v.label === "source");
+}

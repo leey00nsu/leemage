@@ -54,8 +54,14 @@ export function ProjectDetailsWidget({ projectId }: ProjectDetailsWidgetProps) {
     );
   }
 
-  // 프로젝트 스토리지 사용량 계산
-  const totalBytes = project.files?.reduce((sum, file) => sum + (file.size || 0), 0) || 0;
+  // 프로젝트 스토리지 사용량 계산 (원본 + variants 포함)
+  const totalBytes = project.files?.reduce((sum, file) => {
+    let fileTotal = file.size || 0;
+    if (Array.isArray(file.variants)) {
+      fileTotal += file.variants.reduce((vSum, v) => vSum + (v.size || 0), 0);
+    }
+    return sum + fileTotal;
+  }, 0) || 0;
   const fileCount = project.files?.length || 0;
 
   return (

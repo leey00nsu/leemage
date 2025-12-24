@@ -8,6 +8,8 @@ import {
   AVAILABLE_FORMATS,
   AVAILABLE_SIZES,
   FormatType,
+  SIZE_MAX_PIXELS,
+  isPresetSmallerThanOriginal,
 } from "@/shared/config/image-options";
 import { useTranslations } from "next-intl";
 import { CustomResolutionInput } from "./custom-resolution-input";
@@ -26,6 +28,14 @@ interface TransformOptionsProps {
   disabled?: boolean;
   originalWidth?: number;
   originalHeight?: number;
+}
+
+// 프리셋 사이즈 표시 텍스트 생성
+function getSizeDisplayText(size: string, t: (key: string) => string): string {
+  if (size === "source") return t("sourceSize");
+  const maxPixels = SIZE_MAX_PIXELS[size];
+  if (maxPixels) return `w${maxPixels}`;
+  return size;
 }
 
 export function TransformOptions({
@@ -51,27 +61,37 @@ export function TransformOptions({
       <div className="space-y-2">
         <Label>{t("sizeLabel")}</Label>
         <div className="flex flex-wrap gap-x-4 gap-y-2">
-          {AVAILABLE_SIZES.map((size) => (
-            <div key={size} className="flex items-center space-x-2">
-              <Checkbox
-                id={`size-${size}`}
-                checked={selectedSizes.has(size)}
-                onCheckedChange={(checked) => onSizeChange(size, checked)}
-                disabled={disabled}
-              />
-              <label
-                htmlFor={`size-${size}`}
-                className="text-sm font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                {size === "original" ? "원본 (original)" : size}
-              </label>
-              {size === "original" && (
-                <span className="text-xs text-muted-foreground ml-1">
-                  {t("originalSizeDescription")}
-                </span>
-              )}
-            </div>
-          ))}
+          {AVAILABLE_SIZES.map((size) => {
+            const isAvailable = isPresetSmallerThanOriginal(size, originalWidth, originalHeight);
+            const isDisabled = disabled || !isAvailable;
+
+            return (
+              <div key={size} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`size-${size}`}
+                  checked={selectedSizes.has(size)}
+                  onCheckedChange={(checked) => onSizeChange(size, checked)}
+                  disabled={isDisabled}
+                />
+                <label
+                  htmlFor={`size-${size}`}
+                  className={`text-sm font-medium ${isDisabled ? "cursor-not-allowed opacity-50" : ""}`}
+                >
+                  {getSizeDisplayText(size, t)}
+                </label>
+                {size === "source" && (
+                  <span className="text-xs text-muted-foreground ml-1">
+                    {t("sourceSizeDescription")}
+                  </span>
+                )}
+                {!isAvailable && size !== "source" && (
+                  <span className="text-xs text-muted-foreground ml-1">
+                    {t("exceedsOriginal")}
+                  </span>
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {/* 커스텀 해상도 목록 */}

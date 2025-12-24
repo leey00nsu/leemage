@@ -91,7 +91,8 @@
     "cancelButton": "취소",
     "uploadingButton": "업로드 중...",
     "uploadButton": "업로드",
-    "nonImageFileInfo": "이 파일은 원본 그대로 업로드됩니다."
+    "nonImageFileInfo": "이 파일은 원본 그대로 업로드됩니다.",
+    "quotaExceeded": "스토리지 한도를 초과했습니다. 남은 용량: {remaining}"
   },
   "DeleteImageDialog": {
     "deleteSuccess": "파일이 삭제되었습니다.",
@@ -257,7 +258,10 @@
     "title": "변환 옵션",
     "sizeLabel": "크기",
     "formatLabel": "포맷",
-    "originalSizeDescription": "가공 없이 원본 이미지를 그대로 저장합니다"
+    "sourceSize": "원본 해상도 (source)",
+    "sourceSizeDescription": "가공 없이 원본 이미지를 그대로 저장합니다",
+    "originalSizeDescription": "가공 없이 원본 이미지를 그대로 저장합니다",
+    "exceedsOriginal": "원본보다 큼"
   },
   "ProjectSearch": {
     "placeholder": "프로젝트 검색...",
@@ -281,7 +285,8 @@
     "invalidNumber": "유효한 숫자를 입력해주세요.",
     "maxReached": "최대 10개까지 추가할 수 있습니다.",
     "remove": "제거",
-    "aspectRatioLocked": "원본 비율이 유지됩니다"
+    "aspectRatioLocked": "원본 비율이 유지됩니다",
+    "exceedsOriginal": "원본 해상도를 초과할 수 없습니다"
   },
   "LandingHeader": {
     "features": "기능",
@@ -340,6 +345,23 @@
     "ociStorage": "OCI Object Storage",
     "r2Storage": "Cloudflare R2",
     "noData": "스토리지 데이터가 없습니다.",
-    "error": "스토리지 사용량을 불러오는데 실패했습니다."
+    "error": "스토리지 사용량을 불러오는데 실패했습니다.",
+    "warningMessage": "스토리지 사용량이 높아지고 있습니다. {remaining} 남음.",
+    "criticalMessage": "경고: 스토리지가 거의 가득 찼습니다! {remaining} 남음."
+  },
+  "QuotaSettingDialog": {
+    "title": "스토리지 한도 설정",
+    "description": "{provider}의 스토리지 한도를 설정합니다.",
+    "quotaLabel": "한도",
+    "quotaPlaceholder": "예: 10",
+    "invalidQuota": "유효한 양수를 입력해주세요.",
+    "cancel": "취소",
+    "save": "저장",
+    "saving": "저장 중...",
+    "saveSuccess": "스토리지 한도가 저장되었습니다.",
+    "saveError": "스토리지 한도 저장에 실패했습니다.",
+    "freeTierTip": "프리티어",
+    "ociFreeTier": "OCI Object Storage는 10 GB 무료 제공 (총 20 GB 중 첫 10 GB 무료)",
+    "r2FreeTier": "Cloudflare R2는 월 10 GB 무료 스토리지 제공"
   }
 }

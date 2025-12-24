@@ -73,3 +73,13 @@ model ApiKey {
 
   @@index([userIdentifier]) // userIdentifier로 검색 성능 향상
 }
+
+
+// 스토리지 사용량 한도 설정
+model StorageQuota {
+  id         String          @id @default(cuid())
+  provider   StorageProvider @unique // 프로바이더별 하나의 한도만 설정 가능
+  quotaBytes BigInt          @default(0) // 한도 (bytes)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+}

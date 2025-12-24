@@ -60,7 +60,7 @@ registry.registerPath({
       },
     },
     413: {
-      description: "파일 크기 초과",
+      description: "파일 크기 초과 또는 스토리지 한도 초과",
       content: {
         "application/json": {
           schema: badRequestErrorSchema,
