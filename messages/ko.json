@@ -194,7 +194,9 @@
     "editButton": "수정",
     "copyId": "프로젝트 ID 복사",
     "idCopied": "프로젝트 ID가 클립보드에 복사되었습니다.",
-    "idLabel": "프로젝트 ID:"
+    "idLabel": "프로젝트 ID:",
+    "storageUsage": "사용량",
+    "files": "파일"
   },
   "EditProjectDialog": {
     "title": "프로젝트 수정",
@@ -328,5 +330,16 @@
   },
   "IntegrationsSection": {
     "title": "기술 스택"
+  },
+  "StorageUsageCard": {
+    "title": "스토리지 사용량",
+    "description": "모든 스토리지 프로바이더의 사용량을 확인하세요.",
+    "totalUsage": "총 사용량",
+    "projects": "프로젝트",
+    "files": "파일",
+    "ociStorage": "OCI Object Storage",
+    "r2Storage": "Cloudflare R2",
+    "noData": "스토리지 데이터가 없습니다.",
+    "error": "스토리지 사용량을 불러오는데 실패했습니다."
   }
 }

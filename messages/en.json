@@ -194,7 +194,9 @@
     "editButton": "Edit",
     "copyId": "Copy Project ID",
     "idCopied": "Project ID copied to clipboard.",
-    "idLabel": "Project ID:"
+    "idLabel": "Project ID:",
+    "storageUsage": "Storage",
+    "files": "files"
   },
   "EditProjectDialog": {
     "title": "Edit Project",
@@ -328,5 +330,16 @@
   },
   "IntegrationsSection": {
     "title": "Tech stacks"
+  },
+  "StorageUsageCard": {
+    "title": "Storage Usage",
+    "description": "View your storage usage across all providers.",
+    "totalUsage": "Total Usage",
+    "projects": "projects",
+    "files": "files",
+    "ociStorage": "OCI Object Storage",
+    "r2Storage": "Cloudflare R2",
+    "noData": "No storage data available.",
+    "error": "Failed to load storage usage."
   }
 }

@@ -4,7 +4,7 @@ import { FileUploadDialog } from "@/features/files/upload/ui/file-upload-dialog"
 import { FileList } from "@/features/files/list/ui/file-list";
 import { DeleteProjectButton } from "@/features/projects/delete/ui/delete-project-button";
 import { EditProjectDialog } from "@/features/projects/edit/ui/edit-project-dialog";
-import { Check, Copy, Upload, Pencil } from "lucide-react";
+import { Check, Copy, Upload, Pencil, HardDrive, FileText } from "lucide-react";
 import { ProjectDetailSkeleton } from "./project-detail-skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert";
 import { Button } from "@/shared/ui/button";
@@ -13,6 +13,7 @@ import { useTranslations } from "next-intl";
 import { useCopyToClipboard } from "@/shared/model/copy-text";
 import { toast } from "sonner";
 import { StorageProviderBadge } from "@/shared/ui/storage-provider-badge";
+import { formatBytes } from "@/shared/lib/format-bytes";
 
 interface ProjectDetailsWidgetProps {
   projectId: string;
@@ -52,6 +53,10 @@ export function ProjectDetailsWidget({ projectId }: ProjectDetailsWidgetProps) {
       </Alert>
     );
   }
+
+  // 프로젝트 스토리지 사용량 계산
+  const totalBytes = project.files?.reduce((sum, file) => sum + (file.size || 0), 0) || 0;
+  const fileCount = project.files?.length || 0;
 
   return (
     <div className="space-y-6">
@@ -95,6 +100,19 @@ export function ProjectDetailsWidget({ projectId }: ProjectDetailsWidgetProps) {
         )}
       </div>
       <p className="text-muted-foreground mb-6">{project.description}</p>
+
+      {/* 프로젝트 스토리지 사용량 */}
+      <div className="flex items-center gap-4 text-sm text-muted-foreground border rounded-lg p-3">
+        <div className="flex items-center gap-1.5">
+          <HardDrive className="h-4 w-4" />
+          <span>{t("storageUsage")}:</span>
+          <span className="font-medium text-foreground">{formatBytes(totalBytes)}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <FileText className="h-4 w-4" />
+          <span>{fileCount} {t("files")}</span>
+        </div>
+      </div>
 
       <div className="flex justify-start mb-4">
         <FileUploadDialog projectId={projectId}>

@@ -27,6 +27,9 @@ export function ProjectDetailSkeleton({
       {/* Description */}
       <Skeleton className="h-4 w-2/3" />
 
+      {/* Storage usage */}
+      <Skeleton className="h-12 w-full rounded-lg" />
+
       {/* Upload button */}
       <div className="flex justify-start mb-4">
         <Skeleton className="h-9 w-32" />
