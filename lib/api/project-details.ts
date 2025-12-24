@@ -31,7 +31,7 @@ export async function getProjectDetailsHandler(
         id: projectId,
       },
       include: {
-        images: {
+        files: {
           where: {
             status: "COMPLETED", // COMPLETED 상태의 파일만 조회
           },
@@ -61,14 +61,14 @@ export async function getProjectDetailsHandler(
       );
     }
 
-    // API 응답에서 images를 files로 변환하고 Date를 ISO 문자열로 변환
-    const { images, ...projectData } = project;
+    // API 응답에서 files를 변환하고 Date를 ISO 문자열로 변환
+    const { files: projectFiles, ...projectData } = project;
     const response: ProjectDetailsResponse = {
       ...projectData,
       storageProvider: fromPrismaStorageProvider(projectData.storageProvider),
       createdAt: projectData.createdAt.toISOString(),
       updatedAt: projectData.updatedAt.toISOString(),
-      files: images.map((file) => ({
+      files: projectFiles.map((file) => ({
         ...file,
         createdAt: file.createdAt.toISOString(),
         updatedAt: file.updatedAt.toISOString(),
@@ -100,7 +100,7 @@ export async function deleteProjectHandler(
     const projectToDelete = await prisma.project.findUnique({
       where: { id: projectId },
       include: {
-        images: {
+        files: {
           select: { id: true, name: true, variants: true, objectName: true },
         },
       },
@@ -119,14 +119,14 @@ export async function deleteProjectHandler(
 
     // 스토리지 객체 삭제 로직
     const objectDeletionPromises: Promise<void>[] = [];
-    projectToDelete.images.forEach((image) => {
+    projectToDelete.files.forEach((file) => {
       // 원본 파일 삭제
-      if (image.objectName) {
-        objectDeletionPromises.push(storageAdapter.deleteObject(image.objectName));
+      if (file.objectName) {
+        objectDeletionPromises.push(storageAdapter.deleteObject(file.objectName));
       }
       
       // variant 파일들 삭제
-      const variants = image.variants as unknown as ImageVariantData[];
+      const variants = file.variants as unknown as ImageVariantData[];
       variants.forEach((variant) => {
         if (typeof variant?.url === "string") {
           try {
@@ -165,7 +165,7 @@ export async function deleteProjectHandler(
     });
 
     return NextResponse.json(
-      { message: "프로젝트 및 관련 이미지(모든 버전)가 삭제되었습니다." },
+      { message: "프로젝트 및 관련 파일(모든 버전)이 삭제되었습니다." },
       { status: 200 }
     );
   } catch (error) {

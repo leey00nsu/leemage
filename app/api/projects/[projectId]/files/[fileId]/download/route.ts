@@ -21,7 +21,7 @@ export async function GET(
     const variantLabel = searchParams.get("variant"); // 이미지 variant 선택 (선택적)
 
     // 파일 정보 조회
-    const file = await prisma.image.findUnique({
+    const file = await prisma.file.findUnique({
       where: {
         id: fileId,
         projectId: projectId,

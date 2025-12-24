@@ -284,7 +284,7 @@ export async function confirmHandler(
       parseResult.data;
 
     // pending 상태의 레코드 확인
-    const pendingFile = await prisma.image.findFirst({
+    const pendingFile = await prisma.file.findFirst({
       where: {
         id: fileId,
         projectId,
@@ -346,7 +346,7 @@ export async function confirmHandler(
       ];
 
       // pending 레코드를 completed로 업데이트
-      const savedFile = await prisma.image.update({
+      const savedFile = await prisma.file.update({
         where: { id: fileId },
         data: {
           name: fileName,
@@ -415,7 +415,7 @@ export async function confirmHandler(
         videoVariants.push(thumbnail);
       }
 
-      const savedFile = await prisma.image.update({
+      const savedFile = await prisma.file.update({
         where: { id: fileId },
         data: {
           name: fileName,
@@ -441,7 +441,7 @@ export async function confirmHandler(
       );
     } else {
       // 기타 파일: pending 레코드를 completed로 업데이트
-      const savedFile = await prisma.image.update({
+      const savedFile = await prisma.file.update({
         where: { id: fileId },
         data: {
           name: fileName,

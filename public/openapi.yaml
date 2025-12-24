@@ -109,10 +109,10 @@ components:
           anyOf:
             - type: string
               enum:
-                - original
-                - 300x300
-                - 800x800
-                - 1920x1080
+                - source
+                - max300
+                - max800
+                - max1920
             - type: string
               pattern: ^\d+x\d+$
           description: 이미지 크기 레이블. 프리셋(original, 300x300, 800x800, 1920x1080) 또는 커스텀 해상도(WIDTHxHEIGHT 형식)

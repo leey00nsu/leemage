@@ -39,7 +39,7 @@ export async function GET() {
     const projects = await prisma.project.findMany({
       select: {
         storageProvider: true,
-        images: {
+        files: {
           select: { size: true, variants: true },
           where: { status: "COMPLETED" },
         },
@@ -65,12 +65,12 @@ export async function GET() {
       };
 
       existing.projects += 1;
-      existing.files += project.images.length;
+      existing.files += project.files.length;
 
       // 원본 파일 크기 + variants 크기 합산
-      for (const img of project.images) {
-        existing.bytes += img.size; // 원본 크기
-        const variants = img.variants as unknown as ImageVariantData[];
+      for (const file of project.files) {
+        existing.bytes += file.size; // 원본 크기
+        const variants = file.variants as unknown as ImageVariantData[];
         if (Array.isArray(variants)) {
           existing.bytes += variants.reduce((sum, v) => sum + (v.size || 0), 0);
         }

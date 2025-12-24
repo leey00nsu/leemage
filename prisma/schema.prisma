@@ -32,7 +32,7 @@ model Project {
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
-  images          Image[] // 프로젝트에 속한 이미지 목록 (1:N 관계)
+  files           File[] // 프로젝트에 속한 파일 목록 (1:N 관계)
 }
 
 // 파일 업로드 상태
@@ -42,7 +42,7 @@ enum FileStatus {
   FAILED     // 업로드 실패 또는 취소
 }
 
-model Image {
+model File {
   id          String     @id @default(cuid())
   name        String     // 원본 파일명
   mimeType    String     @default("application/octet-stream") // MIME 타입 (예: image/png, application/pdf)

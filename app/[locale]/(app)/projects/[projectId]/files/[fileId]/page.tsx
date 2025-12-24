@@ -14,7 +14,7 @@ export default async function FileDetailPage({ params }: FileDetailPageProps) {
   const { fileId } = await params;
 
   // 서버 컴포넌트에서 직접 데이터베이스 조회
-  const file = await prisma.image.findUnique({
+  const file = await prisma.file.findUnique({
     where: { id: fileId },
   });
 

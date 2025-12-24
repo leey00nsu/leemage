@@ -113,7 +113,7 @@ export async function presignHandler(
     });
 
     // pending 상태로 DB 레코드 생성 (고아 오브젝트 추적용)
-    await prisma.image.create({
+    await prisma.file.create({
       data: {
         id: fileId,
         name: fileName,
@@ -171,7 +171,7 @@ async function checkStorageQuota(
   }
 
   // 현재 사용량 계산 (원본 + variants 포함)
-  const images = await prisma.image.findMany({
+  const images = await prisma.file.findMany({
     where: {
       project: { storageProvider: provider },
       status: "COMPLETED",

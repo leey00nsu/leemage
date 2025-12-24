@@ -18,7 +18,7 @@ export async function cleanupOrphanFiles(
 
   try {
     // 오래된 PENDING 레코드 조회
-    const orphanFiles = await prisma.image.findMany({
+    const orphanFiles = await prisma.file.findMany({
       where: {
         status: "PENDING",
         createdAt: {
@@ -53,7 +53,7 @@ export async function cleanupOrphanFiles(
     }
 
     // DB 레코드 삭제 (또는 FAILED 상태로 변경)
-    const deleteResult = await prisma.image.deleteMany({
+    const deleteResult = await prisma.file.deleteMany({
       where: {
         id: {
           in: orphanFiles.map((f) => f.id),
@@ -84,7 +84,7 @@ export async function cleanupFailedFiles(
   cutoffTime.setDate(cutoffTime.getDate() - olderThanDays);
 
   try {
-    const deleteResult = await prisma.image.deleteMany({
+    const deleteResult = await prisma.file.deleteMany({
       where: {
         status: "FAILED",
         createdAt: {

@@ -18,7 +18,7 @@ export async function deleteFileHandler(fileId: string, projectId?: string) {
       ? { id: fileId, projectId: projectId }
       : { id: fileId };
 
-    const file = await prisma.image.findUnique({
+    const file = await prisma.file.findUnique({
       where: whereCondition,
       select: {
         id: true,
@@ -100,7 +100,7 @@ export async function deleteFileHandler(fileId: string, projectId?: string) {
     }
 
     // 데이터베이스에서 파일 레코드 삭제
-    await prisma.image.delete({
+    await prisma.file.delete({
       where: { id: fileId },
     });
 
