@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/shared/ui/button";
 import {
   Dialog,
@@ -22,7 +22,7 @@ import { TransformOptions } from "@/entities/files/ui/image/transform-options";
 import { FileInput } from "@/entities/files/ui/file-input";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FileUploadFormValues, fileUploadSchema } from "../model/schema";
+import { FileUploadFormValues, createFileUploadSchema } from "../model/schema";
 import { useTranslations } from "next-intl";
 import { isImageFile } from "@/shared/lib/file-utils";
 import { Progress } from "@/shared/ui/progress";
@@ -49,6 +49,13 @@ export function FileUploadDialog({
     height: number;
   } | null>(null);
   const t = useTranslations("ImageUploadDialog");
+  const tValidation = useTranslations("Validation");
+
+  // i18n 스키마 생성
+  const schema = useMemo(
+    () => createFileUploadSchema((key) => tValidation(key)),
+    [tValidation]
+  );
 
   // react-hook-form 설정
   const {
@@ -58,7 +65,7 @@ export function FileUploadDialog({
     reset,
     formState: { errors },
   } = useForm<FileUploadFormValues>({
-    resolver: zodResolver(fileUploadSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       formats: [AVAILABLE_FORMATS[0]],
       sizes: [

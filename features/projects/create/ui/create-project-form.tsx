@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/shared/ui/button";
@@ -21,19 +22,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/ui/select";
-import { createProjectSchema, CreateProjectFormValues } from "../model/schema";
+import { createCreateProjectSchema, CreateProjectFormValues } from "../model/schema";
 import { useRouter } from "@/i18n/navigation";
 import { useCreateProject } from "../model/create";
 import { useAvailableStorageProviders } from "../model/storage-providers";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { StorageProvider } from "@/lib/storage/types";
-import { useEffect } from "react";
 
 export function CreateProjectForm() {
   const router = useRouter();
   const t = useTranslations("CreateProjectForm");
   const tStorage = useTranslations("StorageProvider");
+  const tValidation = useTranslations("Validation");
+
+  // i18n 스키마 생성
+  const schema = useMemo(
+    () => createCreateProjectSchema((key) => tValidation(key)),
+    [tValidation]
+  );
 
   const {
     data: availableProvidersData,
@@ -49,7 +56,7 @@ export function CreateProjectForm() {
     setValue,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(createProjectSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       name: "",
       description: "",

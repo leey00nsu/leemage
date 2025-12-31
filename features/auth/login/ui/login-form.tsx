@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -14,7 +15,7 @@ import {
 } from "@/shared/ui/card";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
-import { loginSchema, LoginFormValues } from "../model/schema";
+import { createLoginSchema, LoginFormValues } from "../model/schema";
 import { useRouter } from "@/i18n/navigation";
 import { login } from "../api/login";
 import { useTranslations } from "next-intl";
@@ -22,12 +23,20 @@ import { useTranslations } from "next-intl";
 export function LoginForm() {
   const router = useRouter();
   const t = useTranslations("LoginForm");
+  const tValidation = useTranslations("Validation");
+
+  // i18n 스키마 생성
+  const schema = useMemo(
+    () => createLoginSchema((key) => tValidation(key)),
+    [tValidation]
+  );
+
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       email: "",
       password: "",

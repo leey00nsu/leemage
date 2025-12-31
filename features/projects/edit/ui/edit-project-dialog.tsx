@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/shared/ui/button";
@@ -17,7 +17,7 @@ import {
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { Textarea } from "@/shared/ui/textarea";
-import { editProjectSchema, EditProjectFormValues } from "../model/schema";
+import { createEditProjectSchema, EditProjectFormValues } from "../model/schema";
 import { useUpdateProject } from "../model/edit";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
@@ -37,6 +37,13 @@ export function EditProjectDialog({
 }: EditProjectDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const t = useTranslations("EditProjectDialog");
+  const tValidation = useTranslations("Validation");
+
+  // i18n 스키마 생성
+  const schema = useMemo(
+    () => createEditProjectSchema((key) => tValidation(key)),
+    [tValidation]
+  );
 
   const {
     register,
@@ -44,7 +51,7 @@ export function EditProjectDialog({
     reset,
     formState: { errors },
   } = useForm<EditProjectFormValues>({
-    resolver: zodResolver(editProjectSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       name: currentName,
       description: currentDescription || "",

@@ -1,4 +1,35 @@
 {
+  "Validation": {
+    "email": {
+      "invalid": "Please enter a valid email address."
+    },
+    "password": {
+      "required": "Please enter your password."
+    },
+    "project": {
+      "nameRequired": "Project name is required.",
+      "nameMin": "Project name must be at least 3 characters.",
+      "nameMax": "Project name cannot exceed 50 characters.",
+      "descriptionMax": "Description cannot exceed 200 characters."
+    },
+    "file": {
+      "imageOnly": "Only image files can be uploaded.",
+      "formatRequired": "Please select at least one format.",
+      "sizeRequired": "Please select at least one size.",
+      "imageFormatAndSizeRequired": "Image files require at least one format and size selection.",
+      "maxSizeExceeded": "File size cannot exceed {maxSize}.",
+      "customResolutionsMax": "Maximum of 10 custom resolutions allowed."
+    },
+    "resolution": {
+      "widthInteger": "Width must be an integer.",
+      "widthMin": "Width must be at least 1.",
+      "widthMax": "Width cannot exceed 10000.",
+      "heightInteger": "Height must be an integer.",
+      "heightMin": "Height must be at least 1.",
+      "heightMax": "Height cannot exceed 10000.",
+      "invalid": "Invalid resolution."
+    }
+  },
   "EndpointCard": {
     "copiedToClipboard": "Copied to clipboard.",
     "authRequired": "Auth Required",

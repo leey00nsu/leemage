@@ -1,4 +1,35 @@
 {
+  "Validation": {
+    "email": {
+      "invalid": "유효한 이메일 주소를 입력해주세요."
+    },
+    "password": {
+      "required": "비밀번호를 입력해주세요."
+    },
+    "project": {
+      "nameRequired": "프로젝트 이름은 필수입니다.",
+      "nameMin": "프로젝트 이름은 3자 이상이어야 합니다.",
+      "nameMax": "프로젝트 이름은 50자를 초과할 수 없습니다.",
+      "descriptionMax": "설명은 200자를 초과할 수 없습니다."
+    },
+    "file": {
+      "imageOnly": "이미지 파일만 업로드 가능합니다.",
+      "formatRequired": "최소 하나 이상의 포맷을 선택해야 합니다.",
+      "sizeRequired": "최소 하나 이상의 크기를 선택해야 합니다.",
+      "imageFormatAndSizeRequired": "이미지 파일은 최소 하나 이상의 포맷과 크기를 선택해야 합니다.",
+      "maxSizeExceeded": "파일 크기는 {maxSize}를 초과할 수 없습니다.",
+      "customResolutionsMax": "커스텀 해상도는 최대 10개까지 추가할 수 있습니다."
+    },
+    "resolution": {
+      "widthInteger": "너비는 정수여야 합니다.",
+      "widthMin": "너비는 1 이상이어야 합니다.",
+      "widthMax": "너비는 10000 이하여야 합니다.",
+      "heightInteger": "높이는 정수여야 합니다.",
+      "heightMin": "높이는 1 이상이어야 합니다.",
+      "heightMax": "높이는 10000 이하여야 합니다.",
+      "invalid": "유효하지 않은 해상도입니다."
+    }
+  },
   "EndpointCard": {
     "copiedToClipboard": "클립보드에 복사되었습니다.",
     "authRequired": "인증 필요",
