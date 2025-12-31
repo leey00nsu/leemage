@@ -15,7 +15,8 @@
     "db:migrate": "prisma migrate deploy",
     "db:deploy": "prisma migrate deploy && prisma generate",
     "start:production": "npm run db:deploy && next start",
-    "openapi:generate": "npx tsx scripts/generate-openapi.ts"
+    "openapi:generate": "npx tsx scripts/generate-openapi.ts",
+    "prepare": "husky"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^7.3.4",
@@ -71,6 +72,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.0.10",
     "fast-check": "^4.4.0",
+    "husky": "^9.1.7",
     "prisma": "^6.7.0",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
