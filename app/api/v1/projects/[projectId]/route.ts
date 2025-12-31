@@ -4,13 +4,14 @@ import {
   deleteProjectHandler,
 } from "@/lib/api/project-details";
 
-// --- 핸들러 export (withApiKeyAuth 적용) ---
-export const GET = withApiKeyAuth(async (req, context) => {
+// GET 핸들러: 프로젝트 상세 조회 (API 키 기반 인증)
+export const GET = withApiKeyAuth(async (_req, context, userId) => {
   const params = (await context.params) as { projectId: string };
-  return getProjectDetailsHandler(params.projectId);
+  return getProjectDetailsHandler(params.projectId, userId);
 });
 
-export const DELETE = withApiKeyAuth(async (req, context) => {
+// DELETE 핸들러: 프로젝트 삭제 (API 키 기반 인증)
+export const DELETE = withApiKeyAuth(async (_req, context, userId) => {
   const params = (await context.params) as { projectId: string };
-  return deleteProjectHandler(params.projectId);
+  return deleteProjectHandler(params.projectId, userId);
 });
