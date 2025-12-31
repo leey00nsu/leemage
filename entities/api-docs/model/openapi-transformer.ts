@@ -4,6 +4,80 @@ import { ApiCategory, ApiEndpoint } from "./types";
 type OpenAPIMethod = "get" | "post" | "put" | "delete" | "patch";
 type UIMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
+/**
+ * 번역 함수 타입
+ */
+export type TranslationGetter = (key: string) => string;
+
+/**
+ * Operation ID 매핑 - HTTP 메서드와 경로를 번역 키로 변환
+ */
+const OPERATION_ID_MAP: Record<string, string> = {
+  "GET /api/v1/projects": "projects.list",
+  "POST /api/v1/projects": "projects.create",
+  "GET /api/v1/projects/{projectId}": "projects.get",
+  "DELETE /api/v1/projects/{projectId}": "projects.delete",
+  "POST /api/v1/projects/{projectId}/files/presign": "files.presign",
+  "POST /api/v1/projects/{projectId}/files/confirm": "files.confirm",
+  "DELETE /api/v1/projects/{projectId}/files/{fileId}": "files.delete",
+};
+
+/**
+ * 엔드포인트의 번역 키를 생성합니다.
+ */
+export function getEndpointTranslationKey(
+  method: string,
+  path: string,
+  field: "summary" | "description"
+): string {
+  const key = `${method.toUpperCase()} ${path}`;
+  const operationId = OPERATION_ID_MAP[key];
+  if (operationId) {
+    return `apiDocs.endpoints.${operationId}.${field}`;
+  }
+  return "";
+}
+
+/**
+ * 태그의 번역 키를 생성합니다.
+ */
+export function getTagTranslationKey(tagName: string): string {
+  return `apiDocs.tags.${tagName}.description`;
+}
+
+/**
+ * 스키마 필드의 번역 키를 생성합니다.
+ */
+export function getSchemaFieldTranslationKey(
+  schemaName: string,
+  fieldName: string
+): string {
+  return `apiDocs.schemas.${schemaName}.${fieldName}`;
+}
+
+/**
+ * 스키마 이름과 필드 이름으로 번역 키 매핑
+ * OpenAPI 스키마 이름 -> 번역 키 스키마 이름
+ */
+const SCHEMA_NAME_MAP: Record<string, string> = {
+  CreateProjectRequest: "project",
+  UpdateProjectRequest: "project",
+  ProjectResponse: "project",
+  ProjectDetailsResponse: "project",
+  PresignRequest: "presign",
+  PresignResponse: "presign",
+  ConfirmRequest: "confirm",
+  ConfirmResponse: "file",
+  FileResponse: "file",
+  VariantOption: "variant",
+  ImageVariantData: "variant",
+};
+
+/**
+ * 공통 필드 매핑 (여러 스키마에서 공유되는 필드)
+ */
+const COMMON_FIELDS = ["id", "name", "description", "createdAt", "updatedAt"];
+
 interface OpenAPIOperation {
   tags?: string[];
   summary?: string;
@@ -65,7 +139,8 @@ interface OpenAPISchema {
  */
 export function transformOpenAPIToCategories(
   spec: OpenAPISpec,
-  _locale: string
+  _locale: string,
+  t?: TranslationGetter
 ): ApiCategory[] {
   const categoriesMap = new Map<string, ApiEndpoint[]>();
 
@@ -78,7 +153,7 @@ export function transformOpenAPIToCategories(
       if (!operation) continue;
 
       const tags = operation.tags || ["Default"];
-      const endpoint = transformOperation(spec, path, method, operation);
+      const endpoint = transformOperation(spec, path, method, operation, t);
 
       // 각 태그에 엔드포인트 추가
       for (const tag of tags) {
@@ -92,7 +167,7 @@ export function transformOpenAPIToCategories(
 
   // 카테고리 배열로 변환
   const categories: ApiCategory[] = [];
-  const tagDescriptions = getTagDescriptions(spec);
+  const tagDescriptions = getTagDescriptions(spec, t);
 
   for (const [tagName, endpoints] of categoriesMap) {
     categories.push({
@@ -112,20 +187,34 @@ function transformOperation(
   spec: OpenAPISpec,
   path: string,
   method: OpenAPIMethod,
-  operation: OpenAPIOperation
+  operation: OpenAPIOperation,
+  t?: TranslationGetter
 ): ApiEndpoint {
   const hasAuth =
     operation.security && operation.security.length > 0;
 
+  // 엔드포인트 설명 번역
+  const summaryKey = getEndpointTranslationKey(method, path, "summary");
+  const descriptionKey = getEndpointTranslationKey(method, path, "description");
+
+  let description = operation.summary || operation.description || "";
+  if (t && summaryKey) {
+    const translatedSummary = t(summaryKey);
+    // 번역 키가 그대로 반환되지 않으면 번역 사용
+    if (translatedSummary !== summaryKey) {
+      description = translatedSummary;
+    }
+  }
+
   return {
     method: method.toUpperCase() as UIMethod,
     path: path,
-    description: operation.summary || operation.description || "",
+    description,
     auth: hasAuth ?? false,
     deprecated: operation.deprecated,
     parameters: transformParameters(operation.parameters),
-    requestBody: transformRequestBody(spec, operation.requestBody),
-    responses: transformResponses(spec, operation.responses),
+    requestBody: transformRequestBody(spec, operation.requestBody, t),
+    responses: transformResponses(spec, operation.responses, t),
   };
 }
 
@@ -148,26 +237,54 @@ function transformParameters(
 }
 
 /**
- * Request body 변환
+ * Request body 변환 (번역 적용)
  */
 function transformRequestBody(
   spec: OpenAPISpec,
-  requestBody?: OpenAPIOperation["requestBody"]
+  requestBody?: OpenAPIOperation["requestBody"],
+  t?: TranslationGetter
 ): ApiEndpoint["requestBody"] {
   if (!requestBody?.content) return undefined;
 
   const jsonContent = requestBody.content["application/json"];
   if (!jsonContent?.schema) return undefined;
 
+  // 스키마 이름 추출 (번역 키 생성용)
+  const schemaRef = jsonContent.schema.$ref;
+  const schemaName = schemaRef
+    ? schemaRef.replace("#/components/schemas/", "")
+    : undefined;
+
   const schema = resolveSchema(spec, jsonContent.schema);
   if (!schema?.properties) return undefined;
 
-  const properties = Object.entries(schema.properties).map(([name, prop]) => ({
-    name,
-    type: getPropertyType(prop),
-    required: schema.required?.includes(name) ?? false,
-    description: prop.description || "",
-  }));
+  const properties = Object.entries(schema.properties).map(([name, prop]) => {
+    let description = prop.description || "";
+
+    // 번역 적용
+    if (t && schemaName) {
+      const translatedSchemaName = SCHEMA_NAME_MAP[schemaName];
+      if (translatedSchemaName) {
+        // 공통 필드인지 확인
+        const isCommonField = COMMON_FIELDS.includes(name);
+        const translationKey = isCommonField
+          ? getSchemaFieldTranslationKey("common", name)
+          : getSchemaFieldTranslationKey(translatedSchemaName, name);
+
+        const translated = t(translationKey);
+        if (translated !== translationKey) {
+          description = translated;
+        }
+      }
+    }
+
+    return {
+      name,
+      type: getPropertyType(prop),
+      required: schema.required?.includes(name) ?? false,
+      description,
+    };
+  });
 
   return {
     type: "object",
@@ -176,11 +293,12 @@ function transformRequestBody(
 }
 
 /**
- * 응답 변환
+ * 응답 변환 (번역 적용)
  */
 function transformResponses(
   spec: OpenAPISpec,
-  responses?: OpenAPIOperation["responses"]
+  responses?: OpenAPIOperation["responses"],
+  t?: TranslationGetter
 ): ApiEndpoint["responses"] {
   if (!responses) return [];
 
@@ -190,10 +308,40 @@ function transformResponses(
       ? resolveSchema(spec, jsonContent.schema)
       : undefined;
 
+    // 응답 설명 번역
+    let description = response.description || "";
+    if (t) {
+      // 응답 설명 번역 매핑 (한글 원본 -> 번역 키)
+      const responseDescriptionMap: Record<string, string> = {
+        // 에러 응답
+        "인증 실패": "apiDocs.errors.unauthorized",
+        "프로젝트를 찾을 수 없음": "apiDocs.errors.notFound.project",
+        "파일을 찾을 수 없음": "apiDocs.errors.notFound.file",
+        "잘못된 요청": "apiDocs.errors.badRequest",
+        "서버 오류": "apiDocs.errors.serverError",
+        // 성공 응답
+        "프로젝트 목록이 성공적으로 반환됩니다.": "apiDocs.responses.projectListSuccess",
+        "프로젝트가 성공적으로 생성되었습니다.": "apiDocs.responses.projectCreated",
+        "프로젝트가 성공적으로 반환됩니다.": "apiDocs.responses.projectGetSuccess",
+        "프로젝트가 성공적으로 삭제되었습니다.": "apiDocs.responses.projectDeleted",
+        "Presigned URL이 성공적으로 생성되었습니다.": "apiDocs.responses.presignSuccess",
+        "파일 레코드가 성공적으로 생성되었습니다.": "apiDocs.responses.confirmSuccess",
+        "파일 삭제 성공": "apiDocs.responses.fileDeleted",
+      };
+      
+      const translationKey = responseDescriptionMap[description];
+      if (translationKey) {
+        const translated = t(translationKey);
+        if (translated !== translationKey) {
+          description = translated;
+        }
+      }
+    }
+
     return {
       status: parseInt(statusCode, 10),
-      description: response.description || "",
-      example: generateExample(spec, schema),
+      description,
+      example: generateExample(spec, schema, t),
     };
   });
 }
@@ -256,16 +404,43 @@ function getPropertyType(prop: OpenAPISchemaProperty): string {
 }
 
 /**
- * 스키마에서 예제 생성
+ * 스키마에서 예제 생성 (번역 적용)
  */
 function generateExample(
   spec: OpenAPISpec,
-  schema?: OpenAPISchema
+  schema?: OpenAPISchema,
+  t?: TranslationGetter
 ): unknown {
   if (!schema) return {};
 
-  // 스키마에 example이 있으면 사용
+  // 스키마에 example이 있으면 사용 (에러 메시지 번역 적용)
   if (schema.example !== undefined) {
+    // 에러 메시지 예제 번역
+    if (t && typeof schema.example === "object" && schema.example !== null) {
+      const example = schema.example as Record<string, unknown>;
+      if ("message" in example && typeof example.message === "string") {
+        // 에러 메시지 패턴 매칭 및 번역
+        const errorTranslations: Record<string, string> = {
+          "인증 실패: 유효하지 않은 API 키": "apiDocs.errors.unauthorized",
+          "프로젝트를 찾을 수 없습니다.": "apiDocs.errors.notFound.project",
+          "파일을 찾을 수 없습니다.": "apiDocs.errors.notFound.file",
+          "잘못된 요청 형식입니다.": "apiDocs.errors.badRequest",
+          "서버 오류가 발생했습니다.": "apiDocs.errors.serverError",
+          "요청 처리 중 오류가 발생했습니다.": "apiDocs.errors.badRequest",
+          "필수 항목입니다.": "apiDocs.errors.validationError",
+          "작업이 완료되었습니다.": "apiDocs.responses.success",
+          "파일 업로드 완료": "apiDocs.responses.fileUploadComplete",
+        };
+
+        const translationKey = errorTranslations[example.message as string];
+        if (translationKey) {
+          const translated = t(translationKey);
+          if (translated !== translationKey) {
+            return { ...example, message: translated };
+          }
+        }
+      }
+    }
     return schema.example;
   }
 
@@ -274,7 +449,7 @@ function generateExample(
     const itemSchema = schema.items.$ref
       ? resolveSchema(spec, { $ref: schema.items.$ref })
       : (schema.items as OpenAPISchema);
-    const itemExample = generateExample(spec, itemSchema);
+    const itemExample = generateExample(spec, itemSchema, t);
     return [itemExample];
   }
 
@@ -286,7 +461,7 @@ function generateExample(
         example[name] = prop.example;
       } else if (prop.$ref) {
         const refSchema = resolveSchema(spec, { $ref: prop.$ref });
-        example[name] = generateExample(spec, refSchema);
+        example[name] = generateExample(spec, refSchema, t);
       } else if (prop.type === "string") {
         example[name] = "";
       } else if (prop.type === "number" || prop.type === "integer") {
@@ -297,7 +472,7 @@ function generateExample(
         // 배열 프로퍼티의 items 처리
         if (prop.items?.$ref) {
           const itemSchema = resolveSchema(spec, { $ref: prop.items.$ref });
-          example[name] = [generateExample(spec, itemSchema)];
+          example[name] = [generateExample(spec, itemSchema, t)];
         } else {
           example[name] = [];
         }
@@ -312,13 +487,24 @@ function generateExample(
 }
 
 /**
- * 태그 설명 맵 생성
+ * 태그 설명 맵 생성 (번역 적용)
  */
-function getTagDescriptions(spec: OpenAPISpec): Map<string, string> {
+function getTagDescriptions(
+  spec: OpenAPISpec,
+  t?: TranslationGetter
+): Map<string, string> {
   const map = new Map<string, string>();
   if (spec.tags) {
     for (const tag of spec.tags) {
-      map.set(tag.name, tag.description || "");
+      const translationKey = getTagTranslationKey(tag.name);
+      // 번역 함수가 있으면 번역 시도, 없으면 원본 사용
+      const translatedDescription = t ? t(translationKey) : tag.description || "";
+      // 번역 키가 그대로 반환되면 원본 사용 (번역 없음)
+      const description =
+        translatedDescription === translationKey
+          ? tag.description || ""
+          : translatedDescription;
+      map.set(tag.name, description);
     }
   }
   return map;

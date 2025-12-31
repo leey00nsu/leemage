@@ -363,5 +363,118 @@
     "freeTierTip": "Free tier",
     "ociFreeTier": "OCI Object Storage offers 10 GB free (20 GB total, first 10 GB free)",
     "r2FreeTier": "Cloudflare R2 offers 10 GB/month free storage"
+  },
+  "apiDocs": {
+    "info": {
+      "title": "Leemage API",
+      "description": "Leemage file management platform API. Manage files by project and provides image transformation features."
+    },
+    "tags": {
+      "Projects": {
+        "description": "Project Management API"
+      },
+      "Files": {
+        "description": "File Upload and Management API"
+      }
+    },
+    "endpoints": {
+      "projects": {
+        "list": {
+          "summary": "List Projects",
+          "description": "Retrieve all projects."
+        },
+        "create": {
+          "summary": "Create Project",
+          "description": "Create a new project."
+        },
+        "get": {
+          "summary": "Get Project Details",
+          "description": "Retrieve a specific project and its files by project ID."
+        },
+        "delete": {
+          "summary": "Delete Project",
+          "description": "Delete a specific project by project ID. All files in the project will also be deleted."
+        }
+      },
+      "files": {
+        "presign": {
+          "summary": "Generate Presigned URL",
+          "description": "Generate a presigned URL for file upload. Clients can use this URL to upload files directly to OCI."
+        },
+        "confirm": {
+          "summary": "Confirm Upload",
+          "description": "Call after direct upload to OCI to create a file record in the database. For image files, you can request transformation processing with variants option."
+        },
+        "delete": {
+          "summary": "Delete File",
+          "description": "Delete a file with the specified ID and all related versions. (Including OCI storage)"
+        }
+      }
+    },
+    "schemas": {
+      "common": {
+        "id": "ID",
+        "name": "Name",
+        "description": "Description",
+        "createdAt": "Created at (ISO 8601)",
+        "updatedAt": "Updated at (ISO 8601)"
+      },
+      "project": {
+        "storageProvider": "Storage Provider"
+      },
+      "file": {
+        "mimeType": "MIME Type",
+        "isImage": "Is Image File",
+        "size": "File Size (bytes)",
+        "url": "File URL",
+        "variants": "Image Variants List"
+      },
+      "presign": {
+        "fileName": "Name of the file to upload",
+        "contentType": "MIME type of the file",
+        "fileSize": "File size (bytes)",
+        "presignedUrl": "Presigned URL for direct upload to OCI",
+        "objectName": "OCI object path",
+        "objectUrl": "Object URL after upload completion",
+        "fileId": "Generated file ID",
+        "expiresAt": "Presigned URL expiration time (ISO 8601)"
+      },
+      "confirm": {
+        "fileId": "File ID from presign response",
+        "objectName": "Object name from presign response",
+        "fileName": "Original file name",
+        "contentType": "MIME type of the file",
+        "fileSize": "File size (bytes)",
+        "variants": "(Image only) Array of image variant options to generate"
+      },
+      "variant": {
+        "sizeLabel": "Image size label",
+        "format": "Image format",
+        "width": "Image width (px)",
+        "height": "Image height (px)",
+        "label": "Size label"
+      }
+    },
+    "errors": {
+      "unauthorized": "Authentication failed: Invalid API key",
+      "notFound": {
+        "project": "Project not found.",
+        "file": "File not found."
+      },
+      "badRequest": "Invalid request format.",
+      "serverError": "Server error occurred.",
+      "validationError": "This field is required."
+    },
+    "responses": {
+      "success": "Operation completed successfully.",
+      "fileUploadComplete": "File upload complete",
+      "projectListSuccess": "Project list returned successfully.",
+      "projectCreated": "Project created successfully.",
+      "projectGetSuccess": "Project returned successfully.",
+      "projectDeleted": "Project deleted successfully.",
+      "presignSuccess": "Presigned URL generated successfully.",
+      "confirmSuccess": "File record created successfully.",
+      "fileDeleted": "File deleted successfully"
+    }
   }
 }
