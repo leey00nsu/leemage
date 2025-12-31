@@ -311,10 +311,22 @@ export function withRateLimitAndAuth<T extends Record<string, string | string[]>
       return createRateLimitResponse(result);
     }
 
-    const { withSessionAuth } = await import("./session-auth");
-    const authHandler = withSessionAuth(handler);
+    // Validate session first
+    const { validateSession } = await import("./session-auth");
+    const session = await validateSession();
     
-    const response = await authHandler(req, context);
+    if (!session) {
+      return NextResponse.json(
+        { code: "AUTH_NO_SESSION", message: "인증이 필요합니다" },
+        { status: 401 }
+      );
+    }
+
+    // Attach session to request
+    const authenticatedReq = req as AuthenticatedRequest;
+    authenticatedReq.session = session;
+    
+    const response = await handler(authenticatedReq, context);
     response.headers.set("X-RateLimit-Remaining", result.remaining.toString());
     response.headers.set("X-RateLimit-Reset", result.resetAt.toISOString());
 

@@ -7,6 +7,13 @@ import { routing } from "@/i18n/routing";
 const intlMiddleware = createMiddleware(routing);
 
 export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  
+  // API 요청은 proxy를 거치지 않음
+  if (pathname.startsWith("/api")) {
+    return NextResponse.next();
+  }
+
   // next-intl 미들웨어 실행
   const intlResponse = intlMiddleware(request);
 
@@ -14,8 +21,6 @@ export async function proxy(request: NextRequest) {
   if (intlResponse.status === 307 || intlResponse.status === 308) {
     return intlResponse;
   }
-
-  const { pathname } = request.nextUrl;
 
   // locale prefix 제거하여 실제 경로 추출
   const locales = routing.locales;
