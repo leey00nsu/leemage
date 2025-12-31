@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getSessionDefault } from "@/lib/session";
+import { withSessionAuth } from "@/lib/auth/session-auth";
 import {
   calculateUsagePercentage,
   getUsageStatus,
@@ -26,15 +26,9 @@ export interface StorageUsageResponse {
   };
 }
 
-// GET 핸들러: 스토리지 사용량 조회
-export async function GET() {
+// GET 핸들러: 스토리지 사용량 조회 (세션 기반 인증)
+export const GET = withSessionAuth(async () => {
   try {
-    // 세션 확인
-    const session = await getSessionDefault();
-    if (!session.isLoggedIn) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     // 프로바이더별 프로젝트와 파일 정보 조회
     const projects = await prisma.project.findMany({
       select: {
@@ -117,4 +111,4 @@ export async function GET() {
       { status: 500 }
     );
   }
-}
+});

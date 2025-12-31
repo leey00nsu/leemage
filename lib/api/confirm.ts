@@ -12,6 +12,8 @@ import {
   variantOptionSchema,
 } from "@/lib/openapi/schemas/files";
 import { generateThumbnailFromBuffer, getVideoMetadataFromBuffer, VideoMetadata } from "@/lib/video/thumbnail";
+import { verifyProjectOwnership } from "@/lib/auth/ownership";
+import { validateFileName, validateContentTypeExtension, validateMagicBytes } from "@/lib/validation/file-validator";
 
 export type ConfirmRequest = z.infer<typeof confirmRequestSchema>;
 
@@ -243,12 +245,22 @@ async function processVideoThumbnail(
  */
 export async function confirmHandler(
   request: NextRequest,
-  projectId: string
+  projectId: string,
+  userId: string
 ): Promise<NextResponse> {
   if (!projectId) {
     return NextResponse.json(
       { message: "Project ID가 필요합니다." },
       { status: 400 }
+    );
+  }
+
+  // 소유권 검증 (Requirement 3.3)
+  const ownershipResult = await verifyProjectOwnership(userId, projectId);
+  if (!ownershipResult.authorized) {
+    return NextResponse.json(
+      { message: "리소스를 찾을 수 없습니다." },
+      { status: 404 }
     );
   }
 
@@ -283,6 +295,23 @@ export async function confirmHandler(
     const { fileId, objectName, fileName, contentType, fileSize, variants } =
       parseResult.data;
 
+    // 파일명 검증 (Requirement 4.2, 4.3)
+    const fileNameValidation = validateFileName(fileName);
+    if (!fileNameValidation.valid) {
+      return NextResponse.json(
+        { message: fileNameValidation.errors[0] || "유효하지 않은 파일명입니다." },
+        { status: 400 }
+      );
+    }
+
+    // Content-Type과 확장자 일치 검증 (Requirement 4.1)
+    if (!validateContentTypeExtension(contentType, fileName)) {
+      return NextResponse.json(
+        { message: "파일 형식이 확장자와 일치하지 않습니다." },
+        { status: 400 }
+      );
+    }
+
     // pending 상태의 레코드 확인
     const pendingFile = await prisma.file.findFirst({
       where: {
@@ -312,6 +341,17 @@ export async function confirmHandler(
       // 이미지 파일: 스토리지에서 원본 다운로드 후 variants 처리
       console.log(`Downloading original image from storage: ${objectName}`);
       const originalBuffer = await storageAdapter.downloadObject(objectName);
+
+      // Magic bytes 검증 (Requirement 4.4)
+      if (!validateMagicBytes(originalBuffer, contentType)) {
+        // 검증 실패 시 pending 파일 삭제
+        await prisma.file.delete({ where: { id: fileId } });
+        await storageAdapter.deleteObject(objectName).catch(() => {});
+        return NextResponse.json(
+          { message: "파일 내용이 선언된 형식과 일치하지 않습니다." },
+          { status: 400 }
+        );
+      }
 
       // 원본 이미지 메타데이터 가져오기
       const originalMetadata = await sharp(originalBuffer).metadata();

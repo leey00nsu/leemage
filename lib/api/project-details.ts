@@ -9,6 +9,7 @@ import {
   messageResponseSchema,
 } from "@/lib/openapi/schemas/common";
 import { ImageVariantData } from "@/entities/files/model/types";
+import { verifyProjectOwnership } from "@/lib/auth/ownership";
 
 // 응답 타입 추론
 type ProjectDetailsResponse = z.infer<typeof projectDetailsResponseSchema>;
@@ -16,12 +17,22 @@ type ErrorResponse = z.infer<typeof errorResponseSchema>;
 type MessageResponse = z.infer<typeof messageResponseSchema>;
 
 export async function getProjectDetailsHandler(
-  projectId: string
+  projectId: string,
+  userId: string
 ): Promise<NextResponse<ProjectDetailsResponse | ErrorResponse>> {
   if (!projectId) {
     return NextResponse.json(
       { message: "Project ID가 필요합니다." },
       { status: 400 }
+    );
+  }
+
+  // 소유권 검증 (Requirement 3.1)
+  const ownershipResult = await verifyProjectOwnership(userId, projectId);
+  if (!ownershipResult.authorized) {
+    return NextResponse.json(
+      { message: "리소스를 찾을 수 없습니다." },
+      { status: 404 }
     );
   }
 
@@ -62,7 +73,7 @@ export async function getProjectDetailsHandler(
     }
 
     // API 응답에서 files를 변환하고 Date를 ISO 문자열로 변환
-    const { files: projectFiles, ...projectData } = project;
+    const { files: projectFiles, userId: _userId, ...projectData } = project;
     const response: ProjectDetailsResponse = {
       ...projectData,
       storageProvider: fromPrismaStorageProvider(projectData.storageProvider),
@@ -87,12 +98,22 @@ export async function getProjectDetailsHandler(
 }
 
 export async function deleteProjectHandler(
-  projectId: string
+  projectId: string,
+  userId: string
 ): Promise<NextResponse<MessageResponse | ErrorResponse>> {
   if (!projectId) {
     return NextResponse.json(
       { message: "Project ID가 필요합니다." },
       { status: 400 }
+    );
+  }
+
+  // 소유권 검증 (Requirement 3.3)
+  const ownershipResult = await verifyProjectOwnership(userId, projectId);
+  if (!ownershipResult.authorized) {
+    return NextResponse.json(
+      { message: "리소스를 찾을 수 없습니다." },
+      { status: 404 }
     );
   }
 

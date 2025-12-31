@@ -1,17 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getSessionDefault } from "@/lib/session";
+import { withSessionAuth } from "@/lib/auth/session-auth";
 import { StorageProvider } from "@/lib/generated/prisma";
 import { validateQuota } from "@/shared/lib/storage-quota-utils";
 
-// GET: 모든 quota 조회
-export async function GET() {
+// GET: 모든 quota 조회 (세션 기반 인증)
+export const GET = withSessionAuth(async () => {
   try {
-    const session = await getSessionDefault();
-    if (!session.isLoggedIn) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const quotas = await prisma.storageQuota.findMany();
 
     return NextResponse.json({
@@ -27,16 +22,11 @@ export async function GET() {
       { status: 500 }
     );
   }
-}
+});
 
-// PUT: quota 설정/업데이트
-export async function PUT(req: NextRequest) {
+// PUT: quota 설정/업데이트 (세션 기반 인증)
+export const PUT = withSessionAuth(async (req: NextRequest) => {
   try {
-    const session = await getSessionDefault();
-    if (!session.isLoggedIn) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const body = await req.json();
     const { provider, quotaBytes } = body;
 
@@ -78,16 +68,11 @@ export async function PUT(req: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
-// DELETE: quota 삭제
-export async function DELETE(req: NextRequest) {
+// DELETE: quota 삭제 (세션 기반 인증)
+export const DELETE = withSessionAuth(async (req: NextRequest) => {
   try {
-    const session = await getSessionDefault();
-    if (!session.isLoggedIn) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const { searchParams } = new URL(req.url);
     const provider = searchParams.get("provider");
 
@@ -110,4 +95,4 @@ export async function DELETE(req: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

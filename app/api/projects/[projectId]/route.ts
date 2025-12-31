@@ -1,36 +1,36 @@
-import { NextRequest } from "next/server";
 import {
   getProjectDetailsHandler,
   deleteProjectHandler,
 } from "@/lib/api/project-details";
 import { updateProjectHandler } from "@/lib/api/projects";
+import { withSessionAuth, AuthenticatedRequest } from "@/lib/auth/session-auth";
 
 // GET 핸들러: 특정 프로젝트 정보 및 포함된 이미지 목록(variants 포함) 조회 (세션 기반 인증)
-export async function GET(
-  request: NextRequest,
+export const GET = withSessionAuth(async (
+  request: AuthenticatedRequest,
   { params }: { params: Promise<{ projectId: string }> }
-) {
-  // TODO: 세션 기반 사용자 인증 및 프로젝트 접근 권한 확인 로직 추가
+) => {
   const { projectId } = await params;
-  return getProjectDetailsHandler(projectId);
-}
+  const userId = request.session.username!;
+  return getProjectDetailsHandler(projectId, userId);
+});
 
 // DELETE 핸들러: 특정 프로젝트 및 관련 OCI 이미지(모든 variants) 삭제 (세션 기반 인증)
-export async function DELETE(
-  request: NextRequest,
+export const DELETE = withSessionAuth(async (
+  request: AuthenticatedRequest,
   { params }: { params: Promise<{ projectId: string }> }
-) {
-  // TODO: 세션 기반 사용자 인증 및 프로젝트 접근 권한 확인 로직 추가
+) => {
   const { projectId } = await params;
-  return deleteProjectHandler(projectId);
-}
+  const userId = request.session.username!;
+  return deleteProjectHandler(projectId, userId);
+});
 
 // PATCH 핸들러: 프로젝트 이름/설명 수정 (세션 기반 인증)
-export async function PATCH(
-  request: NextRequest,
+export const PATCH = withSessionAuth(async (
+  request: AuthenticatedRequest,
   { params }: { params: Promise<{ projectId: string }> }
-) {
-  // TODO: 세션 기반 사용자 인증 및 프로젝트 접근 권한 확인 로직 추가
+) => {
   const { projectId } = await params;
-  return updateProjectHandler(request, projectId);
-}
+  const userId = request.session.username!;
+  return updateProjectHandler(request, projectId, userId);
+});

@@ -1,14 +1,14 @@
-import { NextRequest } from "next/server";
 import { getProjectsHandler, createProjectHandler } from "@/lib/api/projects";
+import { withSessionAuth, AuthenticatedRequest } from "@/lib/auth/session-auth";
 
 // GET 핸들러: 모든 프로젝트 조회 (세션 기반 인증)
-export async function GET() {
-  // TODO: 세션 기반 사용자 인증/권한 확인 로직 추가
-  return getProjectsHandler();
-}
+export const GET = withSessionAuth(async (req: AuthenticatedRequest) => {
+  const userId = req.session.username!;
+  return getProjectsHandler(userId);
+});
 
 // POST 핸들러: 프로젝트 생성 (세션 기반 인증)
-export async function POST(req: NextRequest) {
-  // TODO: 세션 기반 사용자 인증 확인 로직 추가
-  return createProjectHandler(req);
-}
+export const POST = withSessionAuth(async (req: AuthenticatedRequest) => {
+  const userId = req.session.username!;
+  return createProjectHandler(req, userId);
+});

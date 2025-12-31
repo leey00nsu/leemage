@@ -18,12 +18,15 @@ export interface SessionData extends IronSession<SessionPayload> {
 }
 
 // 세션 옵션 설정
+// Security: CSRF 방지를 위한 SameSite 설정 추가
 export const sessionOptions = {
   cookieName: process.env.IRON_SESSION_COOKIE_NAME!,
   password: process.env.IRON_SESSION_PASSWORD!,
   cookieOptions: {
-    secure: process.env.NODE_ENV === "production",
-    httpOnly: true,
+    secure: process.env.NODE_ENV === "production", // HTTPS only in production
+    httpOnly: true, // JavaScript에서 쿠키 접근 불가
+    sameSite: "lax" as const, // CSRF 방지: cross-site 요청에서 쿠키 전송 제한
+    maxAge: 60 * 60 * 24 * 7, // 7일 (초 단위)
   },
   ttl: 60 * 60 * 24 * 7, // 7일
 };

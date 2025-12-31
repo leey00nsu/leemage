@@ -10,8 +10,9 @@ import {
   isImageMimeType,
 } from "@/shared/lib/file-utils";
 import { presignRequestSchema } from "@/lib/openapi/schemas/files";
-import { StorageProvider } from "@/lib/generated/prisma";
-import { ImageVariantData } from "@/entities/files/model/types";
+import { verifyProjectOwnership } from "@/lib/auth/ownership";
+import { validateFileName, validateContentTypeExtension } from "@/lib/validation/file-validator";
+import { checkStorageQuotaOptimized } from "@/lib/api/storage-quota";
 
 export type PresignRequest = z.infer<typeof presignRequestSchema>;
 
@@ -30,7 +31,8 @@ export interface PresignResponse {
  */
 export async function presignHandler(
   request: NextRequest,
-  projectId: string
+  projectId: string,
+  userId: string
 ): Promise<
   NextResponse<PresignResponse | { message: string; errors?: unknown }>
 > {
@@ -38,6 +40,15 @@ export async function presignHandler(
     return NextResponse.json(
       { message: "Project ID가 필요합니다." },
       { status: 400 }
+    );
+  }
+
+  // 소유권 검증 (Requirement 3.3)
+  const ownershipResult = await verifyProjectOwnership(userId, projectId);
+  if (!ownershipResult.authorized) {
+    return NextResponse.json(
+      { message: "리소스를 찾을 수 없습니다." },
+      { status: 404 }
     );
   }
 
@@ -71,6 +82,23 @@ export async function presignHandler(
 
     const { fileName, contentType, fileSize } = parseResult.data;
 
+    // 파일명 검증 (Requirement 4.2, 4.3)
+    const fileNameValidation = validateFileName(fileName);
+    if (!fileNameValidation.valid) {
+      return NextResponse.json(
+        { message: fileNameValidation.errors[0] || "유효하지 않은 파일명입니다." },
+        { status: 400 }
+      );
+    }
+
+    // Content-Type과 확장자 일치 검증 (Requirement 4.1)
+    if (!validateContentTypeExtension(contentType, fileName)) {
+      return NextResponse.json(
+        { message: "파일 형식이 확장자와 일치하지 않습니다." },
+        { status: 400 }
+      );
+    }
+
     // 파일 크기 검증
     if (fileSize > DEFAULT_MAX_FILE_SIZE) {
       return NextResponse.json(
@@ -79,8 +107,8 @@ export async function presignHandler(
       );
     }
 
-    // 스토리지 한도 체크
-    const quotaCheckResult = await checkStorageQuota(
+    // 스토리지 한도 체크 (최적화된 버전 사용)
+    const quotaCheckResult = await checkStorageQuotaOptimized(
       project.storageProvider,
       fileSize
     );
@@ -143,73 +171,4 @@ export async function presignHandler(
       { status: 500 }
     );
   }
-}
-
-
-/**
- * 스토리지 한도 체크
- * @param provider - 스토리지 프로바이더
- * @param fileSize - 업로드할 파일 크기 (bytes)
- * @returns 업로드 허용 여부 및 메시지
- */
-async function checkStorageQuota(
-  provider: StorageProvider,
-  fileSize: number
-): Promise<{
-  allowed: boolean;
-  message: string;
-  remaining?: number;
-}> {
-  // 해당 프로바이더의 한도 조회
-  const quota = await prisma.storageQuota.findUnique({
-    where: { provider },
-  });
-
-  // 한도가 설정되지 않은 경우 업로드 허용
-  if (!quota || Number(quota.quotaBytes) === 0) {
-    return { allowed: true, message: "" };
-  }
-
-  // 현재 사용량 계산 (원본 + variants 포함)
-  const images = await prisma.file.findMany({
-    where: {
-      project: { storageProvider: provider },
-      status: "COMPLETED",
-    },
-    select: { size: true, variants: true },
-  });
-
-  let currentUsage = 0;
-  for (const img of images) {
-    currentUsage += img.size; // 원본 크기
-    const variants = img.variants as unknown as ImageVariantData[];
-    if (Array.isArray(variants)) {
-      currentUsage += variants.reduce((sum, v) => sum + (v.size || 0), 0);
-    }
-  }
-
-  const quotaBytes = Number(quota.quotaBytes);
-  const remaining = quotaBytes - currentUsage;
-
-  // 업로드 후 한도 초과 여부 체크
-  if (currentUsage + fileSize > quotaBytes) {
-    return {
-      allowed: false,
-      message: `스토리지 한도를 초과합니다. 남은 용량: ${formatBytesSimple(remaining)}`,
-      remaining,
-    };
-  }
-
-  return { allowed: true, message: "", remaining };
-}
-
-/**
- * 바이트를 읽기 쉬운 형식으로 변환 (간단 버전)
- */
-function formatBytesSimple(bytes: number): string {
-  if (bytes === 0) return "0 B";
-  const k = 1024;
-  const sizes = ["B", "KB", "MB", "GB"];
-  const i = Math.floor(Math.log(Math.max(1, bytes)) / Math.log(k));
-  return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`;
 }

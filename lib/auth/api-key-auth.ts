@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { API_KEY_PREFIX } from "@/shared/config/api-key";
+import { authLogger, maskApiKey } from "@/lib/logging/secure-logger";
 
 /**
  * API 요청 헤더에서 API 키를 추출하고 유효성을 검증합니다.
@@ -11,16 +12,25 @@ import { API_KEY_PREFIX } from "@/shared/config/api-key";
  */
 export async function validateApiKey(request: NextRequest): Promise<boolean> {
   const authorizationHeader = request.headers.get("Authorization");
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
 
   if (!authorizationHeader || !authorizationHeader.startsWith("Bearer ")) {
-    console.error("API Key: Authorization 헤더 누락 또는 형식 오류");
+    authLogger.security({
+      type: "AUTH_FAILURE",
+      ip,
+      details: { reason: "Authorization 헤더 누락 또는 형식 오류" },
+    });
     return false;
   }
 
   const providedApiKey = authorizationHeader.substring(7); // "Bearer " 제거
 
   if (!providedApiKey || !providedApiKey.startsWith(API_KEY_PREFIX)) {
-    console.error("API Key: 키 누락 또는 접두사 오류");
+    authLogger.security({
+      type: "AUTH_FAILURE",
+      ip,
+      details: { reason: "키 누락 또는 접두사 오류", prefix: maskApiKey(providedApiKey) },
+    });
     return false;
   }
 
@@ -38,7 +48,11 @@ export async function validateApiKey(request: NextRequest): Promise<boolean> {
     });
 
     if (!apiKeyData || !apiKeyData.keyHash) {
-      console.error("API Key: 해당 접두사의 키를 찾을 수 없음");
+      authLogger.security({
+        type: "AUTH_FAILURE",
+        ip,
+        details: { reason: "해당 접두사의 키를 찾을 수 없음" },
+      });
       return false;
     }
 
@@ -46,7 +60,11 @@ export async function validateApiKey(request: NextRequest): Promise<boolean> {
     const isValid = await bcrypt.compare(providedApiKey, apiKeyData.keyHash);
 
     if (!isValid) {
-      console.error("API Key: 키 검증 실패");
+      authLogger.security({
+        type: "AUTH_FAILURE",
+        ip,
+        details: { reason: "키 검증 실패", key: maskApiKey(providedApiKey) },
+      });
       return false;
     }
 
@@ -58,10 +76,14 @@ export async function validateApiKey(request: NextRequest): Promise<boolean> {
     });
     */
 
-    console.log("API Key: 검증 성공");
+    authLogger.security({
+      type: "AUTH_SUCCESS",
+      ip,
+      details: { key: maskApiKey(providedApiKey) },
+    });
     return true;
   } catch (error) {
-    console.error("API Key 검증 중 오류 발생:", error);
+    authLogger.error("API Key 검증 중 오류 발생", { error: String(error) });
     return false;
   }
 }

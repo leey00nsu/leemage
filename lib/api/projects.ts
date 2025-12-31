@@ -10,17 +10,21 @@ import { errorResponseSchema } from "@/lib/openapi/schemas/common";
 import { prisma } from "@/lib/prisma";
 import { StorageProvider, StorageFactory } from "@/lib/storage";
 import { toPrismaStorageProvider, fromPrismaStorageProvider } from "@/lib/storage/utils";
+import { verifyProjectOwnership, OWNERSHIP_ERROR_CODES } from "@/lib/auth/ownership";
 
 // 응답 타입 추론
 type ProjectListResponse = z.infer<typeof projectListResponseSchema>;
 type ProjectResponse = z.infer<typeof projectResponseSchema>;
 type ErrorResponse = z.infer<typeof errorResponseSchema>;
 
-export async function getProjectsHandler(): Promise<
-  NextResponse<ProjectListResponse | ErrorResponse>
-> {
+export async function getProjectsHandler(
+  userId: string
+): Promise<NextResponse<ProjectListResponse | ErrorResponse>> {
   try {
     const projects = await prisma.project.findMany({
+      where: {
+        userId, // 사용자 소유 프로젝트만 조회
+      },
       orderBy: {
         createdAt: "desc",
       },
@@ -53,7 +57,8 @@ export async function getProjectsHandler(): Promise<
 }
 
 export async function createProjectHandler(
-  req: NextRequest
+  req: NextRequest,
+  userId: string
 ): Promise<NextResponse<ProjectResponse | ErrorResponse>> {
   try {
     const body = await req.json();
@@ -86,6 +91,7 @@ export async function createProjectHandler(
       data: {
         name,
         description,
+        userId, // 프로젝트 소유자 저장
         storageProvider: toPrismaStorageProvider(provider),
       },
     });
@@ -111,9 +117,19 @@ export async function createProjectHandler(
 
 export async function updateProjectHandler(
   req: NextRequest,
-  projectId: string
+  projectId: string,
+  userId: string
 ): Promise<NextResponse<ProjectResponse | ErrorResponse>> {
   try {
+    // 소유권 검증 (Requirement 3.3)
+    const ownershipResult = await verifyProjectOwnership(userId, projectId);
+    if (!ownershipResult.authorized) {
+      return NextResponse.json(
+        { message: "리소스를 찾을 수 없습니다." },
+        { status: ownershipResult.reason === OWNERSHIP_ERROR_CODES.NOT_FOUND ? 404 : 403 }
+      );
+    }
+
     const body = await req.json();
     const validationResult = updateProjectRequestSchema.safeParse(body);
 
@@ -137,18 +153,6 @@ export async function updateProjectHandler(
       );
     }
 
-    // 프로젝트 존재 여부 확인
-    const existingProject = await prisma.project.findUnique({
-      where: { id: projectId },
-    });
-
-    if (!existingProject) {
-      return NextResponse.json(
-        { message: "프로젝트를 찾을 수 없습니다." },
-        { status: 404 }
-      );
-    }
-
     // 업데이트할 데이터 구성
     const updateData: { name?: string; description?: string } = {};
     if (name !== undefined) {
@@ -160,6 +164,17 @@ export async function updateProjectHandler(
 
     // 업데이트할 내용이 없으면 기존 프로젝트 반환
     if (Object.keys(updateData).length === 0) {
+      const existingProject = await prisma.project.findUnique({
+        where: { id: projectId },
+      });
+      
+      if (!existingProject) {
+        return NextResponse.json(
+          { message: "프로젝트를 찾을 수 없습니다." },
+          { status: 404 }
+        );
+      }
+
       const response: ProjectResponse = {
         ...existingProject,
         storageProvider: fromPrismaStorageProvider(existingProject.storageProvider),

@@ -3,8 +3,13 @@ import { prisma } from "@/lib/prisma";
 import { StorageFactory } from "@/lib/storage";
 import { fromPrismaStorageProvider } from "@/lib/storage/utils";
 import { ImageVariantData } from "@/entities/files/model/types";
+import { verifyFileOwnershipWithProject } from "@/lib/auth/ownership";
 
-export async function deleteFileHandler(fileId: string, projectId?: string) {
+export async function deleteFileHandler(
+  fileId: string,
+  projectId: string,
+  userId: string
+) {
   try {
     if (!fileId) {
       return NextResponse.json(
@@ -13,13 +18,25 @@ export async function deleteFileHandler(fileId: string, projectId?: string) {
       );
     }
 
-    // 데이터베이스에서 파일 정보 조회 (variants 포함, 프로젝트 정보도 함께)
-    const whereCondition = projectId
-      ? { id: fileId, projectId: projectId }
-      : { id: fileId };
+    if (!projectId) {
+      return NextResponse.json(
+        { message: "Project ID가 필요합니다." },
+        { status: 400 }
+      );
+    }
 
+    // 소유권 검증 (Requirement 3.2)
+    const ownershipResult = await verifyFileOwnershipWithProject(userId, fileId, projectId);
+    if (!ownershipResult.authorized) {
+      return NextResponse.json(
+        { message: "리소스를 찾을 수 없습니다." },
+        { status: 404 }
+      );
+    }
+
+    // 데이터베이스에서 파일 정보 조회 (variants 포함, 프로젝트 정보도 함께)
     const file = await prisma.file.findUnique({
-      where: whereCondition,
+      where: { id: fileId, projectId },
       select: {
         id: true,
         name: true,
