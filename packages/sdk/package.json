@@ -1,0 +1,54 @@
+{
+  "name": "leemage-sdk",
+  "version": "0.1.0",
+  "description": "TypeScript SDK for Leemage file management platform",
+  "author": "leey00nsu",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/leey00nsu/leemage.git",
+    "directory": "packages/sdk"
+  },
+  "keywords": [
+    "leemage",
+    "sdk",
+    "file-management",
+    "image-processing",
+    "cloud-storage",
+    "typescript"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "generate": "openapi-typescript ../../public/openapi.yaml -o src/types/generated.ts",
+    "build": "tsup",
+    "sync": "npm run generate && npm run build",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run sync"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.10.1",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

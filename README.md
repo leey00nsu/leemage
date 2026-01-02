@@ -57,6 +57,7 @@
   - [실행](#실행)
 - [API 문서](#api-문서)
   - [인증](#인증)
+  - [TypeScript SDK](#typescript-sdk)
 - [폴더 구조](#폴더-구조)
 - [개발 가이드](#개발-가이드)
   - [코딩 규칙](#코딩-규칙)
@@ -98,6 +99,7 @@ Next.js와 최신 웹 기술을 사용하여 직관적이고 반응형 사용자
 
 - **RESTful API**: 외부 서비스 연동을 위한 완전한 API 제공
 - **API 키 관리**: 안전한 API 키 기반 인증
+- **TypeScript SDK**: `leemage-sdk` npm 패키지로 쉬운 API 연동
 
 ### 🌐 국제화 (i18n)
 
@@ -133,13 +135,13 @@ Next.js와 최신 웹 기술을 사용하여 직관적이고 반응형 사용자
 
 ### 주요 레이어
 
-| 레이어          | 설명                             | 예시                                      |
-| --------------- | -------------------------------- | ----------------------------------------- |
-| **`/app`**      | Next.js App Router 핵심 디렉토리 | 페이지 라우팅, 레이아웃, 로딩 UI          |
-| **`/widgets`**  | 독립적인 UI 블록 조합            | 헤더, 푸터, 사이드바, 카드 목록           |
+| 레이어          | 설명                             | 예시                                    |
+| --------------- | -------------------------------- | --------------------------------------- |
+| **`/app`**      | Next.js App Router 핵심 디렉토리 | 페이지 라우팅, 레이아웃, 로딩 UI        |
+| **`/widgets`**  | 독립적인 UI 블록 조합            | 헤더, 푸터, 사이드바, 카드 목록         |
 | **`/features`** | 특정 사용자 시나리오 기능        | 사용자 인증, 파일 업로드, 프로젝트 생성 |
-| **`/entities`** | 핵심 비즈니스 도메인 객체        | User 카드, Project 정보, File 컴포넌트   |
-| **`/shared`**   | 재사용 가능한 공통 코드          | UI 컴포넌트, 유틸리티, 설정, 타입         |
+| **`/entities`** | 핵심 비즈니스 도메인 객체        | User 카드, Project 정보, File 컴포넌트  |
+| **`/shared`**   | 재사용 가능한 공통 코드          | UI 컴포넌트, 유틸리티, 설정, 타입       |
 
 ### 의존성 규칙
 
@@ -246,6 +248,38 @@ API 키는 애플리케이션의 계정 설정 페이지에서 생성할 수 있
 2. **직접 업로드**: 클라이언트가 PAR URL을 사용하여 OCI에 직접 업로드
 3. **Confirm 요청**: 업로드 완료 후 서버에 확인 요청 (DB 레코드 생성)
 
+### TypeScript SDK
+
+`leemage-sdk` npm 패키지를 사용하면 위의 복잡한 업로드 과정을 간단하게 처리할 수 있습니다.
+
+**설치**
+
+```bash
+npm install leemage-sdk
+```
+
+**사용 예시**
+
+```typescript
+import { LeemageClient } from "leemage-sdk";
+
+const client = new LeemageClient({
+  apiKey: "your-api-key",
+});
+
+// 프로젝트 목록 조회
+const projects = await client.projects.list();
+
+// 파일 업로드 (presign → upload → confirm 자동 처리)
+const file = await client.files.upload(projectId, fileInput, {
+  variants: [
+    { sizeLabel: "max800", format: "webp" },
+    { sizeLabel: "1200x800", format: "avif" },
+  ],
+});
+```
+
+자세한 사용법은 [packages/sdk/README.md](packages/sdk/README.md)를 참조하세요.
 
 ## 폴더 구조
 

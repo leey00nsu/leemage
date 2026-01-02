@@ -16,6 +16,7 @@
     "db:deploy": "prisma migrate deploy && prisma generate",
     "start:production": "npm run db:deploy && next start",
     "openapi:generate": "npx tsx scripts/generate-openapi.ts",
+    "sdk:sync": "cd packages/sdk && npm run sync",
     "prepare": "husky"
   },
   "dependencies": {
