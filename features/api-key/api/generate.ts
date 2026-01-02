@@ -1,12 +1,12 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/auth/session-auth";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 
 const API_KEY_PREFIX = "lmk_";
 const SALT_ROUNDS = 10;
-const ADMIN_IDENTIFIER = "admin_user"; // 고정된 관리자 식별자
 
 /**
  * 시스템 관리자를 위한 새 API 키를 생성합니다.
@@ -15,6 +15,11 @@ const ADMIN_IDENTIFIER = "admin_user"; // 고정된 관리자 식별자
  * @throws 이미 키가 있는 경우 오류 발생
  */
 export async function generateApiKey(): Promise<string> {
+  const userIdentifier = await getCurrentUser();
+  if (!userIdentifier) {
+    throw new Error("인증이 필요합니다.");
+  }
+
   // 이미 시스템에 API 키가 있는지 확인
   const existingKey = await prisma.apiKey.findFirst();
   if (existingKey) {
@@ -34,7 +39,7 @@ export async function generateApiKey(): Promise<string> {
     data: {
       keyHash: keyHash,
       prefix: API_KEY_PREFIX,
-      userIdentifier: ADMIN_IDENTIFIER, // 고정 식별자 사용
+      userIdentifier,
       // name: "관리자 키", // 필요시 이름 지정
     },
   });
