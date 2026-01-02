@@ -8,7 +8,6 @@ import {
   AVAILABLE_FORMATS,
   AVAILABLE_SIZES,
   FormatType,
-  SIZE_MAX_PIXELS,
   isPresetSmallerThanOriginal,
 } from "@/shared/config/image-options";
 import { useTranslations } from "next-intl";
@@ -33,8 +32,7 @@ interface TransformOptionsProps {
 // 프리셋 사이즈 표시 텍스트 생성
 function getSizeDisplayText(size: string, t: (key: string) => string): string {
   if (size === "source") return t("sourceSize");
-  const maxPixels = SIZE_MAX_PIXELS[size];
-  if (maxPixels) return `w${maxPixels}`;
+  // API 값과 일치하도록 그대로 표시 (max300, max800, max1920)
   return size;
 }
 
@@ -62,7 +60,11 @@ export function TransformOptions({
         <Label>{t("sizeLabel")}</Label>
         <div className="flex flex-wrap gap-x-4 gap-y-2">
           {AVAILABLE_SIZES.map((size) => {
-            const isAvailable = isPresetSmallerThanOriginal(size, originalWidth, originalHeight);
+            const isAvailable = isPresetSmallerThanOriginal(
+              size,
+              originalWidth,
+              originalHeight
+            );
             const isDisabled = disabled || !isAvailable;
 
             return (
@@ -75,7 +77,9 @@ export function TransformOptions({
                 />
                 <label
                   htmlFor={`size-${size}`}
-                  className={`text-sm font-medium ${isDisabled ? "cursor-not-allowed opacity-50" : ""}`}
+                  className={`text-sm font-medium ${
+                    isDisabled ? "cursor-not-allowed opacity-50" : ""
+                  }`}
                 >
                   {getSizeDisplayText(size, t)}
                 </label>
