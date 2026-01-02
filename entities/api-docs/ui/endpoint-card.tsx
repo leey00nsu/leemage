@@ -1,6 +1,7 @@
 "use client";
 
 import { ApiEndpoint } from "../model/types";
+import { getEndpointSdkExample } from "../model/endpoint-sdk-examples";
 import {
   Card,
   CardContent,
@@ -9,11 +10,13 @@ import {
   CardTitle,
 } from "@/shared/ui/card";
 import { Badge } from "@/shared/ui/badge";
-import { Copy } from "lucide-react";
+import { CodeBlock } from "@/shared/ui/code-block";
+import { Copy, Code2 } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { toast } from "sonner";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
+import { useState } from "react";
 
 interface EndpointCardProps {
   endpoint: ApiEndpoint;
@@ -21,6 +24,14 @@ interface EndpointCardProps {
 
 export function EndpointCard({ endpoint }: EndpointCardProps) {
   const t = useTranslations("EndpointCard");
+  const locale = useLocale() as "ko" | "en";
+  const [showSdk, setShowSdk] = useState(false);
+
+  const sdkExample = getEndpointSdkExample(
+    endpoint.method,
+    endpoint.path,
+    locale
+  );
 
   function copyToClipboard(text: string) {
     navigator.clipboard.writeText(text);
@@ -33,16 +44,17 @@ export function EndpointCard({ endpoint }: EndpointCardProps) {
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-start gap-2">
             <Badge
-              className={`shrink-0 ${endpoint.method === "GET"
+              className={`shrink-0 ${
+                endpoint.method === "GET"
                   ? "bg-blue-500"
                   : endpoint.method === "POST"
-                    ? "bg-green-500"
-                    : endpoint.method === "PUT"
-                      ? "bg-yellow-500"
-                      : endpoint.method === "DELETE"
-                        ? "bg-red-500"
-                        : "bg-purple-500"
-                }`}
+                  ? "bg-green-500"
+                  : endpoint.method === "PUT"
+                  ? "bg-yellow-500"
+                  : endpoint.method === "DELETE"
+                  ? "bg-red-500"
+                  : "bg-purple-500"
+              }`}
             >
               {endpoint.method}
             </Badge>
@@ -61,13 +73,44 @@ export function EndpointCard({ endpoint }: EndpointCardProps) {
             {endpoint.description}
           </CardDescription>
         </div>
-        {endpoint.auth && (
-          <Badge variant="outline" className="shrink-0 border-amber-500 text-amber-500">
-            {t("authRequired")}
-          </Badge>
-        )}
+        <div className="flex items-center gap-2">
+          {sdkExample && (
+            <Button
+              variant={showSdk ? "default" : "outline"}
+              size="sm"
+              onClick={() => setShowSdk(!showSdk)}
+              className="flex items-center gap-1"
+            >
+              <Code2 size={14} />
+              <span>SDK</span>
+            </Button>
+          )}
+          {endpoint.auth && (
+            <Badge
+              variant="outline"
+              className="shrink-0 border-amber-500 text-amber-500"
+            >
+              {t("authRequired")}
+            </Badge>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
+        {/* SDK Example Section */}
+        {showSdk && sdkExample && (
+          <div className="mb-4">
+            <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
+              <Code2 size={14} />
+              SDK Example
+            </h4>
+            <CodeBlock
+              language={sdkExample.language}
+              filename="example.ts"
+              code={sdkExample.code}
+            />
+          </div>
+        )}
+
         {endpoint.parameters && endpoint.parameters.length > 0 && (
           <div className="mb-4">
             <h4 className="text-sm font-semibold mb-2">{t("parameters")}</h4>

@@ -194,7 +194,17 @@
   "ApiDocsView": {
     "title": "API Documentation",
     "description": "Explore the usage and endpoint information for the Leemage API. Authentication may be required to use the API.",
-    "categoryTitle": "Categories"
+    "categoryTitle": "Categories",
+    "noData": "No API documentation available."
+  },
+  "SdkQuickStart": {
+    "title": "TypeScript SDK",
+    "description": "Use the npm package to simplify complex API calls.",
+    "copied": "Copied to clipboard.",
+    "install": "Install",
+    "init": "Initialize",
+    "upload": "Upload",
+    "projects": "Projects"
   },
   "HeroSection": {
     "mainHeading1": "Upload Everything",

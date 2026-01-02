@@ -194,7 +194,17 @@
   "ApiDocsView": {
     "title": "API 문서",
     "description": "Leemage API의 사용법과 엔드포인트 정보를 확인하세요. API를 사용하려면 인증이 필요할 수 있습니다.",
-    "categoryTitle": "카테고리"
+    "categoryTitle": "카테고리",
+    "noData": "API 문서가 없습니다."
+  },
+  "SdkQuickStart": {
+    "title": "TypeScript SDK",
+    "description": "npm 패키지를 사용하면 복잡한 API 호출을 간단하게 처리할 수 있습니다.",
+    "copied": "클립보드에 복사되었습니다.",
+    "install": "설치",
+    "init": "초기화",
+    "upload": "업로드",
+    "projects": "프로젝트"
   },
   "HeroSection": {
     "mainHeading1": "Upload Everything",

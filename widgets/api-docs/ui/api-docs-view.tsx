@@ -7,6 +7,7 @@ import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Badge } from "@/shared/ui/badge";
 import { useTranslations } from "next-intl";
+import { SdkQuickStart } from "./sdk-quick-start";
 
 interface ApiDocsViewProps {
   apiDocs: ApiCategory[];
@@ -31,6 +32,9 @@ export function ApiDocsView({ apiDocs }: ApiDocsViewProps) {
           <p className="text-muted-foreground">{t("description")}</p>
         </CardHeader>
       </Card>
+
+      {/* SDK Quick Start Section */}
+      <SdkQuickStart />
 
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Sidebar */}

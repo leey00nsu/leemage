@@ -118,8 +118,11 @@ interface OpenAPISchemaProperty {
   type?: string;
   description?: string;
   example?: unknown;
-  items?: { type?: string; $ref?: string };
+  items?: { type?: string; $ref?: string; enum?: string[] };
   $ref?: string;
+  enum?: string[];
+  anyOf?: OpenAPISchemaProperty[];
+  pattern?: string;
 }
 
 interface OpenAPISchema {
@@ -190,8 +193,7 @@ function transformOperation(
   operation: OpenAPIOperation,
   t?: TranslationGetter
 ): ApiEndpoint {
-  const hasAuth =
-    operation.security && operation.security.length > 0;
+  const hasAuth = operation.security && operation.security.length > 0;
 
   // 엔드포인트 설명 번역
   const summaryKey = getEndpointTranslationKey(method, path, "summary");
@@ -320,15 +322,21 @@ function transformResponses(
         "잘못된 요청": "apiDocs.errors.badRequest",
         "서버 오류": "apiDocs.errors.serverError",
         // 성공 응답
-        "프로젝트 목록이 성공적으로 반환됩니다.": "apiDocs.responses.projectListSuccess",
-        "프로젝트가 성공적으로 생성되었습니다.": "apiDocs.responses.projectCreated",
-        "프로젝트가 성공적으로 반환됩니다.": "apiDocs.responses.projectGetSuccess",
-        "프로젝트가 성공적으로 삭제되었습니다.": "apiDocs.responses.projectDeleted",
-        "Presigned URL이 성공적으로 생성되었습니다.": "apiDocs.responses.presignSuccess",
-        "파일 레코드가 성공적으로 생성되었습니다.": "apiDocs.responses.confirmSuccess",
+        "프로젝트 목록이 성공적으로 반환됩니다.":
+          "apiDocs.responses.projectListSuccess",
+        "프로젝트가 성공적으로 생성되었습니다.":
+          "apiDocs.responses.projectCreated",
+        "프로젝트가 성공적으로 반환됩니다.":
+          "apiDocs.responses.projectGetSuccess",
+        "프로젝트가 성공적으로 삭제되었습니다.":
+          "apiDocs.responses.projectDeleted",
+        "Presigned URL이 성공적으로 생성되었습니다.":
+          "apiDocs.responses.presignSuccess",
+        "파일 레코드가 성공적으로 생성되었습니다.":
+          "apiDocs.responses.confirmSuccess",
         "파일 삭제 성공": "apiDocs.responses.fileDeleted",
       };
-      
+
       const translationKey = responseDescriptionMap[description];
       if (translationKey) {
         const translated = t(translationKey);
@@ -394,9 +402,36 @@ function getPropertyType(prop: OpenAPISchemaProperty): string {
   if (prop.$ref) {
     return prop.$ref.replace("#/components/schemas/", "");
   }
+
+  // enum 처리
+  if (prop.enum && prop.enum.length > 0) {
+    return prop.enum.map((v) => `"${v}"`).join(" | ");
+  }
+
+  // anyOf 처리 (enum + pattern 조합 등)
+  if (prop.anyOf && prop.anyOf.length > 0) {
+    const enumValues: string[] = [];
+    let hasPattern = false;
+    for (const subProp of prop.anyOf) {
+      if (subProp.enum) {
+        enumValues.push(...subProp.enum);
+      }
+      if (subProp.pattern) {
+        hasPattern = true;
+      }
+    }
+    if (enumValues.length > 0) {
+      const enumStr = enumValues.map((v) => `"${v}"`).join(" | ");
+      return hasPattern ? `${enumStr} | string` : enumStr;
+    }
+  }
+
   if (prop.type === "array") {
     if (prop.items?.$ref) {
       return `${prop.items.$ref.replace("#/components/schemas/", "")}[]`;
+    }
+    if (prop.items?.enum) {
+      return `(${prop.items.enum.map((v) => `"${v}"`).join(" | ")})[]`;
     }
     return `${prop.items?.type || "any"}[]`;
   }
@@ -498,7 +533,9 @@ function getTagDescriptions(
     for (const tag of spec.tags) {
       const translationKey = getTagTranslationKey(tag.name);
       // 번역 함수가 있으면 번역 시도, 없으면 원본 사용
-      const translatedDescription = t ? t(translationKey) : tag.description || "";
+      const translatedDescription = t
+        ? t(translationKey)
+        : tag.description || "";
       // 번역 키가 그대로 반환되면 원본 사용 (번역 없음)
       const description =
         translatedDescription === translationKey
