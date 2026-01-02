@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { withSessionAuth } from "@/lib/auth/session-auth";
+import { withSessionAuth, AuthenticatedRequest } from "@/lib/auth/session-auth";
 import {
   calculateUsagePercentage,
   getUsageStatus,
@@ -27,10 +27,15 @@ export interface StorageUsageResponse {
 }
 
 // GET 핸들러: 스토리지 사용량 조회 (세션 기반 인증)
-export const GET = withSessionAuth(async () => {
+export const GET = withSessionAuth(async (req: AuthenticatedRequest) => {
   try {
+    const userId = req.session.username!;
+
     // 프로바이더별 프로젝트와 파일 정보 조회
     const projects = await prisma.project.findMany({
+      where: {
+        userId,
+      },
       select: {
         storageProvider: true,
         files: {
