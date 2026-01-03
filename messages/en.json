@@ -392,7 +392,7 @@
   },
   "QuotaSettingDialog": {
     "title": "Set Storage Quota",
-    "description": "Set the storage limit for {provider}.",
+    "description": "Set the storage limit for {provider}. File uploads via Web UI and API will be restricted when the quota is exceeded.",
     "quotaLabel": "Quota Limit",
     "quotaPlaceholder": "e.g., 10",
     "invalidQuota": "Please enter a valid positive number.",
