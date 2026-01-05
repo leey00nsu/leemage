@@ -225,6 +225,7 @@
   },
   "ProjectListHeader": {
     "title": "Project List",
+    "description": "Create and manage your projects.",
     "createButton": "Create New Project"
   },
   "ProjectDetailsWidget": {

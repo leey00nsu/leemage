@@ -225,6 +225,7 @@
   },
   "ProjectListHeader": {
     "title": "프로젝트 목록",
+    "description": "프로젝트를 생성하고 관리하세요.",
     "createButton": "새 프로젝트 생성"
   },
   "ProjectDetailsWidget": {

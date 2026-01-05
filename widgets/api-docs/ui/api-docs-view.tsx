@@ -24,19 +24,17 @@ export function ApiDocsView({ apiDocs }: ApiDocsViewProps) {
   );
 
   return (
-    <div className="container mx-auto p-4 py-8 max-w-6xl">
+    <div className="container mx-auto py-8 px-4">
       {/* Header Section */}
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle className="text-3xl font-bold">{t("title")}</CardTitle>
-          <p className="text-muted-foreground">{t("description")}</p>
-        </CardHeader>
-      </Card>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold">{t("title")}</h1>
+        <p className="text-muted-foreground mt-2">{t("description")}</p>
+      </div>
 
       {/* SDK Quick Start Section */}
       <SdkQuickStart />
 
-      <div className="flex flex-col lg:flex-row gap-6">
+      <div className="flex flex-col lg:flex-row gap-6 mt-6">
         {/* Sidebar */}
         <aside className="lg:w-1/4">
           <Card className="sticky top-20">
