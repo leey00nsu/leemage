@@ -87,3 +87,20 @@ model StorageQuota {
   createdAt  DateTime        @default(now())
   updatedAt  DateTime        @updatedAt
 }
+
+// API 호출 로그
+model ApiLog {
+  id         String   @id @default(cuid())
+  userId     String   // API 호출한 사용자
+  projectId  String?  // 관련 프로젝트 ID (nullable)
+  endpoint   String   // API 엔드포인트 (예: "/v1/projects")
+  method     String   // HTTP 메서드 (GET, POST, DELETE 등)
+  statusCode Int      // 응답 상태 코드 (200, 400, 500 등)
+  durationMs Int?     // 응답 시간 (밀리초)
+  createdAt  DateTime @default(now())
+
+  @@index([userId])           // 사용자별 조회
+  @@index([projectId])        // 프로젝트별 조회
+  @@index([createdAt])        // 날짜별 조회
+  @@index([endpoint, method]) // 엔드포인트별 조회
+}

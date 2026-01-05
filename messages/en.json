@@ -281,6 +281,7 @@
   "Header": {
     "projectsLink": "Projects",
     "apiDocsLink": "API Docs",
+    "logsLink": "Logs",
     "accountLink": "My Account",
     "menu": "Menu",
     "loginLink": "Login"
@@ -385,7 +386,8 @@
     "files": "files",
     "ociStorage": "OCI Object Storage",
     "r2Storage": "Cloudflare R2",
-    "noData": "No storage data available.",
+    "noData": "No data available.",
+    "allProjects": "All Projects",
     "error": "Failed to load storage usage.",
     "warningMessage": "Storage usage is getting high. {remaining} remaining.",
     "criticalMessage": "Critical: Storage almost full! {remaining} remaining."
@@ -517,5 +519,25 @@
       "confirmSuccess": "File record created successfully.",
       "fileDeleted": "File deleted successfully"
     }
+  },
+  "ApiLogs": {
+    "pageTitle": "API Logs",
+    "pageDescription": "Monitor your API call logs and metrics.",
+    "tabApiCalls": "API Calls",
+    "tabMetrics": "Metrics",
+    "totalCalls": "Total Calls",
+    "successRate": "Success Rate",
+    "avgResponseTime": "Avg Response Time",
+    "callsOverTime": "Calls Over Time",
+    "callsOverTimeDescription": "API call activity over the last 30 days",
+    "byEndpoint": "Calls by Endpoint",
+    "byEndpointDescription": "Most frequently called API endpoints",
+    "noData": "No API call records yet.",
+    "error": "Failed to load logs.",
+    "tableEndpoint": "Endpoint",
+    "tableTime": "Time",
+    "tableDuration": "Duration",
+    "tableStatus": "Status",
+    "allProjects": "All Projects"
   }
 }

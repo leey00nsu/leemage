@@ -4,13 +4,16 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { API_KEY_PREFIX } from "@/shared/config/api-key";
 import { authLogger, maskApiKey } from "@/lib/logging/secure-logger";
+import { logApiCall, extractProjectIdFromPath } from "@/lib/api/api-logger";
 
 /**
  * API 요청 헤더에서 API 키를 추출하고 유효성을 검증합니다.
  * @param request NextRequest 객체
  * @returns 키가 유효하면 userIdentifier를 반환, 그렇지 않으면 null을 반환합니다.
  */
-export async function validateApiKey(request: NextRequest): Promise<string | null> {
+export async function validateApiKey(
+  request: NextRequest
+): Promise<string | null> {
   const authorizationHeader = request.headers.get("Authorization");
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
 
@@ -29,7 +32,10 @@ export async function validateApiKey(request: NextRequest): Promise<string | nul
     authLogger.security({
       type: "AUTH_FAILURE",
       ip,
-      details: { reason: "키 누락 또는 접두사 오류", prefix: maskApiKey(providedApiKey) },
+      details: {
+        reason: "키 누락 또는 접두사 오류",
+        prefix: maskApiKey(providedApiKey),
+      },
     });
     return null;
   }
@@ -96,8 +102,22 @@ export function withApiKeyAuth<T extends Record<string, string | string[]>>(
     req: NextRequest,
     context: { params: Promise<T> }
   ): Promise<NextResponse> => {
+    const startTime = Date.now();
+    const pathname = new URL(req.url).pathname;
+    const method = req.method;
+
     const userIdentifier = await validateApiKey(req);
     if (!userIdentifier) {
+      // 인증 실패도 로깅 (userId는 "anonymous")
+      logApiCall({
+        userId: "anonymous",
+        projectId: extractProjectIdFromPath(pathname),
+        endpoint: pathname,
+        method,
+        statusCode: 401,
+        durationMs: Date.now() - startTime,
+      });
+
       return new NextResponse(
         JSON.stringify({ message: "인증 실패: 유효하지 않은 API 키" }),
         {
@@ -106,7 +126,20 @@ export function withApiKeyAuth<T extends Record<string, string | string[]>>(
         }
       );
     }
+
     // 인증 성공 시 원래 핸들러 실행 (userId 전달)
-    return handler(req, context, userIdentifier);
+    const response = await handler(req, context, userIdentifier);
+
+    // 응답 후 비동기로 로그 저장 (논블로킹)
+    logApiCall({
+      userId: userIdentifier,
+      projectId: extractProjectIdFromPath(pathname),
+      endpoint: pathname,
+      method,
+      statusCode: response.status,
+      durationMs: Date.now() - startTime,
+    });
+
+    return response;
   };
 }
