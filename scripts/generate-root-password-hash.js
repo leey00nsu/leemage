@@ -76,12 +76,22 @@ function readHidden(prompt) {
     const input = [];
     const onData = (char) => {
       const key = char.toString("utf8");
+      if (key === "\u0008" || key === "\u007f") {
+        if (input.length > 0) {
+          input.pop();
+          stdout.write("\b \b");
+        }
+        return;
+      }
       if (key === "\r" || key === "\n") {
         stdin.setRawMode(false);
         stdin.pause();
         stdin.off("data", onData);
         stdout.write("\n");
         resolve(input.join(""));
+      } else if (key.startsWith("\u001b")) {
+        // Ignore escape sequences (arrows, etc.)
+        return;
       } else if (key === "\u0003") {
         stdin.off("data", onData);
         stdout.write("\nAborted.\n");
@@ -125,7 +135,8 @@ async function main() {
   }
 
   const hash = bcrypt.hashSync(finalPassword, rounds);
-  stdout.write(`ROOT_USER_PASSWORD_HASH=${hash}\n`);
+  const escaped = hash.replace(/\$/g, "\\$");
+  stdout.write(`ROOT_USER_PASSWORD_HASH=${escaped}\n`);
 }
 
 main();
