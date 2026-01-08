@@ -178,7 +178,7 @@ yarn install
 ```env
 # 루트 사용자 인증 정보
 ROOT_USER_EMAIL=admin@example.com
-ROOT_USER_PASSWORD=your-secure-password
+ROOT_USER_PASSWORD_HASH=$2b$12$your-bcrypt-hash
 
 # PostgreSQL 데이터베이스 (Docker Compose용)
 POSTGRES_USER=leemage_user
@@ -210,6 +210,14 @@ R2_PUBLIC_URL=your-public-url
 IRON_SESSION_COOKIE_NAME=leemage-session
 IRON_SESSION_PASSWORD=your-32-character-session-password
 ```
+
+`ROOT_USER_PASSWORD_HASH`는 bcrypt 해시입니다. 해시는 아래 스크립트로 생성하세요:
+
+```bash
+npm run root:hash
+```
+
+출력된 값을 `.env`의 `ROOT_USER_PASSWORD_HASH`에 넣으면 됩니다.
 
 ### 실행
 

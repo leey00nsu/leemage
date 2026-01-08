@@ -4,6 +4,7 @@ import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { SessionData, sessionOptions } from "@/lib/session";
 import { authLogger, maskEmail } from "@/lib/logging/secure-logger";
+import { compare } from "bcryptjs";
 
 export async function loginHandler(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
@@ -32,15 +33,16 @@ export async function loginHandler(req: NextRequest) {
 
     // 2. 환경 변수에서 루트 사용자 정보 가져오기
     const rootEmail = process.env.ROOT_USER_EMAIL;
-    const rootPassword = process.env.ROOT_USER_PASSWORD;
+    const rootPasswordHash = process.env.ROOT_USER_PASSWORD_HASH;
 
-    if (!rootEmail || !rootPassword) {
-      authLogger.error("ROOT_USER_EMAIL or ROOT_USER_PASSWORD environment variables not set");
+    if (!rootEmail || !rootPasswordHash) {
+      authLogger.error("ROOT_USER_EMAIL or ROOT_USER_PASSWORD_HASH environment variables not set");
       return NextResponse.json({ message: "서버 설정 오류" }, { status: 500 });
     }
 
     // 3. 입력된 정보와 환경 변수 정보 비교
-    if (email === rootEmail && password === rootPassword) {
+    const isPasswordValid = await compare(password, rootPasswordHash);
+    if (email === rootEmail && isPasswordValid) {
       // 로그인 성공
       const session = await getIronSession<SessionData>(
         await cookies(),
