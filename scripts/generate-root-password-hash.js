@@ -136,7 +136,8 @@ async function main() {
 
   const hash = bcrypt.hashSync(finalPassword, rounds);
   const escaped = hash.replace(/\$/g, "\\$");
-  stdout.write(`ROOT_USER_PASSWORD_HASH=${escaped}\n`);
+  stdout.write(`Local (.env): ROOT_USER_PASSWORD_HASH=${escaped}\n`);
+  stdout.write(`Deploy (raw): ROOT_USER_PASSWORD_HASH=${hash}\n`);
 }
 
 main();

@@ -218,7 +218,8 @@ IRON_SESSION_PASSWORD=your-32-character-session-password
 npm run root:hash
 ```
 
-출력된 값은 `$`가 이스케이프된 형태이므로 그대로 `.env`의 `ROOT_USER_PASSWORD_HASH`에 넣으면 됩니다.
+출력에 **로컬(.env)용**과 **배포용(raw)** 두 가지가 함께 표시됩니다.
+각 환경에 맞는 값을 사용하세요.
 
 ### 실행
 
