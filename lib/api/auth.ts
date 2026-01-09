@@ -42,7 +42,10 @@ export async function loginHandler(req: NextRequest) {
 
     // 3. 입력된 정보와 환경 변수 정보 비교
     const isPasswordValid = await compare(password, rootPasswordHash);
-    if (email === rootEmail && isPasswordValid) {
+    const emailMatchExact = email === rootEmail;
+    const emailMatchNormalized =
+      email.trim().toLowerCase() === rootEmail.trim().toLowerCase();
+    if (emailMatchExact && isPasswordValid) {
       // 로그인 성공
       const session = await getIronSession<SessionData>(
         await cookies(),
@@ -64,6 +67,15 @@ export async function loginHandler(req: NextRequest) {
         { status: 200 }
       );
     } else {
+      authLogger.info("LOGIN_DEBUG", {
+        emailMatchExact,
+        emailMatchNormalized,
+        passwordMatch: isPasswordValid,
+        inputEmailLen: email.length,
+        rootEmailLen: rootEmail.length,
+        hashLen: rootPasswordHash.length,
+        hashPrefix: rootPasswordHash.slice(0, 4),
+      });
       // 로그인 실패
       authLogger.security({
         type: "AUTH_FAILURE",
