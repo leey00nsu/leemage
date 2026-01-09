@@ -319,7 +319,7 @@ leemage/
 
 ### 레이트 리미트
 
-프로젝트는 `middleware.ts`에서 **API 전체에 공통 레이트 리미트**를 적용하고, **특정 API는 override**합니다.
+프로젝트는 `proxy.ts`에서 **API 전체에 공통 레이트 리미트**를 적용하고, **특정 API는 override**합니다.
 
 - 기본 정책: `/api/*` → `apiRateLimiter`
 - 로그인: `/api/auth/login` → `loginRateLimiter`
@@ -327,7 +327,7 @@ leemage/
 
 설정 위치:
 - 정책/값 정의: `lib/auth/rate-limiter.ts`
-- 경로별 override: `middleware.ts`의 `selectLimiter`
+- 경로별 override: `proxy.ts`의 `selectLimiter`
 
 새 API에 다른 한도를 적용하려면 `selectLimiter`에 경로 규칙을 추가하세요.
 현재 스토어는 in-memory이므로, 멀티 인스턴스 환경에서는 Redis 등의 공유 스토어 도입을 권장합니다.

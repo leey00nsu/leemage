@@ -3,15 +3,73 @@ import type { NextRequest } from "next/server";
 import { getSessionFromEdge } from "@/lib/session";
 import createMiddleware from "next-intl/middleware";
 import { routing } from "@/i18n/routing";
+import {
+  apiRateLimiter,
+  loginRateLimiter,
+  uploadRateLimiter,
+} from "@/lib/auth/rate-limiter";
 
 const intlMiddleware = createMiddleware(routing);
+
+function selectLimiter(pathname: string) {
+  if (pathname === "/api/auth/login") {
+    return loginRateLimiter;
+  }
+
+  if (/^\/api\/projects\/[^/]+\/files\/confirm$/.test(pathname)) {
+    return uploadRateLimiter;
+  }
+
+  return apiRateLimiter;
+}
+
+function createRateLimitResponse(result: {
+  remaining: number;
+  resetAt: Date;
+  retryAfter?: number;
+}) {
+  const response = NextResponse.json(
+    {
+      code: "RATE_LIMIT_EXCEEDED",
+      message: "요청 한도를 초과했습니다. 잠시 후 다시 시도해주세요.",
+    },
+    { status: 429 }
+  );
+
+  if (result.retryAfter) {
+    response.headers.set("Retry-After", result.retryAfter.toString());
+  }
+  response.headers.set("X-RateLimit-Remaining", result.remaining.toString());
+  response.headers.set("X-RateLimit-Reset", result.resetAt.toISOString());
+
+  return response;
+}
+
+function getFallbackKey(req: NextRequest) {
+  const userAgent = req.headers.get("user-agent") ?? "unknown";
+  const acceptLanguage = req.headers.get("accept-language") ?? "unknown";
+  return `ua:${userAgent}|lang:${acceptLanguage}`;
+}
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
-  // API 요청은 proxy를 거치지 않음
+  // API 요청은 레이트 리밋만 적용하고 나머지는 패스
   if (pathname.startsWith("/api")) {
-    return NextResponse.next();
+    const limiter = selectLimiter(pathname);
+    const key = limiter.getKey(request);
+    const effectiveKey = key === "unknown" ? getFallbackKey(request) : key;
+    const result = limiter.check(effectiveKey);
+
+    if (!result.allowed) {
+      return createRateLimitResponse(result);
+    }
+
+    const response = NextResponse.next();
+    response.headers.set("X-RateLimit-Remaining", result.remaining.toString());
+    response.headers.set("X-RateLimit-Reset", result.resetAt.toISOString());
+
+    return response;
   }
 
   // next-intl 미들웨어 실행
@@ -73,6 +131,7 @@ export async function proxy(request: NextRequest) {
 // proxy를 적용할 경로 설정
 export const config = {
   matcher: [
+    "/api/:path*",
     // Match all pathnames except for
     // - … if they start with `/api`, `/trpc`, `/_next` or `/_vercel`
     // - … the ones containing a dot (e.g. `favicon.ico`)
