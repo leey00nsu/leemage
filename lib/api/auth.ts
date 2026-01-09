@@ -87,15 +87,6 @@ export async function loginHandler(req: NextRequest) {
         { status: 200 }
       );
     } else {
-      authLogger.info("LOGIN_DEBUG", {
-        emailMatchExact,
-        emailMatchNormalized,
-        passwordMatch: isPasswordValid,
-        inputEmailLen: email.length,
-        rootEmailLen: rootEmail.length,
-        hashLen: rootPasswordHash.length,
-        hashPrefix: rootPasswordHash.slice(0, 4),
-      });
       // 로그인 실패
       authLogger.security({
         type: "AUTH_FAILURE",
