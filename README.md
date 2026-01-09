@@ -179,7 +179,7 @@ yarn install
 ```env
 # 루트 사용자 인증 정보
 ROOT_USER_EMAIL=admin@example.com
-ROOT_USER_PASSWORD_HASH=$2b$12$your-bcrypt-hash
+ROOT_USER_PASSWORD_HASH_B64=your-base64url-hash
 
 # PostgreSQL 데이터베이스 (Docker Compose용)
 POSTGRES_USER=leemage_user
@@ -212,14 +212,13 @@ IRON_SESSION_COOKIE_NAME=leemage-session
 IRON_SESSION_PASSWORD=your-32-character-session-password
 ```
 
-`ROOT_USER_PASSWORD_HASH`는 bcrypt 해시입니다. 해시는 아래 스크립트로 생성하세요:
+`ROOT_USER_PASSWORD_HASH_B64`는 bcrypt 해시를 base64url로 인코딩한 값입니다. 해시는 아래 스크립트로 생성하세요:
 
 ```bash
 npm run root:hash
 ```
 
-출력에 **로컬(.env)용**과 **배포용(raw)** 두 가지가 함께 표시됩니다.
-각 환경에 맞는 값을 사용하세요.
+출력된 값은 로컬/배포 환경 모두 동일하게 사용할 수 있습니다.
 
 ### 실행
 

@@ -6,6 +6,17 @@ import { SessionData, sessionOptions } from "@/lib/session";
 import { authLogger, maskEmail } from "@/lib/logging/secure-logger";
 import { compare } from "bcryptjs";
 
+function decodeBase64Url(value: string): string | null {
+  const normalized = value.trim().replace(/-/g, "+").replace(/_/g, "/");
+  const padding =
+    normalized.length % 4 === 0 ? "" : "=".repeat(4 - (normalized.length % 4));
+  try {
+    return Buffer.from(normalized + padding, "base64").toString("utf8");
+  } catch {
+    return null;
+  }
+}
+
 export async function loginHandler(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
   
@@ -33,10 +44,19 @@ export async function loginHandler(req: NextRequest) {
 
     // 2. 환경 변수에서 루트 사용자 정보 가져오기
     const rootEmail = process.env.ROOT_USER_EMAIL;
-    const rootPasswordHash = process.env.ROOT_USER_PASSWORD_HASH;
+    const rootPasswordHashB64 = process.env.ROOT_USER_PASSWORD_HASH_B64;
+    const rootPasswordHash = rootPasswordHashB64
+      ? decodeBase64Url(rootPasswordHashB64)
+      : null;
 
-    if (!rootEmail || !rootPasswordHash) {
-      authLogger.error("ROOT_USER_EMAIL or ROOT_USER_PASSWORD_HASH environment variables not set");
+    if (rootPasswordHashB64 && !rootPasswordHash) {
+      authLogger.error("ROOT_USER_PASSWORD_HASH_B64 is invalid");
+    }
+
+    if (!rootEmail || !rootPasswordHashB64 || !rootPasswordHash) {
+      authLogger.error(
+        "ROOT_USER_EMAIL or ROOT_USER_PASSWORD_HASH_B64 environment variables not set"
+      );
       return NextResponse.json({ message: "서버 설정 오류" }, { status: 500 });
     }
 

@@ -7,7 +7,7 @@ const DEFAULT_ROUNDS = 12;
 function printHelp() {
   stdout.write(
     [
-      "Generate bcrypt hash for ROOT_USER_PASSWORD_HASH.",
+      "Generate bcrypt hash for ROOT_USER_PASSWORD_HASH_B64.",
       "",
       "Usage:",
       "  npm run root:hash",
@@ -135,9 +135,12 @@ async function main() {
   }
 
   const hash = bcrypt.hashSync(finalPassword, rounds);
-  const escaped = hash.replace(/\$/g, "\\$");
-  stdout.write(`Local (.env): ROOT_USER_PASSWORD_HASH=${escaped}\n`);
-  stdout.write(`Deploy (raw): ROOT_USER_PASSWORD_HASH=${hash}\n`);
+  const base64 = Buffer.from(hash, "utf8").toString("base64");
+  const base64Url = base64
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
+  stdout.write(`ROOT_USER_PASSWORD_HASH_B64=${base64Url}\n`);
 }
 
 main();
