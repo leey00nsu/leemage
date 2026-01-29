@@ -117,55 +117,13 @@ docker compose up -d && npx prisma migrate dev && npm run dev
 
 ### 환경 변수
 
-`.env` 파일을 생성하고 아래 변수를 설정하세요:
+`.env.example`을 복사하여 `.env` 파일을 생성하세요:
 
-| 변수                          | 설명                      | 예시                                       |
-| ----------------------------- | ------------------------- | ------------------------------------------ |
-| `ROOT_USER_EMAIL`             | 루트 사용자 이메일        | `admin@example.com`                        |
-| `ROOT_USER_PASSWORD_HASH_B64` | bcrypt 해시 (base64url)   | `npm run root:hash`로 생성                 |
-| `DATABASE_URL`                | PostgreSQL 연결 URL       | `postgresql://user:pass@localhost:5432/db` |
-| `IRON_SESSION_PASSWORD`       | 세션 비밀번호 (32자 이상) | -                                          |
-| `OCI_*`                       | OCI Object Storage 설정   | 아래 참조                                  |
-| `R2_*`                        | Cloudflare R2 설정 (선택) | 아래 참조                                  |
-
-<details>
-<summary><strong>전체 환경 변수 목록</strong></summary>
-
-```env
-# 루트 사용자 인증 정보
-ROOT_USER_EMAIL=admin@example.com
-ROOT_USER_PASSWORD_HASH_B64=your-base64url-hash
-
-# PostgreSQL 데이터베이스
-POSTGRES_USER=leemage_user
-POSTGRES_PASSWORD=your-db-password
-POSTGRES_DB=leemage_db
-POSTGRES_PORT=5432
-DATABASE_URL=postgresql://leemage_user:your-db-password@localhost:5432/leemage_db
-
-# OCI Object Storage (기본 스토리지)
-OCI_TENANCY_OCID=ocid1.tenancy.oc1..your-tenancy-id
-OCI_USER_OCID=ocid1.user.oc1..your-user-id
-OCI_FINGERPRINT=your-key-fingerprint
-OCI_PRIVATE_KEY_PATH=./path/to/your/private-key.pem
-OCI_REGION=us-phoenix-1
-OCI_NAMESPACE=your-namespace
-OCI_BUCKET_NAME=your-bucket-name
-OCI_OBJECT_STORAGE_HOST=https://objectstorage.us-phoenix-1.oraclecloud.com
-
-# Cloudflare R2 (선택)
-R2_ACCOUNT_ID=your-cloudflare-account-id
-R2_ACCESS_KEY_ID=your-r2-access-key-id
-R2_SECRET_ACCESS_KEY=your-r2-secret-access-key
-R2_BUCKET_NAME=your-r2-bucket-name
-R2_PUBLIC_URL=your-public-url
-
-# 세션 관리
-IRON_SESSION_COOKIE_NAME=leemage-session
-IRON_SESSION_PASSWORD=your-32-character-session-password
+```bash
+cp .env.example .env
 ```
 
-</details>
+각 변수에 대한 상세 설명과 설정 방법은 [.env.example](.env.example) 파일을 참조하세요.
 
 ### 비밀번호 해시 생성
 
@@ -264,9 +222,6 @@ npm run test:watch
 ## 기여하기
 
 1. Fork → 브랜치 생성 → 개발 → Pull Request
-2. 커밋 컨벤션: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`
-
-자세한 가이드: [CONTRIBUTING.md](CONTRIBUTING.md) (TBD)
 
 ## 문제 해결
 
@@ -301,11 +256,3 @@ docker compose restart postgres  # 재시작
 [MIT License](LICENSE)
 
 ---
-
-<p align="center">
-  <strong>Leemage</strong>로 파일 관리의 새로운 경험을 시작하세요! 🚀
-</p>
-
-<p align="center">
-  문의: <a href="mailto:dbstndla1212@naver.com">dbstndla1212@naver.com</a>
-</p>
