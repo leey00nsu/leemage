@@ -37,7 +37,15 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/shared/ui/chart";
-import { Bar, BarChart, XAxis, YAxis } from "recharts";
+import {
+  Bar,
+  BarChart,
+  XAxis,
+  YAxis,
+  Area,
+  Line,
+  ComposedChart,
+} from "recharts";
 import { Calendar } from "@/shared/ui/calendar";
 import type { DateRange } from "react-day-picker";
 
@@ -53,6 +61,10 @@ const chartConfig = {
   error: {
     label: "Error",
     color: "hsl(0, 84%, 60%)",
+  },
+  errorRate: {
+    label: "Error Rate",
+    color: "hsl(38, 92%, 50%)",
   },
 } satisfies ChartConfig;
 
@@ -474,28 +486,66 @@ export function ApiLogsDashboard({
                   config={chartConfig}
                   className="h-[200px] w-full"
                 >
-                  <BarChart data={data.byTime} accessibilityLayer>
+                  <ComposedChart
+                    data={data.byTime.map((item) => ({
+                      ...item,
+                      total: item.success + item.error,
+                      errorRate:
+                        item.success + item.error > 0
+                          ? (item.error / (item.success + item.error)) * 100
+                          : 0,
+                    }))}
+                    accessibilityLayer
+                  >
                     <XAxis
                       dataKey="label"
                       tickLine={false}
                       axisLine={false}
                       fontSize={12}
                     />
-                    <YAxis tickLine={false} axisLine={false} fontSize={12} />
+                    <YAxis
+                      yAxisId="left"
+                      tickLine={false}
+                      axisLine={false}
+                      fontSize={12}
+                    />
+                    <YAxis
+                      yAxisId="right"
+                      orientation="right"
+                      tickLine={false}
+                      axisLine={false}
+                      fontSize={12}
+                      domain={[0, 100]}
+                      tickFormatter={(v) => `${v}%`}
+                    />
                     <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar
+                    <Area
+                      yAxisId="left"
+                      type="monotone"
                       dataKey="success"
                       stackId="a"
                       fill="hsl(142, 76%, 36%)"
-                      radius={[0, 0, 0, 0]}
+                      stroke="hsl(142, 76%, 36%)"
+                      fillOpacity={0.4}
                     />
-                    <Bar
+                    <Area
+                      yAxisId="left"
+                      type="monotone"
                       dataKey="error"
                       stackId="a"
                       fill="hsl(0, 84%, 60%)"
-                      radius={[4, 4, 0, 0]}
+                      stroke="hsl(0, 84%, 60%)"
+                      fillOpacity={0.4}
                     />
-                  </BarChart>
+                    <Line
+                      yAxisId="right"
+                      type="monotone"
+                      dataKey="errorRate"
+                      stroke="hsl(38, 92%, 50%)"
+                      strokeWidth={2}
+                      dot={false}
+                    />
+                  </ComposedChart>
                 </ChartContainer>
               </CardContent>
             </Card>
