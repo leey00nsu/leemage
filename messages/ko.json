@@ -543,6 +543,7 @@
     "allProjects": "모든 프로젝트",
     "filterStatus": "상태 코드",
     "filterMethod": "HTTP 메서드",
-    "filterAll": "전체"
+    "filterAll": "전체",
+    "searchPlaceholder": "엔드포인트 검색..."
   }
 }

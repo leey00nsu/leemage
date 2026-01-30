@@ -543,6 +543,7 @@
     "allProjects": "All Projects",
     "filterStatus": "Status Code",
     "filterMethod": "HTTP Method",
-    "filterAll": "All"
+    "filterAll": "All",
+    "searchPlaceholder": "Search endpoint..."
   }
 }

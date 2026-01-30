@@ -34,9 +34,11 @@ import {
   Calendar as CalendarIcon,
   FolderOpen,
   AlertTriangle,
+  Search,
 } from "lucide-react";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { Button } from "@/shared/ui/button";
+import { Input } from "@/shared/ui/input";
 import {
   ChartConfig,
   ChartContainer,
@@ -129,6 +131,9 @@ export function ApiLogsDashboard({
   // HTTP Method 필터
   const [methodFilter, setMethodFilter] = useState<string>("all");
 
+  // 엔드포인트 검색
+  const [searchQuery, setSearchQuery] = useState<string>("");
+
   // 퀵 범위 선택
   const handleQuickRange = (days: number) => {
     const range = createDateRange(days);
@@ -184,9 +189,16 @@ export function ApiLogsDashboard({
       if (methodFilter !== "all" && log.method !== methodFilter) {
         return false;
       }
+      // 엔드포인트 검색
+      if (
+        searchQuery &&
+        !log.endpoint.toLowerCase().includes(searchQuery.toLowerCase())
+      ) {
+        return false;
+      }
       return true;
     });
-  }, [data?.logs, statusFilter, methodFilter]);
+  }, [data?.logs, statusFilter, methodFilter, searchQuery]);
 
   // 사용 가능한 HTTP Methods
   const availableMethods = useMemo(() => {
@@ -331,6 +343,20 @@ export function ApiLogsDashboard({
             ))}
           </div>
         )}
+
+        {/* 엔드포인트 검색 */}
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder={t("searchPlaceholder")}
+              className="pl-8 w-48"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
       </div>
 
       {/* 상단 스택 바 차트 */}
