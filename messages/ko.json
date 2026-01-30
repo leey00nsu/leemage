@@ -528,6 +528,7 @@
     "tabMetrics": "Metrics",
     "totalCalls": "총 호출 수",
     "successRate": "성공률",
+    "errorRate": "에러율",
     "avgResponseTime": "평균 응답 시간",
     "callsOverTime": "시간별 호출 수",
     "callsOverTimeDescription": "최근 30일간 API 호출 현황",

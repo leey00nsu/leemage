@@ -528,6 +528,7 @@
     "tabMetrics": "Metrics",
     "totalCalls": "Total Calls",
     "successRate": "Success Rate",
+    "errorRate": "Error Rate",
     "avgResponseTime": "Avg Response Time",
     "callsOverTime": "Calls Over Time",
     "callsOverTimeDescription": "API call activity over the last 30 days",

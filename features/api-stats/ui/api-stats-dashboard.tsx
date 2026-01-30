@@ -27,6 +27,7 @@ import {
   Clock,
   Calendar as CalendarIcon,
   FolderOpen,
+  AlertTriangle,
 } from "lucide-react";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { Button } from "@/shared/ui/button";
@@ -401,7 +402,7 @@ export function ApiLogsDashboard({
         {/* Metrics 탭 */}
         <TabsContent value="metrics" className="mt-4 space-y-6">
           {/* 요약 통계 카드 */}
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
@@ -421,11 +422,25 @@ export function ApiLogsDashboard({
                 <CardTitle className="text-sm font-medium">
                   {t("successRate")}
                 </CardTitle>
-                <CheckCircle className="h-4 w-4 text-muted-foreground" />
+                <CheckCircle className="h-4 w-4 text-green-500" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
                   {data.summary.successRate.toFixed(1)}%
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  {t("errorRate")}
+                </CardTitle>
+                <AlertTriangle className="h-4 w-4 text-red-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {(100 - data.summary.successRate).toFixed(1)}%
                 </div>
               </CardContent>
             </Card>
