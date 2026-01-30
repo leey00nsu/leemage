@@ -4,6 +4,7 @@
  */
 
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@/lib/generated/prisma";
 
 export interface ApiLogData {
   userId: string;
@@ -12,6 +13,7 @@ export interface ApiLogData {
   method: string;
   statusCode: number;
   durationMs?: number;
+  metadata?: Record<string, unknown>; // 추가 정보 (파일명 등)
 }
 
 /**
@@ -28,6 +30,7 @@ export async function logApiCall(data: ApiLogData): Promise<void> {
         method: data.method,
         statusCode: data.statusCode,
         durationMs: data.durationMs,
+        metadata: data.metadata as Prisma.InputJsonValue | undefined,
       },
     });
   } catch (error) {

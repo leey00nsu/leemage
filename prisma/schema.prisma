@@ -97,6 +97,7 @@ model ApiLog {
   method     String   // HTTP 메서드 (GET, POST, DELETE 등)
   statusCode Int      // 응답 상태 코드 (200, 400, 500 등)
   durationMs Int?     // 응답 시간 (밀리초)
+  metadata   Json?    // 추가 정보 (파일명 등)
   createdAt  DateTime @default(now())
 
   @@index([userId])           // 사용자별 조회

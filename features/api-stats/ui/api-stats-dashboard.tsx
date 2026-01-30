@@ -728,6 +728,36 @@ function LogRow({ log }: { log: LogEntry }) {
                 {log.endpoint}
               </div>
             </div>
+            {(() => {
+              const meta = log.metadata as
+                | Record<string, unknown>
+                | null
+                | undefined;
+              const fileName = meta?.fileName as string | undefined;
+              const fileSize = meta?.fileSize as number | undefined;
+              if (!meta || Object.keys(meta).length === 0) return null;
+              return (
+                <div className="text-sm">
+                  <span className="text-muted-foreground">추가 정보</span>
+                  <div className="mt-1 bg-muted p-2 rounded space-y-1">
+                    {fileName && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">파일명:</span>
+                        <span className="font-medium">{fileName}</span>
+                      </div>
+                    )}
+                    {fileSize !== undefined && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">크기:</span>
+                        <span className="font-medium">
+                          {fileSize.toLocaleString()} bytes
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         </DialogContent>
       </Dialog>

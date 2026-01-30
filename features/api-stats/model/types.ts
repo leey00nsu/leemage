@@ -33,6 +33,7 @@ export interface LogEntry {
   statusCode: number;
   durationMs: number | null;
   createdAt: string;
+  metadata?: Record<string, unknown> | null; // 추가 정보 (파일명 등)
 }
 
 export interface ApiStatsResponse {
