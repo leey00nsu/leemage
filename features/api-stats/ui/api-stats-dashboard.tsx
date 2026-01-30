@@ -15,6 +15,12 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/ui/dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -587,24 +593,65 @@ export function ApiLogsDashboard({
 }
 
 function LogRow({ log }: { log: LogEntry }) {
+  const [open, setOpen] = useState(false);
   const formattedTime = new Date(log.createdAt).toLocaleString();
 
   return (
-    <tr className="border-b hover:bg-muted/50 transition-colors">
-      <td className="p-3">
-        <div className="flex items-center gap-2">
-          <MethodBadge method={log.method} />
-          <span className="font-mono text-sm">{log.endpoint}</span>
-        </div>
-      </td>
-      <td className="p-3 text-muted-foreground">{formattedTime}</td>
-      <td className="p-3 text-muted-foreground">
-        {log.durationMs ? `${log.durationMs}ms` : "-"}
-      </td>
-      <td className="p-3">
-        <StatusBadge statusCode={log.statusCode} />
-      </td>
-    </tr>
+    <>
+      <tr
+        className="border-b hover:bg-muted/50 transition-colors cursor-pointer"
+        onClick={() => setOpen(true)}
+      >
+        <td className="p-3">
+          <div className="flex items-center gap-2">
+            <MethodBadge method={log.method} />
+            <span className="font-mono text-sm">{log.endpoint}</span>
+          </div>
+        </td>
+        <td className="p-3 text-muted-foreground">{formattedTime}</td>
+        <td className="p-3 text-muted-foreground">
+          {log.durationMs ? `${log.durationMs}ms` : "-"}
+        </td>
+        <td className="p-3">
+          <StatusBadge statusCode={log.statusCode} />
+        </td>
+      </tr>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MethodBadge method={log.method} />
+              <span className="font-mono">{log.endpoint}</span>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="text-muted-foreground">Status</span>
+                <div className="mt-1">
+                  <StatusBadge statusCode={log.statusCode} />
+                </div>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Duration</span>
+                <div className="mt-1 font-medium">
+                  {log.durationMs ? `${log.durationMs}ms` : "-"}
+                </div>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Time</span>
+                <div className="mt-1">{formattedTime}</div>
+              </div>
+              <div>
+                <span className="text-muted-foreground">ID</span>
+                <div className="mt-1 font-mono text-xs truncate">{log.id}</div>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
