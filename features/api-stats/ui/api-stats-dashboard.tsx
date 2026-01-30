@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useApiStats } from "../model/use-api-stats";
 import { useGetProjects } from "@/features/projects/list/model/get";
@@ -25,9 +25,7 @@ import {
   Activity,
   CheckCircle,
   Clock,
-  ChevronLeft,
-  ChevronRight,
-  Calendar,
+  Calendar as CalendarIcon,
   FolderOpen,
 } from "lucide-react";
 import { Skeleton } from "@/shared/ui/skeleton";
@@ -39,6 +37,8 @@ import {
   ChartTooltipContent,
 } from "@/shared/ui/chart";
 import { Bar, BarChart, XAxis, YAxis } from "recharts";
+import { Calendar } from "@/shared/ui/calendar";
+import type { DateRange } from "react-day-picker";
 
 interface ApiLogsDashboardProps {
   projectId?: string;
@@ -55,38 +55,30 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-// 월 목록 생성 (최근 12개월)
-function getAvailableMonths(): {
-  year: number;
-  month: number;
-  label: string;
-}[] {
-  const months = [];
+// 날짜 범위 생성 유틸
+function createDateRange(days: number): { from: Date; to: Date } {
   const now = new Date();
-  for (let i = 0; i < 12; i++) {
-    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    months.push({
-      year: date.getFullYear(),
-      month: date.getMonth(),
-      label: date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-      }),
-    });
-  }
-  return months;
+  const to = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    23,
+    59,
+    59,
+  );
+  const from = new Date(to);
+  from.setDate(from.getDate() - days + 1);
+  from.setHours(0, 0, 0, 0);
+  return { from, to };
 }
 
-// 연도별 월 그리드 생성
-function getMonthGrid(year: number) {
-  const months = [];
-  for (let i = 0; i < 12; i++) {
-    months.push({
-      month: i,
-      label: new Date(year, i).toLocaleDateString("en-US", { month: "short" }),
-    });
-  }
-  return months;
+// 날짜 포맷 유틸
+function formatDateLabel(date: Date): string {
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 export function ApiLogsDashboard({
@@ -101,73 +93,45 @@ export function ApiLogsDashboard({
   >(initialProjectId);
   const { data: projects } = useGetProjects();
 
-  // 현재 선택된 월
-  const [selectedYear, setSelectedYear] = useState(() =>
-    new Date().getFullYear()
+  // 날짜 범위 상태
+  const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>(() =>
+    createDateRange(7),
   );
-  const [selectedMonth, setSelectedMonth] = useState(() =>
-    new Date().getMonth()
+  const [selectedQuickRange, setSelectedQuickRange] = useState<number | null>(
+    7,
   );
-  const [calendarYear, setCalendarYear] = useState(() =>
-    new Date().getFullYear()
-  );
+  const [tempRange, setTempRange] = useState<DateRange | undefined>(undefined);
 
-  // 월의 시작/끝 날짜 계산
-  const { startDate, endDate } = useMemo(() => {
-    const start = new Date(selectedYear, selectedMonth, 1);
-    const end = new Date(selectedYear, selectedMonth + 1, 0, 23, 59, 59);
-    return { startDate: start, endDate: end };
-  }, [selectedYear, selectedMonth]);
+  // 퀵 범위 선택
+  const handleQuickRange = (days: number) => {
+    const range = createDateRange(days);
+    setDateRange(range);
+    setSelectedQuickRange(days);
+    setTempRange(undefined);
+  };
+
+  // 커스텀 범위 선택
+  const handleCustomRange = (range: DateRange | undefined) => {
+    setTempRange(range);
+    if (range?.from && range?.to) {
+      const from = new Date(range.from);
+      from.setHours(0, 0, 0, 0);
+      const to = new Date(range.to);
+      to.setHours(23, 59, 59, 999);
+      setDateRange({ from, to });
+      setSelectedQuickRange(null);
+      setCalendarOpen(false);
+    }
+  };
+
+  // 날짜 범위 라벨
+  const dateRangeLabel = `${formatDateLabel(dateRange.from)} - ${formatDateLabel(dateRange.to)}`;
 
   const { data, isLoading, error } = useApiStats(
     selectedProjectId,
-    startDate,
-    endDate
+    dateRange.from,
+    dateRange.to,
   );
-
-  // 월 이동
-  const goToPrevMonth = () => {
-    if (selectedMonth === 0) {
-      setSelectedYear(selectedYear - 1);
-      setSelectedMonth(11);
-    } else {
-      setSelectedMonth(selectedMonth - 1);
-    }
-  };
-
-  const goToNextMonth = () => {
-    const now = new Date();
-    const isCurrentMonth =
-      selectedYear === now.getFullYear() && selectedMonth === now.getMonth();
-    if (isCurrentMonth) return;
-
-    if (selectedMonth === 11) {
-      setSelectedYear(selectedYear + 1);
-      setSelectedMonth(0);
-    } else {
-      setSelectedMonth(selectedMonth + 1);
-    }
-  };
-
-  const selectMonth = (year: number, month: number) => {
-    setSelectedYear(year);
-    setSelectedMonth(month);
-    setCalendarOpen(false);
-  };
-
-  // 현재 월 표시 라벨
-  const currentMonthLabel = new Date(
-    selectedYear,
-    selectedMonth
-  ).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-  });
-
-  const isCurrentMonth =
-    selectedYear === new Date().getFullYear() &&
-    selectedMonth === new Date().getMonth();
-  const monthGrid = getMonthGrid(calendarYear);
 
   if (isLoading) {
     return <ApiLogsSkeleton />;
@@ -210,87 +174,46 @@ export function ApiLogsDashboard({
           </Select>
         </div>
 
-        {/* 월 선택기 */}
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={goToPrevMonth}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
+        {/* 날짜 범위 선택기 */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* 퀵 범위 버튼 */}
+          <div className="flex items-center gap-1">
+            {[7, 30, 90].map((days) => (
+              <Button
+                key={days}
+                variant={selectedQuickRange === days ? "default" : "outline"}
+                size="sm"
+                onClick={() => handleQuickRange(days)}
+              >
+                {days}D
+              </Button>
+            ))}
+          </div>
 
+          {/* 커스텀 범위 선택 */}
           <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
             <PopoverTrigger asChild>
               <Button
-                variant="outline"
-                className="min-w-40 justify-center gap-2"
+                variant={selectedQuickRange === null ? "default" : "outline"}
+                className="min-w-56 justify-start gap-2"
               >
-                <Calendar className="h-4 w-4" />
-                {currentMonthLabel}
+                <CalendarIcon className="h-4 w-4" />
+                {dateRangeLabel}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-64 p-4">
-              {/* 연도 선택 */}
-              <div className="flex items-center justify-between mb-4">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => setCalendarYear(calendarYear - 1)}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <span className="font-medium">{calendarYear}</span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => setCalendarYear(calendarYear + 1)}
-                  disabled={calendarYear >= new Date().getFullYear()}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-
-              {/* 월 그리드 */}
-              <div className="grid grid-cols-3 gap-2">
-                {monthGrid.map((m) => {
-                  const now = new Date();
-                  const isFuture =
-                    calendarYear > now.getFullYear() ||
-                    (calendarYear === now.getFullYear() &&
-                      m.month > now.getMonth());
-                  const isSelected =
-                    calendarYear === selectedYear && m.month === selectedMonth;
-
-                  return (
-                    <Button
-                      key={m.month}
-                      variant={isSelected ? "default" : "ghost"}
-                      size="sm"
-                      className="text-sm"
-                      disabled={isFuture}
-                      onClick={() => selectMonth(calendarYear, m.month)}
-                    >
-                      {m.label}
-                    </Button>
-                  );
-                })}
-              </div>
+            <PopoverContent className="w-auto p-0" align="end">
+              <Calendar
+                mode="range"
+                defaultMonth={dateRange.from}
+                selected={
+                  tempRange ?? { from: dateRange.from, to: dateRange.to }
+                }
+                onSelect={handleCustomRange}
+                numberOfMonths={2}
+                disabled={{ after: new Date() }}
+              />
             </PopoverContent>
           </Popover>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={goToNextMonth}
-            disabled={isCurrentMonth}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
         </div>
       </div>
 
