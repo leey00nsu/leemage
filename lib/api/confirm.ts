@@ -5,15 +5,27 @@ import { fromPrismaStorageProvider } from "@/lib/storage/utils";
 import sharp from "sharp";
 import { Prisma } from "@/lib/generated/prisma";
 import { z } from "zod";
-import { AVAILABLE_FORMATS, AVAILABLE_SIZES } from "@/shared/config/image-options";
+import {
+  AVAILABLE_FORMATS,
+  AVAILABLE_SIZES,
+} from "@/shared/config/image-options";
 import { isImageMimeType, isVideoMimeType } from "@/shared/lib/file-utils";
 import {
   confirmRequestSchema,
   variantOptionSchema,
 } from "@/lib/openapi/schemas/files";
-import { generateThumbnailFromBuffer, getVideoMetadataFromBuffer, VideoMetadata } from "@/lib/video/thumbnail";
+import {
+  generateThumbnailFromBuffer,
+  getVideoMetadataFromBuffer,
+  VideoMetadata,
+} from "@/lib/video/thumbnail";
 import { verifyProjectOwnership } from "@/lib/auth/ownership";
-import { validateFileName, validateContentTypeExtension, validateMagicBytes } from "@/lib/validation/file-validator";
+import {
+  validateFileName,
+  validateContentTypeExtension,
+  validateMagicBytes,
+} from "@/lib/validation/file-validator";
+import { logApiCall } from "@/lib/api/api-logger";
 
 export type ConfirmRequest = z.infer<typeof confirmRequestSchema>;
 
@@ -39,7 +51,7 @@ async function processImageVariants(
   fileId: string,
   requestedVariants: VariantOption[],
   storageAdapter: StorageAdapter,
-  originalFormat: string
+  originalFormat: string,
 ): Promise<ImageVariantData[]> {
   const originalMetadata = await sharp(originalBuffer).metadata();
 
@@ -55,7 +67,6 @@ async function processImageVariants(
   const allVariantData: ImageVariantData[] = [];
   const processingPromises: Promise<void>[] = [];
 
-
   requestedVariants.forEach((variantOption) => {
     processingPromises.push(
       (async () => {
@@ -63,7 +74,9 @@ async function processImageVariants(
 
         // source 크기 + 원본 포맷 조합은 건너뛰기 (source로 이미 제공됨)
         if (sizeLabel === "source" && reqFormat === originalFormat) {
-          console.log(`Skipping duplicate variant: ${sizeLabel}-${reqFormat} (same as source)`);
+          console.log(
+            `Skipping duplicate variant: ${sizeLabel}-${reqFormat} (same as source)`,
+          );
           return;
         }
 
@@ -87,17 +100,23 @@ async function processImageVariants(
               const formatOptions = { quality: 80 };
               switch (reqFormat) {
                 case "jpeg":
-                  bufferToUpload = await pipeline.jpeg(formatOptions).toBuffer();
+                  bufferToUpload = await pipeline
+                    .jpeg(formatOptions)
+                    .toBuffer();
                   break;
                 case "png":
                   bufferToUpload = await pipeline.png().toBuffer();
                   break;
                 case "avif":
-                  bufferToUpload = await pipeline.avif({ quality: 50 }).toBuffer();
+                  bufferToUpload = await pipeline
+                    .avif({ quality: 50 })
+                    .toBuffer();
                   break;
                 case "webp":
                 default:
-                  bufferToUpload = await pipeline.webp(formatOptions).toBuffer();
+                  bufferToUpload = await pipeline
+                    .webp(formatOptions)
+                    .toBuffer();
                   break;
               }
               finalFormat = reqFormat;
@@ -106,7 +125,11 @@ async function processImageVariants(
             }
 
             const objectName = `${projectId}/${fileId}-${variantLabel}.${finalFormat}`;
-            const url = await storageAdapter.uploadObject(objectName, bufferToUpload, finalMimeType);
+            const url = await storageAdapter.uploadObject(
+              objectName,
+              bufferToUpload,
+              finalMimeType,
+            );
 
             allVariantData.push({
               url,
@@ -144,7 +167,9 @@ async function processImageVariants(
                 processedBuffer = await pipeline.png().toBuffer();
                 break;
               case "avif":
-                processedBuffer = await pipeline.avif({ quality: 50 }).toBuffer();
+                processedBuffer = await pipeline
+                  .avif({ quality: 50 })
+                  .toBuffer();
                 break;
               case "webp":
               default:
@@ -165,7 +190,7 @@ async function processImageVariants(
             const url = await storageAdapter.uploadObject(
               objectName,
               processedBuffer,
-              variantMimeType
+              variantMimeType,
             );
 
             allVariantData.push({
@@ -178,10 +203,13 @@ async function processImageVariants(
             });
           }
         } catch (error) {
-          console.error(`Error processing variant ${sizeLabel}-${reqFormat}:`, error);
+          console.error(
+            `Error processing variant ${sizeLabel}-${reqFormat}:`,
+            error,
+          );
           throw error;
         }
-      })()
+      })(),
     );
   });
 
@@ -197,11 +225,11 @@ async function processVideoThumbnail(
   mimeType: string,
   projectId: string,
   fileId: string,
-  storageAdapter: StorageAdapter
+  storageAdapter: StorageAdapter,
 ): Promise<ImageVariantData | null> {
   try {
     console.log(`Generating thumbnail for video: ${fileId}`);
-    
+
     const result = await generateThumbnailFromBuffer(originalBuffer, mimeType, {
       maxDimension: 800,
       format: "jpeg",
@@ -216,13 +244,13 @@ async function processVideoThumbnail(
 
     // 썸네일 메타데이터 가져오기
     const thumbnailMetadata = await sharp(result.buffer).metadata();
-    
+
     // 스토리지에 썸네일 업로드
     const objectName = `${projectId}/${fileId}-thumbnail.jpg`;
     const url = await storageAdapter.uploadObject(
       objectName,
       result.buffer,
-      "image/jpeg"
+      "image/jpeg",
     );
 
     return {
@@ -246,12 +274,12 @@ async function processVideoThumbnail(
 export async function confirmHandler(
   request: NextRequest,
   projectId: string,
-  userId: string
+  userId: string,
 ): Promise<NextResponse> {
   if (!projectId) {
     return NextResponse.json(
       { message: "Project ID가 필요합니다." },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -260,7 +288,7 @@ export async function confirmHandler(
   if (!ownershipResult.authorized) {
     return NextResponse.json(
       { message: "리소스를 찾을 수 없습니다." },
-      { status: 404 }
+      { status: 404 },
     );
   }
 
@@ -274,7 +302,7 @@ export async function confirmHandler(
     if (!project) {
       return NextResponse.json(
         { message: "프로젝트를 찾을 수 없습니다." },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -288,7 +316,7 @@ export async function confirmHandler(
           message: "잘못된 요청 형식입니다.",
           errors: parseResult.error.flatten(),
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -299,8 +327,11 @@ export async function confirmHandler(
     const fileNameValidation = validateFileName(fileName);
     if (!fileNameValidation.valid) {
       return NextResponse.json(
-        { message: fileNameValidation.errors[0] || "유효하지 않은 파일명입니다." },
-        { status: 400 }
+        {
+          message:
+            fileNameValidation.errors[0] || "유효하지 않은 파일명입니다.",
+        },
+        { status: 400 },
       );
     }
 
@@ -308,7 +339,7 @@ export async function confirmHandler(
     if (!validateContentTypeExtension(contentType, fileName)) {
       return NextResponse.json(
         { message: "파일 형식이 확장자와 일치하지 않습니다." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -324,7 +355,7 @@ export async function confirmHandler(
     if (!pendingFile) {
       return NextResponse.json(
         { message: "유효하지 않은 파일 ID이거나 이미 처리된 파일입니다." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -349,7 +380,7 @@ export async function confirmHandler(
         await storageAdapter.deleteObject(objectName).catch(() => {});
         return NextResponse.json(
           { message: "파일 내용이 선언된 형식과 일치하지 않습니다." },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -360,7 +391,7 @@ export async function confirmHandler(
       const originalFormat = contentType.split("/")[1] || "jpeg";
 
       console.log(
-        `Processing ${variants.length} variants for image: ${fileName}`
+        `Processing ${variants.length} variants for image: ${fileName}`,
       );
       const processedVariants = await processImageVariants(
         originalBuffer,
@@ -368,11 +399,11 @@ export async function confirmHandler(
         fileId,
         variants,
         storageAdapter,
-        originalFormat
+        originalFormat,
       );
       // 원본 해상도를 label로 사용 (예: 3024x4032)
       const sourceLabel = `${originalMetadata.width || 0}x${originalMetadata.height || 0}`;
-      
+
       const allVariants: ImageVariantData[] = [
         {
           url: objectUrl,
@@ -399,26 +430,45 @@ export async function confirmHandler(
         },
       });
 
+      // 파일 업로드 완료 로그 기록 (파일명, 크기 포함)
+      logApiCall({
+        userId,
+        projectId,
+        endpoint: `/api/projects/${projectId}/files/confirm`,
+        method: "POST",
+        statusCode: 201,
+        metadata: {
+          fileName,
+          fileSize,
+          contentType,
+          fileType: "image",
+          variantCount: allVariants.length,
+        },
+      }).catch(() => {});
+
       return NextResponse.json(
         {
           message: "이미지 업로드 및 처리 완료",
           file: savedFile,
           variants: allVariants,
         },
-        { status: 201 }
+        { status: 201 },
       );
     } else if (isVideoMimeType(contentType)) {
       // 비디오 파일: 메타데이터 추출 및 썸네일 생성 시도 (실패해도 업로드는 완료)
       let thumbnail: ImageVariantData | null = null;
       let videoMetadata: VideoMetadata | null = null;
-      
+
       try {
         console.log(`Downloading video from storage: ${objectName}`);
         const originalBuffer = await storageAdapter.downloadObject(objectName);
 
         // 비디오 메타데이터 추출 (해상도)
         console.log(`Extracting metadata for video: ${fileName}`);
-        videoMetadata = await getVideoMetadataFromBuffer(originalBuffer, contentType);
+        videoMetadata = await getVideoMetadataFromBuffer(
+          originalBuffer,
+          contentType,
+        );
 
         // 썸네일 생성
         console.log(`Processing thumbnail for video: ${fileName}`);
@@ -427,7 +477,7 @@ export async function confirmHandler(
           contentType,
           projectId,
           fileId,
-          storageAdapter
+          storageAdapter,
         );
       } catch (thumbnailError) {
         console.warn(`Video processing skipped: ${thumbnailError}`);
@@ -436,7 +486,7 @@ export async function confirmHandler(
 
       // 비디오 원본 정보를 variants에 추가 (해상도 포함)
       const videoVariants: ImageVariantData[] = [];
-      
+
       // 원본 비디오 정보 추가 (해상도를 label로 사용)
       if (videoMetadata) {
         const sourceLabel = `${videoMetadata.width}x${videoMetadata.height}`;
@@ -449,7 +499,7 @@ export async function confirmHandler(
           label: sourceLabel,
         });
       }
-      
+
       // 썸네일 추가
       if (thumbnail) {
         videoVariants.push(thumbnail);
@@ -469,6 +519,22 @@ export async function confirmHandler(
         },
       });
 
+      // 비디오 업로드 완료 로그 기록
+      logApiCall({
+        userId,
+        projectId,
+        endpoint: `/api/projects/${projectId}/files/confirm`,
+        method: "POST",
+        statusCode: 201,
+        metadata: {
+          fileName,
+          fileSize,
+          contentType,
+          fileType: "video",
+          hasThumbnail: thumbnail !== null,
+        },
+      }).catch(() => {});
+
       return NextResponse.json(
         {
           message: thumbnail
@@ -477,7 +543,7 @@ export async function confirmHandler(
           file: savedFile,
           variants: videoVariants,
         },
-        { status: 201 }
+        { status: 201 },
       );
     } else {
       // 기타 파일: pending 레코드를 completed로 업데이트
@@ -495,12 +561,27 @@ export async function confirmHandler(
         },
       });
 
+      // 기타 파일 업로드 완료 로그 기록
+      logApiCall({
+        userId,
+        projectId,
+        endpoint: `/api/projects/${projectId}/files/confirm`,
+        method: "POST",
+        statusCode: 201,
+        metadata: {
+          fileName,
+          fileSize,
+          contentType,
+          fileType: "other",
+        },
+      }).catch(() => {});
+
       return NextResponse.json(
         {
           message: "파일 업로드 완료",
           file: savedFile,
         },
-        { status: 201 }
+        { status: 201 },
       );
     }
   } catch (error) {
@@ -510,13 +591,13 @@ export async function confirmHandler(
     if (error instanceof Error && error.message.includes("다운로드")) {
       return NextResponse.json(
         { message: "업로드된 파일을 찾을 수 없습니다." },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     return NextResponse.json(
       { message: "파일 처리 중 오류가 발생했습니다." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

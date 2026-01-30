@@ -11,8 +11,12 @@ import {
 } from "@/shared/lib/file-utils";
 import { presignRequestSchema } from "@/lib/openapi/schemas/files";
 import { verifyProjectOwnership } from "@/lib/auth/ownership";
-import { validateFileName, validateContentTypeExtension } from "@/lib/validation/file-validator";
+import {
+  validateFileName,
+  validateContentTypeExtension,
+} from "@/lib/validation/file-validator";
 import { checkStorageQuotaOptimized } from "@/lib/api/storage-quota";
+import { logApiCall } from "@/lib/api/api-logger";
 
 export type PresignRequest = z.infer<typeof presignRequestSchema>;
 
@@ -32,14 +36,14 @@ export interface PresignResponse {
 export async function presignHandler(
   request: NextRequest,
   projectId: string,
-  userId: string
+  userId: string,
 ): Promise<
   NextResponse<PresignResponse | { message: string; errors?: unknown }>
 > {
   if (!projectId) {
     return NextResponse.json(
       { message: "Project ID가 필요합니다." },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -48,7 +52,7 @@ export async function presignHandler(
   if (!ownershipResult.authorized) {
     return NextResponse.json(
       { message: "리소스를 찾을 수 없습니다." },
-      { status: 404 }
+      { status: 404 },
     );
   }
 
@@ -62,7 +66,7 @@ export async function presignHandler(
     if (!project) {
       return NextResponse.json(
         { message: "프로젝트를 찾을 수 없습니다." },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -76,7 +80,7 @@ export async function presignHandler(
           message: "잘못된 요청 형식입니다.",
           errors: parseResult.error.flatten(),
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -86,8 +90,11 @@ export async function presignHandler(
     const fileNameValidation = validateFileName(fileName);
     if (!fileNameValidation.valid) {
       return NextResponse.json(
-        { message: fileNameValidation.errors[0] || "유효하지 않은 파일명입니다." },
-        { status: 400 }
+        {
+          message:
+            fileNameValidation.errors[0] || "유효하지 않은 파일명입니다.",
+        },
+        { status: 400 },
       );
     }
 
@@ -95,7 +102,7 @@ export async function presignHandler(
     if (!validateContentTypeExtension(contentType, fileName)) {
       return NextResponse.json(
         { message: "파일 형식이 확장자와 일치하지 않습니다." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -103,14 +110,14 @@ export async function presignHandler(
     if (fileSize > DEFAULT_MAX_FILE_SIZE) {
       return NextResponse.json(
         { message: "파일 크기가 제한(50MB)을 초과했습니다." },
-        { status: 413 }
+        { status: 413 },
       );
     }
 
     // 스토리지 한도 체크 (최적화된 버전 사용)
     const quotaCheckResult = await checkStorageQuotaOptimized(
       project.storageProvider,
-      fileSize
+      fileSize,
     );
     if (!quotaCheckResult.allowed) {
       return NextResponse.json(
@@ -119,7 +126,7 @@ export async function presignHandler(
           code: "QUOTA_EXCEEDED",
           remaining: quotaCheckResult.remaining,
         },
-        { status: 413 }
+        { status: 413 },
       );
     }
 
@@ -163,12 +170,28 @@ export async function presignHandler(
       expiresAt: parResult.expiresAt.toISOString(),
     };
 
+    // 파일 업로드 로그 기록 (파일명, 크기 포함)
+    logApiCall({
+      userId,
+      projectId,
+      endpoint: `/api/projects/${projectId}/files/presign`,
+      method: "POST",
+      statusCode: 200,
+      metadata: {
+        fileName,
+        fileSize,
+        contentType,
+      },
+    }).catch(() => {
+      // 로깅 실패는 무시
+    });
+
     return NextResponse.json(response, { status: 200 });
   } catch (error) {
     console.error("Presign API error:", error);
     return NextResponse.json(
       { message: "업로드 URL 생성에 실패했습니다." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
