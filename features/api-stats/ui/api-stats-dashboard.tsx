@@ -102,6 +102,56 @@ function formatDateLabel(date: Date): string {
   });
 }
 
+// 엔드포인트를 가독성 있게 변환
+function formatEndpoint(endpoint: string, method: string): string {
+  // projectId 추출
+  const projectMatch = endpoint.match(/\/projects\/([^/]+)/);
+  const projectId = projectMatch ? projectMatch[1].slice(0, 8) : null;
+
+  // 엔드포인트 패턴 매핑
+  if (endpoint.includes("/files/presign")) {
+    return `${projectId} 파일 업로드 준비`;
+  }
+  if (endpoint.includes("/files/confirm")) {
+    return `${projectId} 파일 업로드 완료`;
+  }
+  if (endpoint.match(/\/files\/[^/]+\/download/)) {
+    return `${projectId} 파일 다운로드`;
+  }
+  if (endpoint.match(/\/files\/[^/]+$/)) {
+    return method === "DELETE"
+      ? `${projectId} 파일 삭제`
+      : `${projectId} 파일 조회`;
+  }
+  if (endpoint.match(/\/projects\/[^/]+$/)) {
+    if (method === "GET") return `${projectId} 프로젝트 조회`;
+    if (method === "PUT" || method === "PATCH")
+      return `${projectId} 프로젝트 수정`;
+    if (method === "DELETE") return `${projectId} 프로젝트 삭제`;
+  }
+  if (
+    endpoint.match(/\/api\/projects\/?$/) ||
+    endpoint.match(/\/api\/v1\/projects\/?$/)
+  ) {
+    return method === "POST" ? "새 프로젝트 생성" : "프로젝트 목록 조회";
+  }
+  if (endpoint.includes("/storage/usage")) {
+    return "스토리지 사용량 조회";
+  }
+  if (endpoint.includes("/storage/quota")) {
+    return "스토리지 할당량 조회";
+  }
+  if (endpoint.includes("/stats")) {
+    return "API 통계 조회";
+  }
+
+  // 기본: 축약된 경로 표시
+  return (
+    endpoint.replace(/\/api\/(v1\/)?/, "").slice(0, 30) +
+    (endpoint.length > 30 ? "..." : "")
+  );
+}
+
 export function ApiLogsDashboard({
   projectId: initialProjectId,
 }: ApiLogsDashboardProps) {
@@ -123,10 +173,10 @@ export function ApiLogsDashboard({
   );
   const [tempRange, setTempRange] = useState<DateRange | undefined>(undefined);
 
-  // 상태 코드 필터: all | success | clientError | serverError
-  const [statusFilter, setStatusFilter] = useState<
-    "all" | "success" | "clientError" | "serverError"
-  >("all");
+  // 상태 필터: all | success | error
+  const [statusFilter, setStatusFilter] = useState<"all" | "success" | "error">(
+    "all",
+  );
 
   // HTTP Method 필터
   const [methodFilter, setMethodFilter] = useState<string>("all");
@@ -169,7 +219,7 @@ export function ApiLogsDashboard({
   const filteredLogs = useMemo(() => {
     if (!data?.logs) return [];
     return data.logs.filter((log) => {
-      // 상태 코드 필터
+      // 상태 필터 (성공: 2xx, 실패: 4xx/5xx)
       if (
         statusFilter === "success" &&
         (log.statusCode < 200 || log.statusCode >= 400)
@@ -177,12 +227,10 @@ export function ApiLogsDashboard({
         return false;
       }
       if (
-        statusFilter === "clientError" &&
-        (log.statusCode < 400 || log.statusCode >= 500)
+        statusFilter === "error" &&
+        log.statusCode >= 200 &&
+        log.statusCode < 400
       ) {
-        return false;
-      }
-      if (statusFilter === "serverError" && log.statusCode < 500) {
         return false;
       }
       // HTTP Method 필터
@@ -200,11 +248,11 @@ export function ApiLogsDashboard({
     });
   }, [data?.logs, statusFilter, methodFilter, searchQuery]);
 
-  // 사용 가능한 HTTP Methods
+  // HTTP Methods (고정 목록 + 사용 가능 여부)
+  const allMethods = ["GET", "POST", "PUT", "DELETE", "PATCH"] as const;
   const availableMethods = useMemo(() => {
-    if (!data?.logs) return [];
-    const methods = new Set(data.logs.map((log) => log.method));
-    return Array.from(methods).sort();
+    if (!data?.logs) return new Set<string>();
+    return new Set(data.logs.map((log) => log.method));
   }, [data?.logs]);
 
   if (isLoading) {
@@ -293,56 +341,55 @@ export function ApiLogsDashboard({
 
       {/* 필터 버튼 */}
       <div className="flex flex-wrap items-center gap-4">
-        {/* 상태 코드 필터 */}
+        {/* 상태 필터 */}
         <div className="flex items-center gap-1">
           <span className="text-sm text-muted-foreground mr-1">
             {t("filterStatus")}:
           </span>
-          {(["all", "success", "clientError", "serverError"] as const).map(
-            (status) => (
-              <Button
-                key={status}
-                variant={statusFilter === status ? "default" : "outline"}
-                size="sm"
-                onClick={() => setStatusFilter(status)}
-              >
-                {status === "all"
-                  ? t("filterAll")
-                  : status === "success"
-                    ? "2xx"
-                    : status === "clientError"
-                      ? "4xx"
-                      : "5xx"}
-              </Button>
-            ),
-          )}
+          {(["all", "success", "error"] as const).map((status) => (
+            <Button
+              key={status}
+              variant={statusFilter === status ? "default" : "outline"}
+              size="sm"
+              onClick={() => setStatusFilter(status)}
+            >
+              {status === "all"
+                ? t("filterAll")
+                : status === "success"
+                  ? t("filterSuccess")
+                  : t("filterError")}
+            </Button>
+          ))}
         </div>
 
         {/* HTTP Method 필터 */}
-        {availableMethods.length > 0 && (
-          <div className="flex items-center gap-1">
-            <span className="text-sm text-muted-foreground mr-1">
-              {t("filterMethod")}:
-            </span>
-            <Button
-              variant={methodFilter === "all" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setMethodFilter("all")}
-            >
-              {t("filterAll")}
-            </Button>
-            {availableMethods.map((method) => (
+        <div className="flex items-center gap-1">
+          <span className="text-sm text-muted-foreground mr-1">
+            {t("filterMethod")}:
+          </span>
+          <Button
+            variant={methodFilter === "all" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setMethodFilter("all")}
+          >
+            {t("filterAll")}
+          </Button>
+          {allMethods.map((method) => {
+            const isAvailable = availableMethods.has(method);
+            return (
               <Button
                 key={method}
                 variant={methodFilter === method ? "default" : "outline"}
                 size="sm"
                 onClick={() => setMethodFilter(method)}
+                className={!isAvailable ? "opacity-50" : ""}
               >
                 {method}
+                {!isAvailable && <span className="ml-1 text-xs">(0)</span>}
               </Button>
-            ))}
-          </div>
-        )}
+            );
+          })}
+        </div>
 
         {/* 엔드포인트 검색 */}
         <div className="flex items-center gap-2">
@@ -621,6 +668,7 @@ export function ApiLogsDashboard({
 function LogRow({ log }: { log: LogEntry }) {
   const [open, setOpen] = useState(false);
   const formattedTime = new Date(log.createdAt).toLocaleString();
+  const displayEndpoint = formatEndpoint(log.endpoint, log.method);
 
   return (
     <>
@@ -631,7 +679,7 @@ function LogRow({ log }: { log: LogEntry }) {
         <td className="p-3">
           <div className="flex items-center gap-2">
             <MethodBadge method={log.method} />
-            <span className="font-mono text-sm">{log.endpoint}</span>
+            <span className="text-sm">{displayEndpoint}</span>
           </div>
         </td>
         <td className="p-3 text-muted-foreground">{formattedTime}</td>
@@ -648,7 +696,7 @@ function LogRow({ log }: { log: LogEntry }) {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <MethodBadge method={log.method} />
-              <span className="font-mono">{log.endpoint}</span>
+              <span>{displayEndpoint}</span>
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
@@ -671,7 +719,13 @@ function LogRow({ log }: { log: LogEntry }) {
               </div>
               <div>
                 <span className="text-muted-foreground">ID</span>
-                <div className="mt-1 font-mono text-xs truncate">{log.id}</div>
+                <div className="mt-1 font-mono text-xs break-all">{log.id}</div>
+              </div>
+            </div>
+            <div className="text-sm">
+              <span className="text-muted-foreground">Full Endpoint</span>
+              <div className="mt-1 font-mono text-xs break-all bg-muted p-2 rounded">
+                {log.endpoint}
               </div>
             </div>
           </div>

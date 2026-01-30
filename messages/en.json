@@ -544,6 +544,8 @@
     "filterStatus": "Status Code",
     "filterMethod": "HTTP Method",
     "filterAll": "All",
-    "searchPlaceholder": "Search endpoint..."
+    "searchPlaceholder": "Search endpoint...",
+    "filterSuccess": "Success",
+    "filterError": "Error"
   }
 }
