@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useApiStats } from "../model/use-api-stats";
 import { useGetProjects } from "@/features/projects/list/model/get";
@@ -102,6 +102,14 @@ export function ApiLogsDashboard({
   );
   const [tempRange, setTempRange] = useState<DateRange | undefined>(undefined);
 
+  // 상태 코드 필터: all | success | clientError | serverError
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "success" | "clientError" | "serverError"
+  >("all");
+
+  // HTTP Method 필터
+  const [methodFilter, setMethodFilter] = useState<string>("all");
+
   // 퀵 범위 선택
   const handleQuickRange = (days: number) => {
     const range = createDateRange(days);
@@ -132,6 +140,41 @@ export function ApiLogsDashboard({
     dateRange.from,
     dateRange.to,
   );
+
+  // 필터링된 로그
+  const filteredLogs = useMemo(() => {
+    if (!data?.logs) return [];
+    return data.logs.filter((log) => {
+      // 상태 코드 필터
+      if (
+        statusFilter === "success" &&
+        (log.statusCode < 200 || log.statusCode >= 400)
+      ) {
+        return false;
+      }
+      if (
+        statusFilter === "clientError" &&
+        (log.statusCode < 400 || log.statusCode >= 500)
+      ) {
+        return false;
+      }
+      if (statusFilter === "serverError" && log.statusCode < 500) {
+        return false;
+      }
+      // HTTP Method 필터
+      if (methodFilter !== "all" && log.method !== methodFilter) {
+        return false;
+      }
+      return true;
+    });
+  }, [data?.logs, statusFilter, methodFilter]);
+
+  // 사용 가능한 HTTP Methods
+  const availableMethods = useMemo(() => {
+    if (!data?.logs) return [];
+    const methods = new Set(data.logs.map((log) => log.method));
+    return Array.from(methods).sort();
+  }, [data?.logs]);
 
   if (isLoading) {
     return <ApiLogsSkeleton />;
@@ -217,6 +260,60 @@ export function ApiLogsDashboard({
         </div>
       </div>
 
+      {/* 필터 버튼 */}
+      <div className="flex flex-wrap items-center gap-4">
+        {/* 상태 코드 필터 */}
+        <div className="flex items-center gap-1">
+          <span className="text-sm text-muted-foreground mr-1">
+            {t("filterStatus")}:
+          </span>
+          {(["all", "success", "clientError", "serverError"] as const).map(
+            (status) => (
+              <Button
+                key={status}
+                variant={statusFilter === status ? "default" : "outline"}
+                size="sm"
+                onClick={() => setStatusFilter(status)}
+              >
+                {status === "all"
+                  ? t("filterAll")
+                  : status === "success"
+                    ? "2xx"
+                    : status === "clientError"
+                      ? "4xx"
+                      : "5xx"}
+              </Button>
+            ),
+          )}
+        </div>
+
+        {/* HTTP Method 필터 */}
+        {availableMethods.length > 0 && (
+          <div className="flex items-center gap-1">
+            <span className="text-sm text-muted-foreground mr-1">
+              {t("filterMethod")}:
+            </span>
+            <Button
+              variant={methodFilter === "all" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setMethodFilter("all")}
+            >
+              {t("filterAll")}
+            </Button>
+            {availableMethods.map((method) => (
+              <Button
+                key={method}
+                variant={methodFilter === method ? "default" : "outline"}
+                size="sm"
+                onClick={() => setMethodFilter(method)}
+              >
+                {method}
+              </Button>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* 상단 스택 바 차트 */}
       <Card>
         <CardContent className="pt-4 pb-2">
@@ -266,7 +363,7 @@ export function ApiLogsDashboard({
         <TabsContent value="api-calls" className="mt-4">
           <Card>
             <CardContent className="p-0">
-              {data.logs.length === 0 ? (
+              {filteredLogs.length === 0 ? (
                 <p className="text-center text-muted-foreground py-10">
                   {t("noData")}
                 </p>
@@ -290,7 +387,7 @@ export function ApiLogsDashboard({
                       </tr>
                     </thead>
                     <tbody>
-                      {data.logs.map((log) => (
+                      {filteredLogs.map((log) => (
                         <LogRow key={log.id} log={log} />
                       ))}
                     </tbody>

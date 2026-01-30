@@ -539,6 +539,9 @@
     "tableTime": "Time",
     "tableDuration": "Duration",
     "tableStatus": "Status",
-    "allProjects": "All Projects"
+    "allProjects": "All Projects",
+    "filterStatus": "Status Code",
+    "filterMethod": "HTTP Method",
+    "filterAll": "All"
   }
 }

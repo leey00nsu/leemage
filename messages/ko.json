@@ -539,6 +539,9 @@
     "tableTime": "시간",
     "tableDuration": "실행 시간",
     "tableStatus": "상태",
-    "allProjects": "모든 프로젝트"
+    "allProjects": "모든 프로젝트",
+    "filterStatus": "상태 코드",
+    "filterMethod": "HTTP 메서드",
+    "filterAll": "전체"
   }
 }
