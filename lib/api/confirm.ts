@@ -430,7 +430,13 @@ export async function confirmHandler(
         },
       });
 
-      // 파일 업로드 완료 로그 기록 (파일명, 크기 포함)
+      // 가장 작은 이미지를 썸네일로 선택
+      const thumbnailVariant = allVariants.reduce(
+        (smallest, v) => (v.size < smallest.size ? v : smallest),
+        allVariants[0],
+      );
+
+      // 파일 업로드 완료 로그 기록 (파일명, 크기, 썸네일 포함)
       logApiCall({
         userId,
         projectId,
@@ -443,6 +449,7 @@ export async function confirmHandler(
           contentType,
           fileType: "image",
           variantCount: allVariants.length,
+          thumbnailUrl: thumbnailVariant.url,
         },
       }).catch(() => {});
 
@@ -519,7 +526,7 @@ export async function confirmHandler(
         },
       });
 
-      // 비디오 업로드 완료 로그 기록
+      // 비디오 업로드 완료 로그 기록 (썸네일 URL 포함)
       logApiCall({
         userId,
         projectId,
@@ -532,6 +539,7 @@ export async function confirmHandler(
           contentType,
           fileType: "video",
           hasThumbnail: thumbnail !== null,
+          thumbnailUrl: thumbnail?.url,
         },
       }).catch(() => {});
 

@@ -756,11 +756,21 @@ function LogRow({ log }: { log: LogEntry }) {
                 | undefined;
               const fileName = meta?.fileName as string | undefined;
               const fileSize = meta?.fileSize as number | undefined;
+              const thumbnailUrl = meta?.thumbnailUrl as string | undefined;
               if (!meta || Object.keys(meta).length === 0) return null;
               return (
                 <div className="text-sm">
                   <span className="text-muted-foreground">추가 정보</span>
-                  <div className="mt-1 bg-muted p-2 rounded space-y-1">
+                  <div className="mt-1 bg-muted p-2 rounded space-y-2">
+                    {thumbnailUrl && (
+                      <div className="flex justify-center">
+                        <img
+                          src={thumbnailUrl}
+                          alt={fileName || "미리보기"}
+                          className="max-h-32 rounded object-contain"
+                        />
+                      </div>
+                    )}
                     {fileName && (
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">파일명:</span>
