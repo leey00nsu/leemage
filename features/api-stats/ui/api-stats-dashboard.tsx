@@ -56,6 +56,7 @@ import {
 } from "recharts";
 import { Calendar } from "@/shared/ui/calendar";
 import type { DateRange } from "react-day-picker";
+import { formatBytes } from "@/shared/lib/format-bytes";
 
 interface ApiLogsDashboardProps {
   projectId?: string;
@@ -102,25 +103,41 @@ function formatDateLabel(date: Date): string {
   });
 }
 
-// 엔드포인트를 가독성 있게 변환
-function formatEndpoint(endpoint: string, method: string): string {
+// 엔드포인트를 가독성 있게 변환 (metadata가 있으면 파일명 포함)
+function formatEndpoint(
+  endpoint: string,
+  method: string,
+  metadata?: Record<string, unknown> | null,
+): string {
   // projectId 추출
   const projectMatch = endpoint.match(/\/projects\/([^/]+)/);
   const projectId = projectMatch ? projectMatch[1].slice(0, 8) : null;
+  const fileName = metadata?.fileName as string | undefined;
 
   // 엔드포인트 패턴 매핑
   if (endpoint.includes("/files/presign")) {
-    return `${projectId} 파일 업로드 준비`;
+    return fileName
+      ? `${projectId}에 ${fileName} 업로드 준비`
+      : `${projectId} 파일 업로드 준비`;
   }
   if (endpoint.includes("/files/confirm")) {
-    return `${projectId} 파일 업로드 완료`;
+    return fileName
+      ? `${projectId}에 ${fileName} 업로드 완료`
+      : `${projectId} 파일 업로드 완료`;
   }
   if (endpoint.match(/\/files\/[^/]+\/download/)) {
-    return `${projectId} 파일 다운로드`;
+    return fileName
+      ? `${projectId}에서 ${fileName} 다운로드`
+      : `${projectId} 파일 다운로드`;
   }
   if (endpoint.match(/\/files\/[^/]+$/)) {
-    return method === "DELETE"
-      ? `${projectId} 파일 삭제`
+    if (method === "DELETE") {
+      return fileName
+        ? `${projectId}에서 ${fileName} 삭제`
+        : `${projectId} 파일 삭제`;
+    }
+    return fileName
+      ? `${projectId}에서 ${fileName} 조회`
       : `${projectId} 파일 조회`;
   }
   if (endpoint.match(/\/projects\/[^/]+$/)) {
@@ -465,7 +482,7 @@ export function ApiLogsDashboard({
                     <thead>
                       <tr className="border-b bg-muted/50">
                         <th className="text-left p-3 font-medium">
-                          {t("tableEndpoint")}
+                          {t("tableDescription")}
                         </th>
                         <th className="text-left p-3 font-medium">
                           {t("tableTime")}
@@ -668,7 +685,11 @@ export function ApiLogsDashboard({
 function LogRow({ log }: { log: LogEntry }) {
   const [open, setOpen] = useState(false);
   const formattedTime = new Date(log.createdAt).toLocaleString();
-  const displayEndpoint = formatEndpoint(log.endpoint, log.method);
+  const displayEndpoint = formatEndpoint(
+    log.endpoint,
+    log.method,
+    log.metadata,
+  );
 
   return (
     <>
@@ -750,7 +771,7 @@ function LogRow({ log }: { log: LogEntry }) {
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">크기:</span>
                         <span className="font-medium">
-                          {fileSize.toLocaleString()} bytes
+                          {formatBytes(fileSize)}
                         </span>
                       </div>
                     )}

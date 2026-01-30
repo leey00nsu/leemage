@@ -536,7 +536,7 @@
     "byEndpointDescription": "가장 많이 호출된 API 엔드포인트",
     "noData": "아직 API 호출 기록이 없습니다.",
     "error": "로그를 불러오는데 실패했습니다.",
-    "tableEndpoint": "엔드포인트",
+    "tableDescription": "설명",
     "tableTime": "시간",
     "tableDuration": "실행 시간",
     "tableStatus": "상태",

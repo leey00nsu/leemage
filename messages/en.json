@@ -536,7 +536,7 @@
     "byEndpointDescription": "Most frequently called API endpoints",
     "noData": "No API call records yet.",
     "error": "Failed to load logs.",
-    "tableEndpoint": "Endpoint",
+    "tableDescription": "Description",
     "tableTime": "Time",
     "tableDuration": "Duration",
     "tableStatus": "Status",
