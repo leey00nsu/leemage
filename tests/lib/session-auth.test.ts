@@ -1,15 +1,3 @@
-/**
- * Session Authentication Unit & Property Tests
- * 
- * **Feature: security-hardening, Property 1: Session Authentication Enforcement**
- * **Validates: Requirements 1.1, 1.2, 1.5**
- * 
- * Tests that:
- * - Unauthenticated requests return 401
- * - Valid sessions allow request to proceed
- * - Error responses don't expose internal details
- */
-
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as fc from "fast-check";
 import { NextRequest, NextResponse } from "next/server";
@@ -20,7 +8,7 @@ import {
   type AuthenticatedRequest,
 } from "@/lib/auth/session-auth";
 
-// Mock the session module
+// 세션 모듈 목업
 vi.mock("@/lib/session", () => ({
   getSessionDefault: vi.fn(),
   sessionOptions: {
@@ -35,11 +23,11 @@ vi.mock("@/lib/session", () => ({
   },
 }));
 
-// Import the mocked module
+// 목업된 모듈 import
 import { getSessionDefault } from "@/lib/session";
 const mockedGetSessionDefault = vi.mocked(getSessionDefault);
 
-describe("Session Authentication", () => {
+describe("세션 인증", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -49,7 +37,7 @@ describe("Session Authentication", () => {
   });
 
   describe("validateSession", () => {
-    it("should return null when session is not logged in", async () => {
+    it("로그인되지 않은 세션에서 null을 반환해야 한다", async () => {
       mockedGetSessionDefault.mockResolvedValue({
         isLoggedIn: false,
         username: undefined,
@@ -59,7 +47,7 @@ describe("Session Authentication", () => {
       expect(result).toBeNull();
     });
 
-    it("should return session data when logged in", async () => {
+    it("로그인된 세션에서 세션 데이터를 반환해야 한다", async () => {
       const mockSession = {
         isLoggedIn: true,
         username: "test@example.com",
@@ -70,7 +58,7 @@ describe("Session Authentication", () => {
       expect(result).toEqual(mockSession);
     });
 
-    it("should return null when session throws error (not expose internal details)", async () => {
+    it("세션 오류 시 null을 반환해야 한다 (내부 세부정보 노출 방지)", async () => {
       mockedGetSessionDefault.mockRejectedValue(new Error("Internal error"));
 
       const result = await validateSession();
@@ -87,15 +75,20 @@ describe("Session Authentication", () => {
       params: Promise.resolve({} as T),
     });
 
-    it("should return 401 when not authenticated", async () => {
+    it("미인증 시 401을 반환해야 한다", async () => {
       mockedGetSessionDefault.mockResolvedValue({
         isLoggedIn: false,
       } as never);
 
-      const handler = vi.fn().mockResolvedValue(NextResponse.json({ data: "test" }));
+      const handler = vi
+        .fn()
+        .mockResolvedValue(NextResponse.json({ data: "test" }));
       const protectedHandler = withSessionAuth(handler);
 
-      const response = await protectedHandler(createMockRequest(), createMockContext());
+      const response = await protectedHandler(
+        createMockRequest(),
+        createMockContext(),
+      );
       const body = await response.json();
 
       expect(response.status).toBe(401);
@@ -104,17 +97,22 @@ describe("Session Authentication", () => {
       expect(handler).not.toHaveBeenCalled();
     });
 
-    it("should call handler when authenticated", async () => {
+    it("인증 시 핸들러를 호출해야 한다", async () => {
       const mockSession = {
         isLoggedIn: true,
         username: "test@example.com",
       };
       mockedGetSessionDefault.mockResolvedValue(mockSession as never);
 
-      const handler = vi.fn().mockResolvedValue(NextResponse.json({ data: "protected" }));
+      const handler = vi
+        .fn()
+        .mockResolvedValue(NextResponse.json({ data: "protected" }));
       const protectedHandler = withSessionAuth(handler);
 
-      const response = await protectedHandler(createMockRequest(), createMockContext());
+      const response = await protectedHandler(
+        createMockRequest(),
+        createMockContext(),
+      );
       const body = await response.json();
 
       expect(response.status).toBe(200);
@@ -122,7 +120,7 @@ describe("Session Authentication", () => {
       expect(handler).toHaveBeenCalledTimes(1);
     });
 
-    it("should attach session to request when authenticated", async () => {
+    it("인증 시 요청에 세션을 첨부해야 한다", async () => {
       const mockSession = {
         isLoggedIn: true,
         username: "test@example.com",
@@ -130,10 +128,12 @@ describe("Session Authentication", () => {
       mockedGetSessionDefault.mockResolvedValue(mockSession as never);
 
       let capturedSession: unknown = null;
-      const handler = vi.fn().mockImplementation((req: AuthenticatedRequest) => {
-        capturedSession = req.session;
-        return NextResponse.json({ success: true });
-      });
+      const handler = vi
+        .fn()
+        .mockImplementation((req: AuthenticatedRequest) => {
+          capturedSession = req.session;
+          return NextResponse.json({ success: true });
+        });
 
       const protectedHandler = withSessionAuth(handler);
       await protectedHandler(createMockRequest(), createMockContext());
@@ -141,7 +141,7 @@ describe("Session Authentication", () => {
       expect(capturedSession).toEqual(mockSession);
     });
 
-    it("should redirect when redirectOnFail is true", async () => {
+    it("redirectOnFail true일 때 리다이렉트해야 한다", async () => {
       mockedGetSessionDefault.mockResolvedValue({
         isLoggedIn: false,
       } as never);
@@ -154,20 +154,16 @@ describe("Session Authentication", () => {
 
       const response = await protectedHandler(
         createMockRequest("http://localhost/api/test"),
-        createMockContext()
+        createMockContext(),
       );
 
-      expect(response.status).toBe(307); // Redirect status
+      expect(response.status).toBe(307); // 리다이렉트 상태
       expect(response.headers.get("location")).toContain("/auth/login");
     });
   });
 
-  describe("Property 1: Session Authentication Enforcement", () => {
-    /**
-     * Property: For any request to a protected endpoint without a valid session,
-     * the middleware SHALL return 401 and NOT execute the handler.
-     */
-    it("should always return 401 for unauthenticated requests regardless of request details", async () => {
+  describe("속성 1: 세션 인증 강제", () => {
+    it("미인증 요청은 요청 세부정보와 관계없이 항상 401을 반환해야 한다", async () => {
       await fc.assert(
         fc.asyncProperty(
           fc.record({
@@ -175,30 +171,31 @@ describe("Session Authentication", () => {
             method: fc.constantFrom("GET", "POST", "PUT", "DELETE", "PATCH"),
           }),
           async ({ path }) => {
-            // Setup: No valid session
+            // 설정: 유효한 세션 없음
             mockedGetSessionDefault.mockResolvedValue({
               isLoggedIn: false,
             } as never);
 
-            const handler = vi.fn().mockResolvedValue(NextResponse.json({ data: "test" }));
+            const handler = vi
+              .fn()
+              .mockResolvedValue(NextResponse.json({ data: "test" }));
             const protectedHandler = withSessionAuth(handler);
 
             const request = new NextRequest(`http://localhost${path}`);
-            const response = await protectedHandler(request, { params: Promise.resolve({}) });
+            const response = await protectedHandler(request, {
+              params: Promise.resolve({}),
+            });
 
-            // Assert: Always 401, handler never called
+            // 검증: 항상 401, 핸들러 미호출
             expect(response.status).toBe(401);
             expect(handler).not.toHaveBeenCalled();
-          }
+          },
         ),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
 
-    /**
-     * Property: For any valid session, the handler SHALL be executed.
-     */
-    it("should always execute handler for authenticated requests", async () => {
+    it("인증된 요청에 대해 항상 핸들러를 실행해야 한다", async () => {
       await fc.assert(
         fc.asyncProperty(
           fc.record({
@@ -206,30 +203,29 @@ describe("Session Authentication", () => {
             path: fc.webPath(),
           }),
           async ({ username, path }) => {
-            // Setup: Valid session
+            // 설정: 유효한 세션
             mockedGetSessionDefault.mockResolvedValue({
               isLoggedIn: true,
               username,
             } as never);
 
-            const handler = vi.fn().mockResolvedValue(NextResponse.json({ success: true }));
+            const handler = vi
+              .fn()
+              .mockResolvedValue(NextResponse.json({ success: true }));
             const protectedHandler = withSessionAuth(handler);
 
             const request = new NextRequest(`http://localhost${path}`);
             await protectedHandler(request, { params: Promise.resolve({}) });
 
-            // Assert: Handler was called
+            // 검증: 핸들러 호출됨
             expect(handler).toHaveBeenCalledTimes(1);
-          }
+          },
         ),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
 
-    /**
-     * Property: Error responses SHALL NOT contain internal error details.
-     */
-    it("should never expose internal error details in 401 responses", async () => {
+    it("401 응답에 내부 오류 세부정보를 노출하지 않아야 한다", async () => {
       const internalErrorPatterns = [
         /stack/i,
         /trace/i,
@@ -247,17 +243,19 @@ describe("Session Authentication", () => {
             new Error("Internal server error"),
             new Error("Database connection failed"),
             new Error("at validateSession (/app/lib/auth.ts:42)"),
-            new Error("TypeError: Cannot read property 'x' of undefined")
+            new Error("TypeError: Cannot read property 'x' of undefined"),
           ),
           async (error) => {
-            // Setup: Session throws error
+            // 설정: 세션에서 에러 발생
             mockedGetSessionDefault.mockRejectedValue(error);
 
             const handler = vi.fn();
             const protectedHandler = withSessionAuth(handler);
 
             const request = new NextRequest("http://localhost/api/test");
-            const response = await protectedHandler(request, { params: Promise.resolve({}) });
+            const response = await protectedHandler(request, {
+              params: Promise.resolve({}),
+            });
             const body = await response.json();
 
             // Assert: Response doesn't contain internal details
@@ -266,15 +264,15 @@ describe("Session Authentication", () => {
               expect(responseText).not.toMatch(pattern);
             }
             expect(response.status).toBe(401);
-          }
+          },
         ),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
   });
 
-  describe("Error Response Format", () => {
-    it("should return consistent error format", async () => {
+  describe("오류 응답 형식", () => {
+    it("일관된 오류 형식을 반환해야 한다", async () => {
       mockedGetSessionDefault.mockResolvedValue({
         isLoggedIn: false,
       } as never);
@@ -284,7 +282,7 @@ describe("Session Authentication", () => {
 
       const response = await protectedHandler(
         new NextRequest("http://localhost/api/test"),
-        { params: Promise.resolve({}) }
+        { params: Promise.resolve({}) },
       );
       const body = await response.json();
 

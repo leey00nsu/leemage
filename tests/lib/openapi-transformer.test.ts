@@ -4,20 +4,14 @@ import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
 import { OpenApiGeneratorV3 } from "@asteasolutions/zod-to-openapi";
 import { transformOpenAPIToCategories } from "@/entities/api-docs/model/openapi-transformer";
 
-/**
- * **Feature: openapi-docs, Property 5: Response Schema Completeness**
- * *For any* endpoint with multiple response status codes, the documentation
- * SHALL display all registered status codes with their corresponding schemas.
- * **Validates: Requirements 3.3**
- */
-describe("OpenAPI to UI Transformer", () => {
+describe("OpenAPI UI 변환기", () => {
   // 상태 코드 생성기
   const statusCodeArb = fc.constantFrom(200, 201, 400, 401, 404, 500);
 
   // 경로 생성기
   const pathArb = fc.stringMatching(/^\/[a-z]+$/);
 
-  it("should include all response status codes in transformed output", () => {
+  it("변환된 출력에 모든 응답 상태 코드가 포함되어야 한다", () => {
     fc.assert(
       fc.property(
         pathArb,
@@ -54,9 +48,7 @@ describe("OpenAPI to UI Transformer", () => {
           expect(categories.length).toBeGreaterThan(0);
 
           // 검증: 엔드포인트가 존재해야 함
-          const endpoint = categories[0].endpoints.find(
-            (e) => e.path === path
-          );
+          const endpoint = categories[0].endpoints.find((e) => e.path === path);
           expect(endpoint).toBeDefined();
 
           // 검증: 모든 상태 코드가 응답에 포함되어야 함
@@ -65,13 +57,13 @@ describe("OpenAPI to UI Transformer", () => {
             expect(response).toBeDefined();
             expect(response!.description).toBe(`Response ${code}`);
           });
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
-  it("should correctly transform endpoint method to uppercase", () => {
+  it("엔드포인트 메서드를 대문자로 올바르게 변환해야 한다", () => {
     const methods = ["get", "post", "put", "delete", "patch"] as const;
 
     methods.forEach((method) => {
@@ -99,7 +91,7 @@ describe("OpenAPI to UI Transformer", () => {
     });
   });
 
-  it("should set auth to true when security is defined", () => {
+  it("보안이 정의된 경우 auth를 true로 설정해야 한다", () => {
     const registry = new OpenAPIRegistry();
 
     // 인증이 필요한 엔드포인트
@@ -131,10 +123,10 @@ describe("OpenAPI to UI Transformer", () => {
 
     const categories = transformOpenAPIToCategories(spec, "ko");
     const secureEndpoint = categories[0].endpoints.find(
-      (e) => e.path === "/secure"
+      (e) => e.path === "/secure",
     );
     const publicEndpoint = categories[0].endpoints.find(
-      (e) => e.path === "/public"
+      (e) => e.path === "/public",
     );
 
     expect(secureEndpoint?.auth).toBe(true);

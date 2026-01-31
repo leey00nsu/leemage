@@ -1,13 +1,3 @@
-/**
- * Property-based tests for storage quota utilities
- *
- * **Feature: storage-quota-warning**
- * **Property 2: Color determination is consistent with percentage thresholds**
- * **Property 3: Warning status is consistent with percentage thresholds**
- * **Property 4: Remaining space calculation is accurate**
- * **Validates: Requirements 2.2, 2.3, 2.4, 3.1, 3.2, 3.3**
- */
-
 import { describe, it, expect } from "vitest";
 import * as fc from "fast-check";
 import {
@@ -17,119 +7,105 @@ import {
   calculateRemainingSpace,
   calculateUsagePercentage,
   USAGE_COLORS,
-  WARNING_THRESHOLD,
-  CRITICAL_THRESHOLD,
 } from "@/shared/lib/storage-quota-utils";
 
-describe("Storage Quota Utilities", () => {
+describe("스토리지 쿼터 유틸리티", () => {
   describe("getUsageColor", () => {
-    /**
-     * Property 2: Color determination is consistent with percentage thresholds
-     */
-    it("should return green for percentage below 70%", () => {
+    it("70% 미만에서 녹색을 반환해야 한다", () => {
       fc.assert(
         fc.property(fc.integer({ min: 0, max: 69 }), (percentage) => {
           expect(getUsageColor(percentage)).toBe(USAGE_COLORS.normal);
         }),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
 
-    it("should return yellow for percentage between 70% and 89%", () => {
+    it("70%~89% 사이에서 노란색을 반환해야 한다", () => {
       fc.assert(
         fc.property(fc.integer({ min: 70, max: 89 }), (percentage) => {
           expect(getUsageColor(percentage)).toBe(USAGE_COLORS.warning);
         }),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
 
-    it("should return red for percentage 90% or above", () => {
+    it("90% 이상에서 빨간색을 반환해야 한다", () => {
       fc.assert(
         fc.property(fc.integer({ min: 90, max: 200 }), (percentage) => {
           expect(getUsageColor(percentage)).toBe(USAGE_COLORS.critical);
         }),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
 
-    it("should return gray for undefined percentage", () => {
+    it("undefined일 때 회색을 반환해야 한다", () => {
       expect(getUsageColor(undefined)).toBe(USAGE_COLORS.unknown);
     });
   });
 
   describe("getUsageStatus", () => {
-    /**
-     * Property 3: Warning status is consistent with percentage thresholds
-     */
-    it("should return normal for percentage below 70%", () => {
+    it("70% 미만에서 normal을 반환해야 한다", () => {
       fc.assert(
         fc.property(fc.integer({ min: 0, max: 69 }), (percentage) => {
           expect(getUsageStatus(percentage)).toBe("normal");
         }),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
 
-    it("should return warning for percentage between 70% and 89%", () => {
+    it("70%~89% 사이에서 warning을 반환해야 한다", () => {
       fc.assert(
         fc.property(fc.integer({ min: 70, max: 89 }), (percentage) => {
           expect(getUsageStatus(percentage)).toBe("warning");
         }),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
 
-    it("should return critical for percentage 90% or above", () => {
+    it("90% 이상에서 critical을 반환해야 한다", () => {
       fc.assert(
         fc.property(fc.integer({ min: 90, max: 200 }), (percentage) => {
           expect(getUsageStatus(percentage)).toBe("critical");
         }),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
 
-    it("should return unknown for undefined percentage", () => {
+    it("undefined일 때 unknown을 반환해야 한다", () => {
       expect(getUsageStatus(undefined)).toBe("unknown");
     });
   });
 
   describe("validateQuota", () => {
-    /**
-     * Property 1: Quota validation accepts only positive numbers
-     */
-    it("should return true for positive numbers", () => {
+    it("양수에 대해 true를 반환해야 한다", () => {
       fc.assert(
         fc.property(fc.integer({ min: 1, max: 1000000000000 }), (value) => {
           expect(validateQuota(value)).toBe(true);
         }),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
 
-    it("should return false for zero", () => {
+    it("0에 대해 false를 반환해야 한다", () => {
       expect(validateQuota(0)).toBe(false);
     });
 
-    it("should return false for negative numbers", () => {
+    it("음수에 대해 false를 반환해야 한다", () => {
       fc.assert(
         fc.property(fc.integer({ min: -1000000, max: -1 }), (value) => {
           expect(validateQuota(value)).toBe(false);
         }),
-        { numRuns: 50 }
+        { numRuns: 50 },
       );
     });
 
-    it("should return false for NaN", () => {
+    it("NaN에 대해 false를 반환해야 한다", () => {
       expect(validateQuota(NaN)).toBe(false);
     });
   });
 
   describe("calculateRemainingSpace", () => {
-    /**
-     * Property 4: Remaining space calculation is accurate
-     */
-    it("should return quota minus usage when quota >= usage", () => {
+    it("쿼터 >= 사용량일 때 쿼터 - 사용량을 반환해야 한다", () => {
       fc.assert(
         fc.property(
           fc.nat({ max: 1000000000000 }),
@@ -138,13 +114,13 @@ describe("Storage Quota Utilities", () => {
             if (quota >= usage) {
               expect(calculateRemainingSpace(quota, usage)).toBe(quota - usage);
             }
-          }
+          },
         ),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
 
-    it("should return 0 when usage exceeds quota", () => {
+    it("사용량이 쿼터 초과 시 0을 반환해야 한다", () => {
       fc.assert(
         fc.property(
           fc.nat({ max: 1000000000 }),
@@ -152,29 +128,29 @@ describe("Storage Quota Utilities", () => {
           (quota, extraUsage) => {
             const usage = quota + extraUsage + 1;
             expect(calculateRemainingSpace(quota, usage)).toBe(0);
-          }
+          },
         ),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
   });
 
   describe("calculateUsagePercentage", () => {
-    it("should return undefined when quota is 0", () => {
+    it("쿼터가 0일 때 undefined를 반환해야 한다", () => {
       expect(calculateUsagePercentage(100, 0)).toBeUndefined();
     });
 
-    it("should return undefined when quota is undefined", () => {
+    it("쿼터가 undefined일 때 undefined를 반환해야 한다", () => {
       expect(calculateUsagePercentage(100, undefined)).toBeUndefined();
     });
 
-    it("should calculate correct percentage", () => {
+    it("정확한 퍼센트를 계산해야 한다", () => {
       expect(calculateUsagePercentage(50, 100)).toBe(50);
       expect(calculateUsagePercentage(70, 100)).toBe(70);
       expect(calculateUsagePercentage(100, 100)).toBe(100);
     });
 
-    it("should cap at 100%", () => {
+    it("100%로 제한해야 한다", () => {
       expect(calculateUsagePercentage(150, 100)).toBe(100);
     });
   });

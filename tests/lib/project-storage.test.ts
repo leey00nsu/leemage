@@ -1,19 +1,10 @@
-/**
- * Project Storage Provider Unit Tests
- * 
- * **Feature: multi-storage-provider, Property 1: Default Storage Provider**
- * **Feature: multi-storage-provider, Property 2: Storage Provider Persistence Round-Trip**
- * **Validates: Requirements 1.2, 1.3**
- */
-
 import { describe, it, expect } from "vitest";
-import { z } from "zod";
 import { createProjectRequestSchema } from "@/lib/openapi/schemas/projects";
 import { StorageProvider, DEFAULT_STORAGE_PROVIDER } from "@/lib/storage/types";
 
-describe("Project Storage Provider", () => {
+describe("프로젝트 스토리지 프로바이더", () => {
   describe("createProjectRequestSchema", () => {
-    it("should default to OCI when storageProvider is not provided", () => {
+    it("storageProvider가 제공되지 않았을 때 OCI를 기본값으로 사용해야 한다", () => {
       const input = {
         name: "Test Project",
         description: "Test description",
@@ -25,7 +16,7 @@ describe("Project Storage Provider", () => {
       expect(result.storageProvider).toBe(DEFAULT_STORAGE_PROVIDER);
     });
 
-    it("should accept OCI as storageProvider", () => {
+    it("storageProvider로 OCI를 허용해야 한다", () => {
       const input = {
         name: "Test Project",
         storageProvider: "OCI",
@@ -36,7 +27,7 @@ describe("Project Storage Provider", () => {
       expect(result.storageProvider).toBe(StorageProvider.OCI);
     });
 
-    it("should accept R2 as storageProvider", () => {
+    it("storageProvider로 R2를 허용해야 한다", () => {
       const input = {
         name: "Test Project",
         storageProvider: "R2",
@@ -47,7 +38,7 @@ describe("Project Storage Provider", () => {
       expect(result.storageProvider).toBe(StorageProvider.R2);
     });
 
-    it("should reject invalid storageProvider values", () => {
+    it("유효하지 않은 storageProvider 값을 거부해야 한다", () => {
       const input = {
         name: "Test Project",
         storageProvider: "INVALID",
@@ -56,7 +47,7 @@ describe("Project Storage Provider", () => {
       expect(() => createProjectRequestSchema.parse(input)).toThrow();
     });
 
-    it("should preserve storageProvider through parse (round-trip)", () => {
+    it("파싱을 통해 storageProvider를 보존해야 한다", () => {
       const providers = [StorageProvider.OCI, StorageProvider.R2];
 
       providers.forEach((provider) => {
@@ -71,17 +62,17 @@ describe("Project Storage Provider", () => {
     });
   });
 
-  describe("Schema validation", () => {
-    it("should validate name length constraints", () => {
-      // Too short
+  describe("스키마 유효성 검사", () => {
+    it("이름 길이 제약조건을 검증해야 한다", () => {
+      // 너무 짧음
       expect(() =>
         createProjectRequestSchema.parse({
           name: "ab",
           storageProvider: "OCI",
-        })
+        }),
       ).toThrow();
 
-      // Valid length
+      // 유효한 길이
       const validResult = createProjectRequestSchema.parse({
         name: "Valid Name",
         storageProvider: "OCI",
@@ -89,7 +80,7 @@ describe("Project Storage Provider", () => {
       expect(validResult.name).toBe("Valid Name");
     });
 
-    it("should validate description length constraints", () => {
+    it("설명 길이 제약조건을 검증해야 한다", () => {
       const longDescription = "a".repeat(201);
 
       expect(() =>
@@ -97,7 +88,7 @@ describe("Project Storage Provider", () => {
           name: "Test Project",
           description: longDescription,
           storageProvider: "OCI",
-        })
+        }),
       ).toThrow();
     });
   });

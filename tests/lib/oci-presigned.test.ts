@@ -1,15 +1,4 @@
-/**
- * **Feature: presigned-url-upload, Property 1: Presigned URL Generation Validity**
- *
- * For any valid presign request with fileName, contentType, and fileSize,
- * the server SHALL return a response containing a presignedUrl that is a valid URL,
- * an objectName that includes the projectId and fileId, and an expiresAt timestamp
- * that is approximately 15 minutes in the future.
- *
- * **Validates: Requirements 1.2, 2.1, 2.3**
- */
-
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import * as fc from "fast-check";
 
 // Mock OCI 클라이언트 응답 타입
@@ -42,7 +31,7 @@ function buildPARResult(
   expiresAt: Date,
   regionId: string,
   namespaceName: string,
-  bucketName: string
+  bucketName: string,
 ): PARResult {
   const presignedUrl = `https://objectstorage.${regionId}.oraclecloud.com${accessUri}`;
   const objectUrl = `https://objectstorage.${regionId}.oraclecloud.com/n/${namespaceName}/b/${bucketName}/o/${objectName}`;
@@ -62,22 +51,37 @@ function calculateExpiresAt(expiresInMinutes: number = 15): Date {
 }
 
 // objectName 생성 로직
-function buildObjectName(projectId: string, fileId: string, extension: string): string {
+function buildObjectName(
+  projectId: string,
+  fileId: string,
+  extension: string,
+): string {
   return `${projectId}/${fileId}.${extension}`;
 }
 
-describe("Presigned URL Generation", () => {
+describe("Presigned URL 생성", () => {
   // Arbitrary generators
   const projectIdArb = fc.stringMatching(/^[a-z0-9]{10,25}$/);
   const fileIdArb = fc.stringMatching(/^[a-z0-9]{20,30}$/);
-  const extensionArb = fc.constantFrom("jpg", "png", "webp", "pdf", "txt", "zip");
-  const regionIdArb = fc.constantFrom("ap-seoul-1", "us-ashburn-1", "eu-frankfurt-1");
+  const extensionArb = fc.constantFrom(
+    "jpg",
+    "png",
+    "webp",
+    "pdf",
+    "txt",
+    "zip",
+  );
+  const regionIdArb = fc.constantFrom(
+    "ap-seoul-1",
+    "us-ashburn-1",
+    "eu-frankfurt-1",
+  );
   const namespaceArb = fc.stringMatching(/^[a-z0-9]{10,20}$/);
   const bucketArb = fc.stringMatching(/^[a-z0-9-]{5,20}$/);
   const expiresInMinutesArb = fc.integer({ min: 1, max: 60 });
 
-  describe("Property 1: Presigned URL Generation Validity", () => {
-    it("should generate valid presigned URL format", () => {
+  describe("속성 1: Presigned URL 생성 유효성", () => {
+    it("유효한 Presigned URL 형식을 생성해야 한다", () => {
       fc.assert(
         fc.property(
           projectIdArb,
@@ -97,20 +101,20 @@ describe("Presigned URL Generation", () => {
               expiresAt,
               regionId,
               namespace,
-              bucket
+              bucket,
             );
 
             // presignedUrl이 유효한 URL 형식인지 확인
             expect(() => new URL(result.presignedUrl)).not.toThrow();
             expect(result.presignedUrl).toContain("https://objectstorage.");
             expect(result.presignedUrl).toContain(".oraclecloud.com");
-          }
+          },
         ),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
 
-    it("should include projectId and fileId in objectName", () => {
+    it("objectName에 projectId와 fileId가 포함되어야 한다", () => {
       fc.assert(
         fc.property(
           projectIdArb,
@@ -123,34 +127,39 @@ describe("Presigned URL Generation", () => {
             expect(objectName).toContain(projectId);
             expect(objectName).toContain(fileId);
             expect(objectName).toBe(`${projectId}/${fileId}.${extension}`);
-          }
+          },
         ),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
 
-    it("should set expiration time approximately 15 minutes in the future", () => {
+    it("만료 시간을 약 15분 후로 설정해야 한다", () => {
       fc.assert(
-        fc.property(
-          expiresInMinutesArb,
-          (expiresInMinutes) => {
-            const before = new Date();
-            const expiresAt = calculateExpiresAt(expiresInMinutes);
-            const after = new Date();
+        fc.property(expiresInMinutesArb, (expiresInMinutes) => {
+          const before = new Date();
+          const expiresAt = calculateExpiresAt(expiresInMinutes);
+          const after = new Date();
 
-            // 만료 시간이 현재 시간 + expiresInMinutes 범위 내에 있는지 확인
-            const expectedMinTime = new Date(before.getTime() + expiresInMinutes * 60 * 1000);
-            const expectedMaxTime = new Date(after.getTime() + expiresInMinutes * 60 * 1000 + 1000); // 1초 여유
+          // 만료 시간이 현재 시간 + expiresInMinutes 범위 내에 있는지 확인
+          const expectedMinTime = new Date(
+            before.getTime() + expiresInMinutes * 60 * 1000,
+          );
+          const expectedMaxTime = new Date(
+            after.getTime() + expiresInMinutes * 60 * 1000 + 1000,
+          ); // 1초 여유
 
-            expect(expiresAt.getTime()).toBeGreaterThanOrEqual(expectedMinTime.getTime() - 1000);
-            expect(expiresAt.getTime()).toBeLessThanOrEqual(expectedMaxTime.getTime());
-          }
-        ),
-        { numRuns: 100 }
+          expect(expiresAt.getTime()).toBeGreaterThanOrEqual(
+            expectedMinTime.getTime() - 1000,
+          );
+          expect(expiresAt.getTime()).toBeLessThanOrEqual(
+            expectedMaxTime.getTime(),
+          );
+        }),
+        { numRuns: 100 },
       );
     });
 
-    it("should default to 15 minutes expiration when not specified", () => {
+    it("명시되지 않은 경우 기본값이 15분으로 만료되어야 한다", () => {
       const before = new Date();
       const expiresAt = calculateExpiresAt(); // default 15 minutes
       const after = new Date();
@@ -158,11 +167,15 @@ describe("Presigned URL Generation", () => {
       const expectedMinTime = new Date(before.getTime() + 15 * 60 * 1000);
       const expectedMaxTime = new Date(after.getTime() + 15 * 60 * 1000 + 1000);
 
-      expect(expiresAt.getTime()).toBeGreaterThanOrEqual(expectedMinTime.getTime() - 1000);
-      expect(expiresAt.getTime()).toBeLessThanOrEqual(expectedMaxTime.getTime());
+      expect(expiresAt.getTime()).toBeGreaterThanOrEqual(
+        expectedMinTime.getTime() - 1000,
+      );
+      expect(expiresAt.getTime()).toBeLessThanOrEqual(
+        expectedMaxTime.getTime(),
+      );
     });
 
-    it("should generate objectUrl with correct format", () => {
+    it("올바른 형식의 objectUrl을 생성해야 한다", () => {
       fc.assert(
         fc.property(
           projectIdArb,
@@ -182,17 +195,17 @@ describe("Presigned URL Generation", () => {
               expiresAt,
               regionId,
               namespace,
-              bucket
+              bucket,
             );
 
             // objectUrl이 올바른 형식인지 확인
             expect(() => new URL(result.objectUrl)).not.toThrow();
             expect(result.objectUrl).toBe(
-              `https://objectstorage.${regionId}.oraclecloud.com/n/${namespace}/b/${bucket}/o/${objectName}`
+              `https://objectstorage.${regionId}.oraclecloud.com/n/${namespace}/b/${bucket}/o/${objectName}`,
             );
-          }
+          },
         ),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
   });

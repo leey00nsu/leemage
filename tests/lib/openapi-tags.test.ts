@@ -3,20 +3,14 @@ import * as fc from "fast-check";
 import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
 import { OpenApiGeneratorV3 } from "@asteasolutions/zod-to-openapi";
 
-/**
- * **Feature: openapi-docs, Property 3: Tag-based Organization**
- * *For any* set of registered endpoints with tags, endpoints with the same tag
- * SHALL be grouped together in the generated specification.
- * **Validates: Requirements 2.2**
- */
-describe("OpenAPI Tag Organization", () => {
+describe("OpenAPI 태그 구성", () => {
   // 태그 이름 생성기
   const tagNameArb = fc.stringMatching(/^[A-Z][a-z]+$/);
 
   // 경로 생성기
   const pathArb = fc.stringMatching(/^\/[a-z]+$/).map((p) => p);
 
-  it("should group endpoints by tags in the generated spec", () => {
+  it("생성된 스펙에서 엔드포인트를 태그별로 그룹화해야 한다", () => {
     fc.assert(
       fc.property(
         fc.array(tagNameArb, { minLength: 1, maxLength: 3 }),
@@ -59,13 +53,13 @@ describe("OpenAPI Tag Organization", () => {
           });
 
           return true;
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
-  it("should include all unique tags in the spec", () => {
+  it("스펙에 모든 고유 태그가 포함되어야 한다", () => {
     fc.assert(
       fc.property(
         fc.array(tagNameArb, { minLength: 1, maxLength: 5 }),
@@ -98,9 +92,9 @@ describe("OpenAPI Tag Organization", () => {
           });
 
           return true;
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 });

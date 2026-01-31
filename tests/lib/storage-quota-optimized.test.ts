@@ -8,7 +8,7 @@ import {
 } from "@/lib/api/storage-quota";
 import { StorageProvider } from "@/lib/generated/prisma";
 
-// Mock Prisma
+// Prisma 목업
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     file: {
@@ -27,7 +27,7 @@ const mockPrisma = prisma as unknown as {
   storageQuota: { findUnique: ReturnType<typeof vi.fn> };
 };
 
-describe("Storage Quota Optimization", () => {
+describe("스토리지 쿼터 최적화", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     invalidateAllStorageCaches();
@@ -38,7 +38,7 @@ describe("Storage Quota Optimization", () => {
   });
 
   describe("calculateStorageUsage", () => {
-    it("should use database aggregation for calculation", async () => {
+    it("데이터베이스 집계를 사용하여 계산해야 한다", async () => {
       mockPrisma.file.aggregate.mockResolvedValue({
         _sum: { size: 1024000 },
         _count: { id: 10 },
@@ -50,7 +50,7 @@ describe("Storage Quota Optimization", () => {
       expect(result.fileCount).toBe(10);
       expect(result.lastCalculated).toBeInstanceOf(Date);
 
-      // Verify aggregation was called with correct parameters
+      // 올바른 파라미터로 집계가 호출되었는지 확인
       expect(mockPrisma.file.aggregate).toHaveBeenCalledWith({
         where: {
           project: { storageProvider: StorageProvider.OCI },
@@ -61,7 +61,7 @@ describe("Storage Quota Optimization", () => {
       });
     });
 
-    it("should handle empty results", async () => {
+    it("빈 결과를 처리해야 한다", async () => {
       mockPrisma.file.aggregate.mockResolvedValue({
         _sum: { size: null },
         _count: { id: 0 },
@@ -74,13 +74,8 @@ describe("Storage Quota Optimization", () => {
     });
   });
 
-  /**
-   * Property 10: Storage Aggregation Efficiency
-   * For any storage usage calculation, the query SHALL use a single
-   * database aggregation query instead of loading individual file records.
-   */
-  describe("Property 10: Storage Aggregation Efficiency", () => {
-    it("should make exactly one database call for usage calculation", async () => {
+  describe("속성 10: 스토리지 집계 효율성", () => {
+    it("사용량 계산 시 정확히 한 번의 데이터베이스를 호출해야 한다", async () => {
       mockPrisma.file.aggregate.mockResolvedValue({
         _sum: { size: 5000000 },
         _count: { id: 50 },
@@ -88,12 +83,12 @@ describe("Storage Quota Optimization", () => {
 
       await calculateStorageUsage(StorageProvider.OCI);
 
-      // Should only call aggregate once, not findMany
+      // findMany가 아닌 aggregate만 한 번 호출되어야 함
       expect(mockPrisma.file.aggregate).toHaveBeenCalledTimes(1);
     });
 
-    it("should use aggregation regardless of file count", async () => {
-      // Simulate large number of files
+    it("파일 수와 관계없이 집계를 사용해야 한다", async () => {
+      // 대량의 파일 시뮬레이션
       mockPrisma.file.aggregate.mockResolvedValue({
         _sum: { size: 100000000000 }, // 100GB
         _count: { id: 100000 }, // 100k files
@@ -101,32 +96,32 @@ describe("Storage Quota Optimization", () => {
 
       const result = await calculateStorageUsage(StorageProvider.OCI);
 
-      // Should still only make one call
+      // 여전히 한 번만 호출되어야 함
       expect(mockPrisma.file.aggregate).toHaveBeenCalledTimes(1);
       expect(result.totalBytes).toBe(100000000000);
       expect(result.fileCount).toBe(100000);
     });
   });
 
-  describe("getStorageUsage (caching)", () => {
-    it("should cache results", async () => {
+  describe("getStorageUsage (캐싱)", () => {
+    it("결과를 캐싱해야 한다", async () => {
       mockPrisma.file.aggregate.mockResolvedValue({
         _sum: { size: 1024000 },
         _count: { id: 10 },
       });
 
-      // First call - should hit database
+      // 첫 번째 호출 - 데이터베이스 조회
       const result1 = await getStorageUsage(StorageProvider.OCI);
       expect(mockPrisma.file.aggregate).toHaveBeenCalledTimes(1);
 
-      // Second call - should use cache
+      // 두 번째 호출 - 캐시 사용
       const result2 = await getStorageUsage(StorageProvider.OCI);
-      expect(mockPrisma.file.aggregate).toHaveBeenCalledTimes(1); // Still 1
+      expect(mockPrisma.file.aggregate).toHaveBeenCalledTimes(1); // 여전히 1
 
       expect(result1.totalBytes).toBe(result2.totalBytes);
     });
 
-    it("should refresh cache after invalidation", async () => {
+    it("무효화 후 캐시를 갱신해야 한다", async () => {
       mockPrisma.file.aggregate
         .mockResolvedValueOnce({
           _sum: { size: 1000 },
@@ -137,14 +132,14 @@ describe("Storage Quota Optimization", () => {
           _count: { id: 2 },
         });
 
-      // First call
+      // 첫 번째 호출
       const result1 = await getStorageUsage(StorageProvider.OCI);
       expect(result1.totalBytes).toBe(1000);
 
-      // Invalidate cache
+      // 캐시 무효화
       invalidateStorageCache(StorageProvider.OCI);
 
-      // Second call - should hit database again
+      // 두 번째 호출 - 다시 데이터베이스 조회
       const result2 = await getStorageUsage(StorageProvider.OCI);
       expect(result2.totalBytes).toBe(2000);
       expect(mockPrisma.file.aggregate).toHaveBeenCalledTimes(2);
@@ -152,26 +147,32 @@ describe("Storage Quota Optimization", () => {
   });
 
   describe("checkStorageQuotaOptimized", () => {
-    it("should allow upload when no quota is set", async () => {
+    it("쿼터 미설정 시 업로드를 허용해야 한다", async () => {
       mockPrisma.storageQuota.findUnique.mockResolvedValue(null);
 
-      const result = await checkStorageQuotaOptimized(StorageProvider.OCI, 1000000);
+      const result = await checkStorageQuotaOptimized(
+        StorageProvider.OCI,
+        1000000,
+      );
 
       expect(result.allowed).toBe(true);
     });
 
-    it("should allow upload when quota is zero", async () => {
+    it("쿼터가 0일 때 업로드를 허용해야 한다", async () => {
       mockPrisma.storageQuota.findUnique.mockResolvedValue({
         provider: StorageProvider.OCI,
         quotaBytes: BigInt(0),
       });
 
-      const result = await checkStorageQuotaOptimized(StorageProvider.OCI, 1000000);
+      const result = await checkStorageQuotaOptimized(
+        StorageProvider.OCI,
+        1000000,
+      );
 
       expect(result.allowed).toBe(true);
     });
 
-    it("should allow upload when within quota", async () => {
+    it("쿼터 내 업로드를 허용해야 한다", async () => {
       mockPrisma.storageQuota.findUnique.mockResolvedValue({
         provider: StorageProvider.OCI,
         quotaBytes: BigInt(10000000), // 10MB
@@ -181,13 +182,16 @@ describe("Storage Quota Optimization", () => {
         _count: { id: 5 },
       });
 
-      const result = await checkStorageQuotaOptimized(StorageProvider.OCI, 1000000); // 1MB upload
+      const result = await checkStorageQuotaOptimized(
+        StorageProvider.OCI,
+        1000000,
+      ); // 1MB upload
 
       expect(result.allowed).toBe(true);
       expect(result.remaining).toBe(5000000);
     });
 
-    it("should reject upload when quota would be exceeded", async () => {
+    it("쿼터 초과 시 업로드를 거부해야 한다", async () => {
       mockPrisma.storageQuota.findUnique.mockResolvedValue({
         provider: StorageProvider.OCI,
         quotaBytes: BigInt(10000000), // 10MB
@@ -197,7 +201,10 @@ describe("Storage Quota Optimization", () => {
         _count: { id: 10 },
       });
 
-      const result = await checkStorageQuotaOptimized(StorageProvider.OCI, 1000000); // 1MB upload
+      const result = await checkStorageQuotaOptimized(
+        StorageProvider.OCI,
+        1000000,
+      ); // 1MB upload
 
       expect(result.allowed).toBe(false);
       expect(result.message).toContain("스토리지 한도를 초과합니다");
@@ -206,22 +213,22 @@ describe("Storage Quota Optimization", () => {
   });
 
   describe("invalidateAllStorageCaches", () => {
-    it("should clear all provider caches", async () => {
+    it("모든 프로바이더 캐시를 삭제해야 한다", async () => {
       mockPrisma.file.aggregate.mockResolvedValue({
         _sum: { size: 1000 },
         _count: { id: 1 },
       });
 
-      // Populate caches for multiple providers
+      // 여러 프로바이더의 캐시 채우기
       await getStorageUsage(StorageProvider.OCI);
       await getStorageUsage(StorageProvider.R2);
 
       expect(mockPrisma.file.aggregate).toHaveBeenCalledTimes(2);
 
-      // Clear all caches
+      // 모든 캐시 삭제
       invalidateAllStorageCaches();
 
-      // Both should hit database again
+      // 둘 다 다시 데이터베이스 조회해야 함
       await getStorageUsage(StorageProvider.OCI);
       await getStorageUsage(StorageProvider.R2);
 

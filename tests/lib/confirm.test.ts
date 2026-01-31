@@ -1,24 +1,3 @@
-/**
- * **Feature: presigned-url-upload, Property 2: Upload Flow Completeness**
- *
- * For any successful file upload flow, if the presign request succeeds and
- * the direct upload to OCI succeeds, then the confirm request SHALL create
- * a database record with the correct fileName, contentType, fileSize, and url.
- *
- * **Validates: Requirements 1.1, 1.3, 1.4**
- */
-
-/**
- * **Feature: presigned-url-upload, Property 3: Image Variant Processing**
- *
- * For any image file upload with variant options, after the original file
- * is uploaded to OCI, the confirm endpoint SHALL process all requested variants
- * and the resulting file record SHALL contain variant entries matching each
- * requested sizeLabel and format combination.
- *
- * **Validates: Requirements 3.1, 3.2, 3.3**
- */
-
 import { describe, it, expect } from "vitest";
 import * as fc from "fast-check";
 import { z } from "zod";
@@ -54,7 +33,7 @@ function buildObjectUrl(
   regionId: string,
   namespaceName: string,
   bucketName: string,
-  objectName: string
+  objectName: string,
 ): string {
   return `https://objectstorage.${regionId}.oraclecloud.com/n/${namespaceName}/b/${bucketName}/o/${objectName}`;
 }
@@ -63,7 +42,7 @@ function buildFileRecord(
   request: ConfirmRequest,
   objectUrl: string,
   isImage: boolean,
-  variants: Array<{ url: string; label: string; format: string }> = []
+  variants: Array<{ url: string; label: string; format: string }> = [],
 ) {
   return {
     id: request.fileId,
@@ -83,7 +62,7 @@ function isImageMimeType(mimeType: string): boolean {
 
 function validateVariantsMatch(
   requestedVariants: VariantOption[],
-  resultVariants: Array<{ label: string; format: string }>
+  resultVariants: Array<{ label: string; format: string }>,
 ): boolean {
   if (requestedVariants.length !== resultVariants.length) {
     return false;
@@ -93,12 +72,12 @@ function validateVariantsMatch(
     resultVariants.some(
       (result) =>
         result.label === requested.sizeLabel &&
-        result.format === requested.format
-    )
+        result.format === requested.format,
+    ),
   );
 }
 
-describe("Confirm API Logic", () => {
+describe("Confirm API 로직", () => {
   // Arbitrary generators
   const fileIdArb = fc.stringMatching(/^[a-z0-9]{20,30}$/);
   const projectIdArb = fc.stringMatching(/^[a-z0-9]{10,25}$/);
@@ -112,14 +91,14 @@ describe("Confirm API Logic", () => {
     "application/pdf",
     "text/plain",
     "application/zip",
-    "application/json"
+    "application/json",
   );
 
   const imageMimeTypeArb = fc.constantFrom(
     "image/jpeg",
     "image/png",
     "image/webp",
-    "image/avif"
+    "image/avif",
   );
 
   const sizeLabelArb = fc.constantFrom(...AVAILABLE_SIZES);
@@ -130,10 +109,13 @@ describe("Confirm API Logic", () => {
     format: formatArb,
   });
 
-  const variantsArb = fc.array(variantOptionArb, { minLength: 1, maxLength: 8 });
+  const variantsArb = fc.array(variantOptionArb, {
+    minLength: 1,
+    maxLength: 8,
+  });
 
-  describe("Property 2: Upload Flow Completeness", () => {
-    it("should create file record with correct properties for non-image files", () => {
+  describe("속성 2: 업로드 흐름 완전성", () => {
+    it("비이미지 파일에 대해 올바른 속성으로 파일 레코드를 생성해야 한다", () => {
       fc.assert(
         fc.property(
           fileIdArb,
@@ -144,9 +126,23 @@ describe("Confirm API Logic", () => {
           regionIdArb,
           namespaceArb,
           bucketArb,
-          (fileId, projectId, fileName, contentType, fileSize, regionId, namespace, bucket) => {
+          (
+            fileId,
+            projectId,
+            fileName,
+            contentType,
+            fileSize,
+            regionId,
+            namespace,
+            bucket,
+          ) => {
             const objectName = `${projectId}/${fileId}.pdf`;
-            const objectUrl = buildObjectUrl(regionId, namespace, bucket, objectName);
+            const objectUrl = buildObjectUrl(
+              regionId,
+              namespace,
+              bucket,
+              objectName,
+            );
 
             const request: ConfirmRequest = {
               fileId,
@@ -167,13 +163,13 @@ describe("Confirm API Logic", () => {
             expect(fileRecord.isImage).toBe(false);
             expect(fileRecord.url).toBe(objectUrl);
             expect(fileRecord.variants).toEqual([]);
-          }
+          },
         ),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
 
-    it("should validate confirm request schema correctly", () => {
+    it("Confirm 요청 스키마를 올바르게 검증해야 한다", () => {
       fc.assert(
         fc.property(
           fileIdArb,
@@ -195,13 +191,13 @@ describe("Confirm API Logic", () => {
             // 유효한 요청은 파싱 성공
             const result = confirmRequestSchema.safeParse(validRequest);
             expect(result.success).toBe(true);
-          }
+          },
         ),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
 
-    it("should reject invalid confirm requests", () => {
+    it("유효하지 않은 Confirm 요청을 거부해야 한다", () => {
       // 빈 fileId
       const invalidRequest1 = {
         fileId: "",
@@ -210,7 +206,9 @@ describe("Confirm API Logic", () => {
         contentType: "application/pdf",
         fileSize: 1000,
       };
-      expect(confirmRequestSchema.safeParse(invalidRequest1).success).toBe(false);
+      expect(confirmRequestSchema.safeParse(invalidRequest1).success).toBe(
+        false,
+      );
 
       // 음수 fileSize
       const invalidRequest2 = {
@@ -220,12 +218,14 @@ describe("Confirm API Logic", () => {
         contentType: "application/pdf",
         fileSize: -100,
       };
-      expect(confirmRequestSchema.safeParse(invalidRequest2).success).toBe(false);
+      expect(confirmRequestSchema.safeParse(invalidRequest2).success).toBe(
+        false,
+      );
     });
   });
 
-  describe("Property 3: Image Variant Processing", () => {
-    it("should match requested variants with result variants", () => {
+  describe("속성 3: 이미지 변형 처리", () => {
+    it("요청된 변형과 결과 변형이 일치해야 한다", () => {
       fc.assert(
         fc.property(variantsArb, (requestedVariants) => {
           // 시뮬레이션: 요청된 variants와 동일한 결과 생성
@@ -239,14 +239,17 @@ describe("Confirm API Logic", () => {
           }));
 
           // 모든 요청된 variant가 결과에 포함되어야 함
-          const isValid = validateVariantsMatch(requestedVariants, resultVariants);
+          const isValid = validateVariantsMatch(
+            requestedVariants,
+            resultVariants,
+          );
           expect(isValid).toBe(true);
         }),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
 
-    it("should create image file record with variants", () => {
+    it("변형이 포함된 이미지 파일 레코드를 생성해야 한다", () => {
       fc.assert(
         fc.property(
           fileIdArb,
@@ -281,7 +284,7 @@ describe("Confirm API Logic", () => {
               request,
               "",
               isImage,
-              processedVariants
+              processedVariants,
             );
 
             // 이미지 파일 레코드 검증
@@ -290,33 +293,40 @@ describe("Confirm API Logic", () => {
             expect(fileRecord.variants.length).toBe(variants.length);
 
             // 모든 요청된 variant가 결과에 포함되어야 함
-            const isValid = validateVariantsMatch(variants, fileRecord.variants);
+            const isValid = validateVariantsMatch(
+              variants,
+              fileRecord.variants,
+            );
             expect(isValid).toBe(true);
-          }
+          },
         ),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
 
-    it("should validate variant options schema", () => {
+    it("변형 옵션 스키마를 검증해야 한다", () => {
       fc.assert(
         fc.property(sizeLabelArb, formatArb, (sizeLabel, format) => {
           const validVariant = { sizeLabel, format };
           const result = variantOptionSchema.safeParse(validVariant);
           expect(result.success).toBe(true);
         }),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
 
-    it("should reject invalid variant options", () => {
+    it("유효하지 않은 변형 옵션을 거부해야 한다", () => {
       // 잘못된 sizeLabel
       const invalidVariant1 = { sizeLabel: "invalid", format: "jpeg" };
-      expect(variantOptionSchema.safeParse(invalidVariant1).success).toBe(false);
+      expect(variantOptionSchema.safeParse(invalidVariant1).success).toBe(
+        false,
+      );
 
       // 잘못된 format
       const invalidVariant2 = { sizeLabel: "original", format: "gif" };
-      expect(variantOptionSchema.safeParse(invalidVariant2).success).toBe(false);
+      expect(variantOptionSchema.safeParse(invalidVariant2).success).toBe(
+        false,
+      );
     });
   });
 });

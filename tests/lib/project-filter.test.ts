@@ -1,11 +1,3 @@
-/**
- * Project Filter Property Tests
- *
- * **Feature: project-management-enhancements, Property 3: Search Filter Correctness**
- * **Feature: project-management-enhancements, Property 4: Combined Filter Correctness**
- * **Validates: Requirements 2.1, 2.4, 3.1, 3.3**
- */
-
 import { describe, it, expect } from "vitest";
 import * as fc from "fast-check";
 import {
@@ -18,7 +10,7 @@ import {
 const createProject = (
   id: string,
   name: string,
-  storageProvider: "OCI" | "R2"
+  storageProvider: "OCI" | "R2",
 ): ProjectForFilter => ({
   id,
   name,
@@ -42,18 +34,12 @@ const projectListArbitrary = fc.array(projectArbitrary, {
 const storageProviderFilterArbitrary = fc.constantFrom<StorageProviderFilter>(
   "ALL",
   "OCI",
-  "R2"
+  "R2",
 );
 
-describe("Project Filter", () => {
-  /**
-   * **Feature: project-management-enhancements, Property 3: Search Filter Correctness**
-   * *For any* search term, all projects displayed in the filtered list should contain
-   * that search term (case-insensitive) in their name.
-   * **Validates: Requirements 2.1, 2.4**
-   */
-  describe("Property 3: Search Filter Correctness", () => {
-    it("should return all projects when search term is empty", () => {
+describe("프로젝트 필터", () => {
+  describe("속성 3: 검색 필터 정확성", () => {
+    it("검색어가 비어있을 때 모든 프로젝트를 반환해야 한다", () => {
       fc.assert(
         fc.property(projectListArbitrary, (projects) => {
           const result = filterProjects(projects, {
@@ -62,15 +48,17 @@ describe("Project Filter", () => {
           });
           expect(result.length).toBe(projects.length);
         }),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
 
-    it("should filter projects case-insensitively by name", () => {
+    it("이름으로 프로젝트를 필터링해야 한다 (대소문자 구분 없음)", () => {
       fc.assert(
         fc.property(
           projectListArbitrary,
-          fc.string({ minLength: 1, maxLength: 10 }).filter((s) => s.trim().length > 0),
+          fc
+            .string({ minLength: 1, maxLength: 10 })
+            .filter((s) => s.trim().length > 0),
           (projects, searchTerm) => {
             const result = filterProjects(projects, {
               searchTerm,
@@ -82,13 +70,13 @@ describe("Project Filter", () => {
             result.forEach((project) => {
               expect(project.name.toLowerCase()).toContain(normalizedSearch);
             });
-          }
+          },
         ),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
 
-    it("should find projects regardless of search term case", () => {
+    it("검색어 대소문자와 관계없이 프로젝트를 검색해야 한다", () => {
       const projects = [
         createProject("1", "My Project", "OCI"),
         createProject("2", "Another Project", "R2"),
@@ -118,14 +106,8 @@ describe("Project Filter", () => {
     });
   });
 
-  /**
-   * **Feature: project-management-enhancements, Property 4: Combined Filter Correctness**
-   * *For any* combination of search term and storage provider filter, all displayed projects
-   * should satisfy both conditions.
-   * **Validates: Requirements 3.1, 3.3**
-   */
-  describe("Property 4: Combined Filter Correctness", () => {
-    it("should filter by storage provider when ALL is not selected", () => {
+  describe("속성 4: 복합 필터 정확성", () => {
+    it("ALL이 선택되지 않았을 때 스토리지 프로바이더로 필터링해야 한다", () => {
       fc.assert(
         fc.property(
           projectListArbitrary,
@@ -140,13 +122,13 @@ describe("Project Filter", () => {
             result.forEach((project) => {
               expect(project.storageProvider).toBe(provider);
             });
-          }
+          },
         ),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
 
-    it("should return all providers when ALL is selected", () => {
+    it("ALL이 선택되었을 때 모든 프로바이더를 반환해야 한다", () => {
       const projects = [
         createProject("1", "Project A", "OCI"),
         createProject("2", "Project B", "R2"),
@@ -161,7 +143,7 @@ describe("Project Filter", () => {
       expect(result.length).toBe(3);
     });
 
-    it("should apply both search and provider filter together", () => {
+    it("검색과 프로바이더 필터를 함께 적용해야 한다", () => {
       fc.assert(
         fc.property(
           projectListArbitrary,
@@ -186,13 +168,13 @@ describe("Project Filter", () => {
                 expect(project.storageProvider).toBe(provider);
               }
             });
-          }
+          },
         ),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
 
-    it("should return empty array when no projects match both conditions", () => {
+    it("두 조건 모두 만족하는 프로젝트가 없을 때 빈 배열을 반환해야 한다", () => {
       const projects = [
         createProject("1", "Alpha", "OCI"),
         createProject("2", "Beta", "R2"),

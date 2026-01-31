@@ -1,15 +1,8 @@
-/**
- * File Operations Storage Unit Tests
- * 
- * **Feature: multi-storage-provider, Property 3: Presigned URL Interface Consistency**
- * **Validates: Requirements 3.4**
- */
-
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { StorageFactory } from "@/lib/storage/factory";
 import { StorageProvider } from "@/lib/storage/types";
 
-describe("File Operations with Storage Abstraction", () => {
+describe("스토리지 추상화를 통한 파일 작업", () => {
   beforeEach(() => {
     StorageFactory.clearCache();
   });
@@ -18,8 +11,8 @@ describe("File Operations with Storage Abstraction", () => {
     vi.unstubAllEnvs();
   });
 
-  describe("Presigned URL Interface Consistency", () => {
-    it("should return consistent presigned URL structure for OCI adapter", async () => {
+  describe("Presigned URL 인터페이스 일관성", () => {
+    it("OCI 어댑터에 대해 일관된 Presigned URL 구조를 반환해야 한다", async () => {
       // Configure OCI
       vi.stubEnv("OCI_TENANCY_OCID", "test-tenancy");
       vi.stubEnv("OCI_USER_OCID", "test-user");
@@ -37,7 +30,7 @@ describe("File Operations with Storage Abstraction", () => {
       expect(adapter.provider).toBe(StorageProvider.OCI);
     });
 
-    it("should return consistent presigned URL structure for R2 adapter", async () => {
+    it("R2 어댑터에 대해 일관된 Presigned URL 구조를 반환해야 한다", async () => {
       // Configure R2
       vi.stubEnv("R2_ACCOUNT_ID", "test-account");
       vi.stubEnv("R2_ACCESS_KEY_ID", "test-key-id");
@@ -52,7 +45,7 @@ describe("File Operations with Storage Abstraction", () => {
       expect(adapter.provider).toBe(StorageProvider.R2);
     });
 
-    it("should generate object URL with correct format for OCI", async () => {
+    it("OCI에 대해 올바른 형식의 객체 URL을 생성해야 한다", async () => {
       vi.stubEnv("OCI_REGION", "ap-seoul-1");
       vi.stubEnv("OCI_NAMESPACE", "test-namespace");
       vi.stubEnv("OCI_BUCKET_NAME", "test-bucket");
@@ -68,7 +61,7 @@ describe("File Operations with Storage Abstraction", () => {
       expect(objectUrl).toContain("project123/file.jpg");
     });
 
-    it("should generate object URL with correct format for R2", async () => {
+    it("R2에 대해 올바른 형식의 객체 URL을 생성해야 한다", async () => {
       vi.stubEnv("R2_ACCOUNT_ID", "abc123");
       vi.stubEnv("R2_BUCKET_NAME", "my-bucket");
 
@@ -82,8 +75,8 @@ describe("File Operations with Storage Abstraction", () => {
     });
   });
 
-  describe("Storage Adapter Selection", () => {
-    it("should select correct adapter based on provider type", async () => {
+  describe("스토리지 어댑터 선택", () => {
+    it("프로바이더 타입에 따라 올바른 어댑터를 선택해야 한다", async () => {
       const ociAdapter = await StorageFactory.getAdapter(StorageProvider.OCI);
       const r2Adapter = await StorageFactory.getAdapter(StorageProvider.R2);
 
@@ -91,7 +84,7 @@ describe("File Operations with Storage Abstraction", () => {
       expect(r2Adapter.provider).toBe(StorageProvider.R2);
     });
 
-    it("should cache adapter instances", async () => {
+    it("어댑터 인스턴스를 캐싱해야 한다", async () => {
       const adapter1 = await StorageFactory.getAdapter(StorageProvider.OCI);
       const adapter2 = await StorageFactory.getAdapter(StorageProvider.OCI);
 

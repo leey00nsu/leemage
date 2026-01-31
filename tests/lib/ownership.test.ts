@@ -26,7 +26,7 @@ const mockPrisma = prisma as unknown as {
   file: { findUnique: ReturnType<typeof vi.fn> };
 };
 
-describe("Ownership Verification", () => {
+describe("소유권 검증", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -36,7 +36,7 @@ describe("Ownership Verification", () => {
   });
 
   describe("verifyProjectOwnership", () => {
-    it("should return authorized when user owns the project", async () => {
+    it("사용자가 프로젝트를 소유한 경우 승인을 반환해야 한다", async () => {
       const userId = "user-123";
       const projectId = "project-456";
 
@@ -52,7 +52,7 @@ describe("Ownership Verification", () => {
       });
     });
 
-    it("should return NOT_FOUND when project does not exist", async () => {
+    it("프로젝트가 존재하지 않는 경우 NOT_FOUND를 반환해야 한다", async () => {
       mockPrisma.project.findUnique.mockResolvedValue(null);
 
       const result = await verifyProjectOwnership("user-123", "nonexistent");
@@ -61,7 +61,7 @@ describe("Ownership Verification", () => {
       expect(result.reason).toBe(OWNERSHIP_ERROR_CODES.NOT_FOUND);
     });
 
-    it("should return NOT_FOUND when user does not own the project (no info disclosure)", async () => {
+    it("사용자가 프로젝트를 소유하지 않은 경우 NOT_FOUND를 반환해야 한다 (정보 유출 방지)", async () => {
       mockPrisma.project.findUnique.mockResolvedValue({ userId: "other-user" });
 
       const result = await verifyProjectOwnership("user-123", "project-456");
@@ -71,7 +71,7 @@ describe("Ownership Verification", () => {
       expect(result.reason).toBe(OWNERSHIP_ERROR_CODES.NOT_FOUND);
     });
 
-    it("should return NOT_FOUND when userId is empty", async () => {
+    it("userId가 비어있는 경우 NOT_FOUND를 반환해야 한다", async () => {
       const result = await verifyProjectOwnership("", "project-456");
 
       expect(result.authorized).toBe(false);
@@ -79,7 +79,7 @@ describe("Ownership Verification", () => {
       expect(mockPrisma.project.findUnique).not.toHaveBeenCalled();
     });
 
-    it("should return NOT_FOUND when projectId is empty", async () => {
+    it("projectId가 비어있는 경우 NOT_FOUND를 반환해야 한다", async () => {
       const result = await verifyProjectOwnership("user-123", "");
 
       expect(result.authorized).toBe(false);
@@ -87,7 +87,7 @@ describe("Ownership Verification", () => {
       expect(mockPrisma.project.findUnique).not.toHaveBeenCalled();
     });
 
-    it("should handle database errors gracefully", async () => {
+    it("데이터베이스 오류를 적절히 처리해야 한다", async () => {
       mockPrisma.project.findUnique.mockRejectedValue(new Error("DB error"));
 
       const result = await verifyProjectOwnership("user-123", "project-456");
@@ -98,7 +98,7 @@ describe("Ownership Verification", () => {
   });
 
   describe("verifyFileOwnership", () => {
-    it("should return authorized when user owns the file through project", async () => {
+    it("사용자가 프로젝트를 통해 파일을 소유한 경우 승인을 반환해야 한다", async () => {
       const userId = "user-123";
       const fileId = "file-789";
 
@@ -115,7 +115,7 @@ describe("Ownership Verification", () => {
       });
     });
 
-    it("should return NOT_FOUND when file does not exist", async () => {
+    it("파일이 존재하지 않는 경우 NOT_FOUND를 반환해야 한다", async () => {
       mockPrisma.file.findUnique.mockResolvedValue(null);
 
       const result = await verifyFileOwnership("user-123", "nonexistent");
@@ -124,7 +124,7 @@ describe("Ownership Verification", () => {
       expect(result.reason).toBe(OWNERSHIP_ERROR_CODES.NOT_FOUND);
     });
 
-    it("should return NOT_FOUND when user does not own the file", async () => {
+    it("사용자가 파일을 소유하지 않은 경우 NOT_FOUND를 반환해야 한다", async () => {
       mockPrisma.file.findUnique.mockResolvedValue({
         project: { userId: "other-user" },
       });
@@ -135,7 +135,7 @@ describe("Ownership Verification", () => {
       expect(result.reason).toBe(OWNERSHIP_ERROR_CODES.NOT_FOUND);
     });
 
-    it("should return NOT_FOUND when fileId is empty", async () => {
+    it("fileId가 비어있는 경우 NOT_FOUND를 반환해야 한다", async () => {
       const result = await verifyFileOwnership("user-123", "");
 
       expect(result.authorized).toBe(false);
@@ -144,7 +144,7 @@ describe("Ownership Verification", () => {
   });
 
   describe("verifyFileOwnershipWithProject", () => {
-    it("should return authorized when user owns project and file belongs to it", async () => {
+    it("사용자가 프로젝트를 소유하고 파일이 해당 프로젝트에 속한 경우 승인을 반환해야 한다", async () => {
       const userId = "user-123";
       const fileId = "file-789";
       const projectId = "project-456";
@@ -152,32 +152,38 @@ describe("Ownership Verification", () => {
       mockPrisma.project.findUnique.mockResolvedValue({ userId });
       mockPrisma.file.findUnique.mockResolvedValue({ projectId });
 
-      const result = await verifyFileOwnershipWithProject(userId, fileId, projectId);
+      const result = await verifyFileOwnershipWithProject(
+        userId,
+        fileId,
+        projectId,
+      );
 
       expect(result.authorized).toBe(true);
     });
 
-    it("should return NOT_FOUND when user does not own the project", async () => {
+    it("사용자가 프로젝트를 소유하지 않은 경우 NOT_FOUND를 반환해야 한다", async () => {
       mockPrisma.project.findUnique.mockResolvedValue({ userId: "other-user" });
 
       const result = await verifyFileOwnershipWithProject(
         "user-123",
         "file-789",
-        "project-456"
+        "project-456",
       );
 
       expect(result.authorized).toBe(false);
       expect(result.reason).toBe(OWNERSHIP_ERROR_CODES.NOT_FOUND);
     });
 
-    it("should return NOT_FOUND when file does not belong to the project", async () => {
+    it("파일이 해당 프로젝트에 속하지 않은 경우 NOT_FOUND를 반환해야 한다", async () => {
       mockPrisma.project.findUnique.mockResolvedValue({ userId: "user-123" });
-      mockPrisma.file.findUnique.mockResolvedValue({ projectId: "other-project" });
+      mockPrisma.file.findUnique.mockResolvedValue({
+        projectId: "other-project",
+      });
 
       const result = await verifyFileOwnershipWithProject(
         "user-123",
         "file-789",
-        "project-456"
+        "project-456",
       );
 
       expect(result.authorized).toBe(false);
@@ -185,13 +191,8 @@ describe("Ownership Verification", () => {
     });
   });
 
-  /**
-   * Property 4: Ownership Verification Completeness
-   * For any file access request, the Resource_Owner_Checker SHALL verify
-   * that the file's project belongs to the requesting user before allowing access.
-   */
-  describe("Property 4: Ownership Verification Completeness", () => {
-    it("should always verify project ownership for file access", () => {
+  describe("속성 4: 소유권 검증 완전성", () => {
+    it("파일 접근 시 항상 프로젝트 소유권을 검증해야 한다", () => {
       fc.assert(
         fc.asyncProperty(
           fc.string({ minLength: 1, maxLength: 50 }), // userId
@@ -212,13 +213,13 @@ describe("Ownership Verification", () => {
               expect(result.authorized).toBe(false);
               expect(result.reason).toBe(OWNERSHIP_ERROR_CODES.NOT_FOUND);
             }
-          }
+          },
         ),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
 
-    it("should never authorize access when file does not exist", () => {
+    it("파일이 존재하지 않을 때 절대 접근을 허용하지 않아야 한다", () => {
       fc.assert(
         fc.asyncProperty(
           fc.string({ minLength: 1, maxLength: 50 }), // userId
@@ -230,13 +231,13 @@ describe("Ownership Verification", () => {
 
             expect(result.authorized).toBe(false);
             expect(result.reason).toBe(OWNERSHIP_ERROR_CODES.NOT_FOUND);
-          }
+          },
         ),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
 
-    it("should never authorize access when project does not exist", () => {
+    it("프로젝트가 존재하지 않을 때 절대 접근을 허용하지 않아야 한다", () => {
       fc.assert(
         fc.asyncProperty(
           fc.string({ minLength: 1, maxLength: 50 }), // userId
@@ -248,15 +249,15 @@ describe("Ownership Verification", () => {
 
             expect(result.authorized).toBe(false);
             expect(result.reason).toBe(OWNERSHIP_ERROR_CODES.NOT_FOUND);
-          }
+          },
         ),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
   });
 
-  describe("Information Disclosure Prevention (Requirement 3.5)", () => {
-    it("should return same error for non-existent and unauthorized resources", () => {
+  describe("정보 유출 방지 (요구사항 3.5)", () => {
+    it("존재하지 않는 리소스와 권한 없는 리소스에 대해 동일한 오류를 반환해야 한다", () => {
       fc.assert(
         fc.asyncProperty(
           fc.string({ minLength: 1, maxLength: 50 }), // userId
@@ -278,9 +279,9 @@ describe("Ownership Verification", () => {
             // Both cases should return the same error to prevent info disclosure
             expect(result.authorized).toBe(false);
             expect(result.reason).toBe(OWNERSHIP_ERROR_CODES.NOT_FOUND);
-          }
+          },
         ),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
   });

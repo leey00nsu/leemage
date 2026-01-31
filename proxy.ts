@@ -33,7 +33,7 @@ function createRateLimitResponse(result: {
       code: "RATE_LIMIT_EXCEEDED",
       message: "요청 한도를 초과했습니다. 잠시 후 다시 시도해주세요.",
     },
-    { status: 429 }
+    { status: 429 },
   );
 
   if (result.retryAfter) {
@@ -53,7 +53,7 @@ function getFallbackKey(req: NextRequest) {
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
+
   // API 요청은 레이트 리밋만 적용하고 나머지는 패스
   if (pathname.startsWith("/api")) {
     const limiter = selectLimiter(pathname);
@@ -96,7 +96,7 @@ export async function proxy(request: NextRequest) {
   // 보호할 경로 목록 (locale 없는 경로)
   const protectedRoutes = ["/projects", "/account"];
   const isProtectedRoute = protectedRoutes.some((route) =>
-    pathWithoutLocale.startsWith(route)
+    pathWithoutLocale.startsWith(route),
   );
 
   // 로그인 페이지 경로 (locale 없는 경로)
@@ -120,7 +120,7 @@ export async function proxy(request: NextRequest) {
   if (isLoggedIn && pathWithoutLocale === loginPath) {
     // 현재 locale을 포함한 프로젝트 페이지로 리디렉션
     return NextResponse.redirect(
-      new URL(`/${currentLocale}/projects`, request.url)
+      new URL(`/${currentLocale}/projects`, request.url),
     );
   }
 
@@ -132,9 +132,9 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     "/api/:path*",
-    // Match all pathnames except for
-    // - … if they start with `/api`, `/trpc`, `/_next` or `/_vercel`
-    // - … the ones containing a dot (e.g. `favicon.ico`)
+    // 다음으로 시작하는 경로를 제외한 모든 경로 매칭
+    // - `/api`, `/trpc`, `/_next`, `/_vercel`로 시작하는 경로
+    // - 점이 포함된 경로 (예: `favicon.ico`)
     "/((?!api|trpc|_next|_vercel|.*\\..*).*)",
   ],
 };

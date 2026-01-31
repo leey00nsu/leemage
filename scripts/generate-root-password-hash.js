@@ -11,9 +11,9 @@ function printHelp() {
       "",
       "Usage:",
       "  npm run root:hash",
-      "  npm run root:hash -- --password \"your-password\"",
+      '  npm run root:hash -- --password "your-password"',
       "  npm run root:hash -- --rounds 12",
-      "  echo \"your-password\" | npm run root:hash -- --stdin",
+      '  echo "your-password" | npm run root:hash -- --stdin',
       "",
       "Options:",
       "  --password <value>  Password to hash (skips prompt)",
@@ -21,7 +21,7 @@ function printHelp() {
       "  --stdin             Read password from stdin (no prompt)",
       "  --help              Show this help",
       "",
-    ].join("\n")
+    ].join("\n"),
   );
 }
 
@@ -90,7 +90,7 @@ function readHidden(prompt) {
         stdout.write("\n");
         resolve(input.join(""));
       } else if (key.startsWith("\u001b")) {
-        // Ignore escape sequences (arrows, etc.)
+        // 이스케이프 시퀀스(화살표 등) 무시
         return;
       } else if (key === "\u0003") {
         stdin.off("data", onData);
