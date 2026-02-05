@@ -280,12 +280,28 @@
     "noFiles": "No files yet."
   },
   "Header": {
+    "dashboardLink": "Dashboard",
     "projectsLink": "Projects",
     "apiDocsLink": "API Docs",
     "logsLink": "Logs",
     "accountLink": "My Account",
     "menu": "Menu",
     "loginLink": "Login"
+  },
+  "Dashboard": {
+    "title": "Dashboard",
+    "noProjectsDescription": "No projects yet. Create one from the Projects tab.",
+    "createProjectButton": "Create project",
+    "goProjectsButton": "Go to Projects"
+  },
+  "AppSidebar": {
+    "dashboard": "Dashboard",
+    "projects": "Projects",
+    "apiDocs": "API Docs",
+    "logs": "Logs",
+    "projectsSection": "Projects",
+    "noProjects": "No projects yet",
+    "accountSettings": "Account settings"
   },
   "Footer": {
     "copyright": "© 2025 Leemage. All rights reserved."

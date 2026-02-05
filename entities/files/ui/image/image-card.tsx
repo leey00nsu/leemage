@@ -1,14 +1,14 @@
 "use client";
 
-import { Card } from "@/shared/ui/card";
-import { Badge } from "@/shared/ui/badge";
-import { ImageIcon, Layers } from "lucide-react";
+import { ImageIcon, Layers, MoreVertical } from "lucide-react";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { FileCard } from "../file-card";
 import { VideoCard } from "../video/video-card";
 import { ImageVariantData } from "../../model/types";
 import { isVideoMimeType } from "@/shared/lib/file-utils";
+import { AppAssetCard } from "@/shared/ui/app/app-asset-card";
+import { formatFileSize } from "@/shared/lib/file-utils";
 
 interface ImageCardProps {
   id: string;
@@ -70,36 +70,55 @@ export function ImageCard({
 
   if (!displayVariant) {
     return (
-      <Card className="aspect-square flex items-center justify-center bg-muted">
+      <AppAssetCard className="aspect-square flex items-center justify-center bg-gray-100 dark:bg-gray-800">
         <ImageIcon className="h-8 w-8 text-muted-foreground" />
-      </Card>
+      </AppAssetCard>
     );
   }
 
+  const format =
+    mimeType && mimeType.includes("/") ? mimeType.split("/")[1] : "file";
+  const resolution = `${displayVariant.width}x${displayVariant.height}`;
+
   return (
-    <Link href={`/projects/${projectId}/files/${id}`} passHref>
-      <Card className="overflow-hidden group relative aspect-square cursor-pointer">
-        <Image
-          src={displayVariant.url}
-          alt={name}
-          width={displayVariant.width}
-          height={displayVariant.height}
-          className="object-contain w-full h-full transition-transform duration-300 group-hover:scale-105"
-          priority={priority}
-        />
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity flex justify-between items-center">
-          <p className="text-white text-xs truncate mr-1" title={name}>
-            {name}
-          </p>
-          <Badge
-            variant="secondary"
-            className="text-xs px-1.5 py-0.5 whitespace-nowrap flex items-center"
-          >
-            <Layers className="h-3 w-3 mr-1" />
-            {variants.length}
-          </Badge>
+    <Link href={`/projects/${projectId}/files/${id}`} className="block">
+      <AppAssetCard>
+        <div className="aspect-square bg-gray-100 dark:bg-gray-800 relative overflow-hidden flex items-center justify-center">
+          <Image
+            src={displayVariant.url}
+            alt={name}
+            width={displayVariant.width}
+            height={displayVariant.height}
+            className="w-full h-full object-contain p-2 transition-transform duration-500 group-hover:scale-105"
+            priority={priority}
+          />
+          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="p-1.5 bg-white/90 dark:bg-black/70 backdrop-blur rounded-md shadow-sm text-slate-700 dark:text-white">
+              <MoreVertical className="h-4 w-4" />
+            </div>
+          </div>
+          <div className="absolute bottom-2 left-2 px-1.5 py-0.5 bg-black/60 backdrop-blur rounded text-[10px] font-mono text-white uppercase">
+            {format}
+          </div>
         </div>
-      </Card>
+        <div className="p-3">
+          <div className="flex items-start justify-between gap-2 mb-1">
+            <h3
+              className="text-sm font-medium text-slate-900 dark:text-white truncate"
+              title={name}
+            >
+              {name}
+            </h3>
+            <span className="text-slate-400">
+              <Layers className="h-4 w-4" />
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+            <span>{resolution}</span>
+            <span>{formatFileSize(size)}</span>
+          </div>
+        </div>
+      </AppAssetCard>
     </Link>
   );
 }

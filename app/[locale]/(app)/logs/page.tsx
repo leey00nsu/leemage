@@ -1,6 +1,6 @@
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { getSessionDefault } from "@/lib/session";
-import { redirect } from "next/navigation";
+import { redirect } from "@/i18n/navigation";
 import { ApiLogsDashboard } from "@/features/api-stats/ui/api-stats-dashboard";
 
 export async function generateMetadata() {
@@ -12,11 +12,12 @@ export async function generateMetadata() {
 }
 
 export default async function LogsPage() {
+  const locale = await getLocale();
   const session = await getSessionDefault();
 
   // 로그인하지 않은 경우 로그인 페이지로 리디렉션
   if (!session?.username) {
-    redirect("/auth/login");
+    redirect({ href: "/auth/login", locale });
   }
 
   const t = await getTranslations("ApiLogs");

@@ -48,7 +48,7 @@ export function LoginForm() {
     mutationFn: login,
     onSuccess: (data) => {
       console.log("Login successful:", data);
-      router.push("/projects");
+      router.push("/dashboard");
     },
     onError: (error) => {
       console.error("Login mutation error:", error);
