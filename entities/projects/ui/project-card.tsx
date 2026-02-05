@@ -17,7 +17,7 @@ interface ProjectCardProps {
 export function ProjectCard({ id, name, description, storageProvider }: ProjectCardProps) {
   const t = useTranslations("ProjectCard");
   return (
-    <Link href={`/projects/${id}`}>
+    <Link href={`/dashboard/${id}`}>
       <Card className="hover:shadow-md transition-shadow h-full">
         <CardHeader>
           <div className="flex items-center justify-between mb-2">

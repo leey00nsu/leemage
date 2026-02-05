@@ -303,6 +303,43 @@
     "noProjects": "프로젝트가 없습니다",
     "accountSettings": "계정 설정"
   },
+  "ProjectAssets": {
+    "title": "Media Library",
+    "subtitle": "디지털 자산을 관리, 정리, 변환하세요.",
+    "uploadButton": "업로드",
+    "editProject": "수정",
+    "searchPlaceholder": "이름으로 검색...",
+    "noResults": "조건에 맞는 파일이 없습니다.",
+    "errorTitle": "오류",
+    "errorDescription": "프로젝트 정보를 불러오지 못했습니다.",
+    "notFoundTitle": "없음",
+    "notFoundDescription": "프로젝트를 찾을 수 없습니다.",
+    "filters": {
+      "typeLabel": "타입",
+      "formatLabel": "포맷",
+      "sortLabel": "정렬",
+      "typeAll": "전체",
+      "typeImage": "이미지",
+      "typeVideo": "비디오",
+      "typeOther": "기타",
+      "formatAll": "전체 포맷",
+      "sortNewest": "최신순",
+      "sortOldest": "오래된순",
+      "sortNameAsc": "이름 (A–Z)",
+      "sortNameDesc": "이름 (Z–A)",
+      "sortSizeDesc": "크기 (내림차순)"
+    },
+    "type": {
+      "image": "이미지",
+      "video": "비디오",
+      "other": "기타"
+    },
+    "list": {
+      "name": "이름",
+      "type": "타입",
+      "size": "크기"
+    }
+  },
   "Footer": {
     "copyright": "© 2025 Leemage. All rights reserved."
   },

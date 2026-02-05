@@ -28,7 +28,7 @@ export function VideoCard({
   const thumbnail = variants?.find((v) => v.label === "thumbnail");
 
   return (
-    <Link href={`/projects/${projectId}/files/${id}`} className="block">
+    <Link href={`/dashboard/${projectId}/files/${id}`} className="block">
       <AppAssetCard>
         <div className="aspect-square bg-gray-100 dark:bg-gray-800 relative overflow-hidden flex items-center justify-center">
           {thumbnail ? (

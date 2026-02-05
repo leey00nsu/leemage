@@ -303,6 +303,43 @@
     "noProjects": "No projects yet",
     "accountSettings": "Account settings"
   },
+  "ProjectAssets": {
+    "title": "Media Library",
+    "subtitle": "Manage, organize, and transform your digital assets.",
+    "uploadButton": "Upload Assets",
+    "editProject": "Edit",
+    "searchPlaceholder": "Search by name...",
+    "noResults": "No matching files found.",
+    "errorTitle": "Error",
+    "errorDescription": "Failed to load project details.",
+    "notFoundTitle": "Not found",
+    "notFoundDescription": "Project not found.",
+    "filters": {
+      "typeLabel": "Type",
+      "formatLabel": "Format",
+      "sortLabel": "Sort",
+      "typeAll": "All",
+      "typeImage": "Image",
+      "typeVideo": "Video",
+      "typeOther": "Other",
+      "formatAll": "All formats",
+      "sortNewest": "Newest",
+      "sortOldest": "Oldest",
+      "sortNameAsc": "Name (A–Z)",
+      "sortNameDesc": "Name (Z–A)",
+      "sortSizeDesc": "Size (desc)"
+    },
+    "type": {
+      "image": "Image",
+      "video": "Video",
+      "other": "Other"
+    },
+    "list": {
+      "name": "Name",
+      "type": "Type",
+      "size": "Size"
+    }
+  },
   "Footer": {
     "copyright": "© 2025 Leemage. All rights reserved."
   },
