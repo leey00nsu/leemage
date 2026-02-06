@@ -2,7 +2,10 @@ import { type NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-import { API_KEY_PREFIX } from "@/shared/config/api-key";
+import {
+  API_KEY_LOOKUP_PREFIX_LENGTH,
+  API_KEY_PREFIX,
+} from "@/shared/config/api-key";
 import { authLogger, maskApiKey } from "@/lib/logging/secure-logger";
 import { logApiCall, extractProjectIdFromPath } from "@/lib/api/api-logger";
 
@@ -27,6 +30,7 @@ export async function validateApiKey(
   }
 
   const providedApiKey = authorizationHeader.substring(7); // "Bearer " 제거
+  const lookupPrefix = providedApiKey.slice(0, API_KEY_LOOKUP_PREFIX_LENGTH);
 
   if (!providedApiKey || !providedApiKey.startsWith(API_KEY_PREFIX)) {
     authLogger.security({
@@ -41,18 +45,19 @@ export async function validateApiKey(
   }
 
   try {
-    // DB에서 해당 접두사를 가진 키 정보 조회 (해시값과 userIdentifier)
-    const apiKeyData = await prisma.apiKey.findFirst({
+    // prefix 기반 조회 + legacy 데이터(prefix=lmk_) fallback 조회
+    const apiKeyCandidates = await prisma.apiKey.findMany({
       where: {
-        prefix: API_KEY_PREFIX,
+        OR: [{ prefix: lookupPrefix }, { prefix: API_KEY_PREFIX }],
       },
       select: {
+        id: true,
         keyHash: true,
         userIdentifier: true,
       },
     });
 
-    if (!apiKeyData || !apiKeyData.keyHash) {
+    if (!apiKeyCandidates.length) {
       authLogger.security({
         type: "AUTH_FAILURE",
         ip,
@@ -61,24 +66,38 @@ export async function validateApiKey(
       return null;
     }
 
-    // 제공된 키와 저장된 해시 비교
-    const isValid = await bcrypt.compare(providedApiKey, apiKeyData.keyHash);
+    for (const apiKeyData of apiKeyCandidates) {
+      const isValid = await bcrypt.compare(providedApiKey, apiKeyData.keyHash);
 
-    if (!isValid) {
+      if (!isValid) {
+        continue;
+      }
+
+      try {
+        await prisma.apiKey.update({
+          where: { id: apiKeyData.id },
+          data: { lastUsedAt: new Date() },
+        });
+      } catch (updateError) {
+        authLogger.error("API Key lastUsedAt 업데이트 실패", {
+          error: String(updateError),
+        });
+      }
+
       authLogger.security({
-        type: "AUTH_FAILURE",
+        type: "AUTH_SUCCESS",
         ip,
-        details: { reason: "키 검증 실패", key: maskApiKey(providedApiKey) },
+        details: { key: maskApiKey(providedApiKey) },
       });
-      return null;
+      return apiKeyData.userIdentifier;
     }
 
     authLogger.security({
-      type: "AUTH_SUCCESS",
+      type: "AUTH_FAILURE",
       ip,
-      details: { key: maskApiKey(providedApiKey) },
+      details: { reason: "키 검증 실패", key: maskApiKey(providedApiKey) },
     });
-    return apiKeyData.userIdentifier;
+    return null;
   } catch (error) {
     authLogger.error("API Key 검증 중 오류 발생", { error: String(error) });
     return null;

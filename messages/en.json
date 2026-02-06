@@ -191,6 +191,73 @@
     "unknownError": "An unknown error occurred",
     "cardDescription": "Manage API keys for external service integration. Only one API key can be generated per system. If you lose your API key, you must generate a new one."
   },
+  "ApiSecurity": {
+    "pageTitle": "API & Security",
+    "pageDescription": "Manage API keys, permissions and webhooks.",
+    "heading": "API & Security",
+    "subheading": "Manage authentication keys and access controls for integrations.",
+    "tabs": {
+      "apiKeys": "API Keys",
+      "permissions": "Permissions",
+      "webhooks": "Webhooks"
+    },
+    "keys": {
+      "searchPlaceholder": "Search keys...",
+      "createButton": "Create New Key",
+      "tableTitle": "API Keys",
+      "summary": "Showing {shown} of {total} keys",
+      "pagination": {
+        "previous": "Previous",
+        "next": "Next"
+      },
+      "columns": {
+        "name": "Key Name",
+        "status": "Status",
+        "secret": "Secret Key",
+        "lastUsed": "Last Used",
+        "actions": "Actions"
+      },
+      "status": {
+        "active": "Active"
+      },
+      "neverUsed": "Never",
+      "unnamedKey": "Untitled key",
+      "createdAt": "Created {date}",
+      "empty": {
+        "default": "No API keys yet. Create your first key.",
+        "filtered": "No API keys match your search."
+      },
+      "actions": {
+        "edit": "Edit",
+        "editDialogTitle": "Edit key name",
+        "editDialogDescription": "Set a readable name for this API key.",
+        "editInputLabel": "Key name",
+        "confirmEdit": "Save changes",
+        "editing": "Saving...",
+        "revoke": "Revoke",
+        "revokeConfirmTitle": "Revoke this API key?",
+        "revokeConfirmDescription": "This key will no longer be able to authenticate API requests.",
+        "cancel": "Cancel",
+        "confirmRevoke": "Revoke key",
+        "revoking": "Revoking..."
+      },
+      "generateSuccessToast": "New API key generated. Copy and store it safely.",
+      "generateErrorToast": "Failed to generate API key.",
+      "renameSuccessToast": "API key name updated.",
+      "renameErrorToast": "Failed to update API key name.",
+      "revokeSuccessToast": "API key revoked.",
+      "revokeErrorToast": "Failed to revoke API key.",
+      "unknownError": "An unknown error occurred."
+    },
+    "permissions": {
+      "title": "Permissions",
+      "description": "Granular permission controls will be added in a future update."
+    },
+    "webhooks": {
+      "title": "Webhooks",
+      "description": "Webhook configuration and delivery logs will be added in a future update."
+    }
+  },
   "ApiDocsView": {
     "title": "API Documentation",
     "description": "Explore the usage and endpoint information for the Leemage API. Authentication may be required to use the API.",
@@ -283,6 +350,7 @@
     "dashboardLink": "Dashboard",
     "projectsLink": "Projects",
     "apiDocsLink": "API Docs",
+    "apiSecurityLink": "API & Security",
     "logsLink": "Monitoring",
     "accountLink": "My Account",
     "menu": "Menu",
@@ -298,6 +366,7 @@
     "dashboard": "Dashboard",
     "projects": "Projects",
     "apiDocs": "API Docs",
+    "apiSecurity": "API & Security",
     "logs": "Monitoring",
     "projectsSection": "Projects",
     "noProjects": "No projects yet",

@@ -191,6 +191,73 @@
     "unknownError": "알 수 없는 오류 발생",
     "cardDescription": "외부 서비스 연동을 위한 API 키를 관리합니다. API 키는 시스템당 하나만 생성 가능합니다. 만약 API 키를 분실하였다면 새로 생성해야 합니다."
   },
+  "ApiSecurity": {
+    "pageTitle": "API & 보안",
+    "pageDescription": "API 키, 권한, 웹훅을 관리합니다.",
+    "heading": "API & 보안",
+    "subheading": "연동을 위한 인증 키와 접근 제어를 관리하세요.",
+    "tabs": {
+      "apiKeys": "API Keys",
+      "permissions": "Permissions",
+      "webhooks": "Webhooks"
+    },
+    "keys": {
+      "searchPlaceholder": "키 검색...",
+      "createButton": "새 키 생성",
+      "tableTitle": "API Keys",
+      "summary": "{total}개 중 {shown}개 표시",
+      "pagination": {
+        "previous": "이전",
+        "next": "다음"
+      },
+      "columns": {
+        "name": "키 이름",
+        "status": "상태",
+        "secret": "Secret Key",
+        "lastUsed": "마지막 사용",
+        "actions": "작업"
+      },
+      "status": {
+        "active": "활성"
+      },
+      "neverUsed": "사용 이력 없음",
+      "unnamedKey": "이름 없는 키",
+      "createdAt": "생성일 {date}",
+      "empty": {
+        "default": "API 키가 없습니다. 첫 키를 생성해보세요.",
+        "filtered": "검색 조건에 맞는 API 키가 없습니다."
+      },
+      "actions": {
+        "edit": "이름 변경",
+        "editDialogTitle": "키 이름 변경",
+        "editDialogDescription": "이 API 키를 구분하기 쉬운 이름으로 설정하세요.",
+        "editInputLabel": "키 이름",
+        "confirmEdit": "변경 저장",
+        "editing": "저장 중...",
+        "revoke": "폐기",
+        "revokeConfirmTitle": "이 API 키를 폐기할까요?",
+        "revokeConfirmDescription": "폐기한 키는 더 이상 API 인증에 사용할 수 없습니다.",
+        "cancel": "취소",
+        "confirmRevoke": "키 폐기",
+        "revoking": "폐기 중..."
+      },
+      "generateSuccessToast": "새 API 키가 생성되었습니다. 복사 후 안전하게 보관하세요.",
+      "generateErrorToast": "API 키 생성에 실패했습니다.",
+      "renameSuccessToast": "API 키 이름을 변경했습니다.",
+      "renameErrorToast": "API 키 이름 변경에 실패했습니다.",
+      "revokeSuccessToast": "API 키를 폐기했습니다.",
+      "revokeErrorToast": "API 키 폐기에 실패했습니다.",
+      "unknownError": "알 수 없는 오류가 발생했습니다."
+    },
+    "permissions": {
+      "title": "Permissions",
+      "description": "세부 권한 제어 기능은 추후 업데이트에서 제공됩니다."
+    },
+    "webhooks": {
+      "title": "Webhooks",
+      "description": "웹훅 설정 및 전송 로그 기능은 추후 업데이트에서 제공됩니다."
+    }
+  },
   "ApiDocsView": {
     "title": "API 문서",
     "description": "Leemage API의 사용법과 엔드포인트 정보를 확인하세요. API를 사용하려면 인증이 필요할 수 있습니다.",
@@ -283,6 +350,7 @@
     "dashboardLink": "대시보드",
     "projectsLink": "프로젝트",
     "apiDocsLink": "API 문서",
+    "apiSecurityLink": "API & 보안",
     "logsLink": "모니터링",
     "accountLink": "내 정보",
     "menu": "메뉴",
@@ -298,6 +366,7 @@
     "dashboard": "대시보드",
     "projects": "프로젝트",
     "apiDocs": "API 문서",
+    "apiSecurity": "API & 보안",
     "logs": "모니터링",
     "projectsSection": "프로젝트",
     "noProjects": "프로젝트가 없습니다",

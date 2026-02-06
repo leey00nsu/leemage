@@ -1,3 +1,3 @@
 export const apiKeyKeys = {
-  all: () => ["apiKeyInfo"],
+  all: () => ["apiKeys"],
 };

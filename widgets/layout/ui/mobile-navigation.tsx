@@ -11,6 +11,7 @@ import {
   FolderOpen,
   FileText,
   BarChart3,
+  Shield,
 } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import {
@@ -68,6 +69,14 @@ export function MobileNavigation({ isLoggedIn }: MobileNavigationProps) {
           >
             <FileText className="h-4 w-4" />
             {t("apiDocsLink")}
+          </Link>
+          <Link
+            href="/api"
+            onClick={handleLinkClick}
+            className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          >
+            <Shield className="h-4 w-4" />
+            {t("apiSecurityLink")}
           </Link>
           <Link
             href="/monitoring"

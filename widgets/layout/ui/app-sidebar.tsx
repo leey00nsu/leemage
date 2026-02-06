@@ -1,6 +1,13 @@
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
-import { LayoutDashboard, FolderOpen, FileText, BarChart3, User } from "lucide-react";
+import {
+  LayoutDashboard,
+  FolderOpen,
+  FileText,
+  BarChart3,
+  Shield,
+  User,
+} from "lucide-react";
 import { LogoutButton } from "@/features/auth/logout/ui/logout-button";
 import { LanguageSelectorButton } from "@/features/language/ui/langauge-selector-button";
 import { getTranslations } from "next-intl/server";
@@ -56,6 +63,13 @@ export async function AppSidebar({ username, projects }: AppSidebarProps) {
         >
           <FileText className="h-4 w-4 text-slate-400 group-hover:text-indigo-500 transition-colors" />
           {t("apiDocs")}
+        </Link>
+        <Link
+          href="/api"
+          className="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-slate-900 dark:hover:text-white transition-colors"
+        >
+          <Shield className="h-4 w-4 text-slate-400 group-hover:text-indigo-500 transition-colors" />
+          {t("apiSecurity")}
         </Link>
         <Link
           href="/monitoring"
