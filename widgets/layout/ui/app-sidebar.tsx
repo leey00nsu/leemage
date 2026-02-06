@@ -57,7 +57,7 @@ export async function AppSidebar({ username, projects }: AppSidebarProps) {
           {t("apiDocs")}
         </Link>
         <Link
-          href="/logs"
+          href="/monitoring"
           className="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-slate-900 dark:hover:text-white transition-colors"
         >
           <BarChart3 className="h-4 w-4 text-slate-400 group-hover:text-indigo-500 transition-colors" />

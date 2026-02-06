@@ -70,7 +70,7 @@ export function MobileNavigation({ isLoggedIn }: MobileNavigationProps) {
             {t("apiDocsLink")}
           </Link>
           <Link
-            href="/logs"
+            href="/monitoring"
             onClick={handleLinkClick}
             className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
           >

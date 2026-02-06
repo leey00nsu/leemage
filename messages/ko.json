@@ -283,7 +283,7 @@
     "dashboardLink": "대시보드",
     "projectsLink": "프로젝트",
     "apiDocsLink": "API 문서",
-    "logsLink": "로그",
+    "logsLink": "모니터링",
     "accountLink": "내 정보",
     "menu": "메뉴",
     "loginLink": "로그인"
@@ -298,7 +298,7 @@
     "dashboard": "대시보드",
     "projects": "프로젝트",
     "apiDocs": "API 문서",
-    "logs": "로그",
+    "logs": "모니터링",
     "projectsSection": "프로젝트",
     "noProjects": "프로젝트가 없습니다",
     "accountSettings": "계정 설정"
@@ -600,5 +600,62 @@
     "searchPlaceholder": "엔드포인트 검색...",
     "filterSuccess": "성공",
     "filterError": "실패"
+  },
+  "Monitoring": {
+    "pageTitle": "모니터링",
+    "pageDescription": "사용량과 API 모니터링을 확인하세요.",
+    "heading": "사용량 및 모니터링",
+    "subheading": "API 성능, 오류, 활동 추이를 확인하세요.",
+    "dateRange": {
+      "last24h": "24시간",
+      "days": "일"
+    },
+    "kpi": {
+      "totalRequests": "전체 요청",
+      "successRate": "성공률",
+      "avgLatency": "평균 지연 시간"
+    },
+    "filters": {
+      "project": "프로젝트",
+      "allProjects": "모든 프로젝트",
+      "all": "전체",
+      "success": "성공",
+      "error": "실패"
+    },
+    "charts": {
+      "requestVolume": "요청량",
+      "legendTotal": "전체 요청",
+      "legendErrors": "오류",
+      "noData": "데이터가 없습니다."
+    },
+    "table": {
+      "title": "API 로그",
+      "searchPlaceholder": "로그 검색...",
+      "timestamp": "시간",
+      "method": "메서드",
+      "endpoint": "엔드포인트",
+      "status": "상태",
+      "latency": "지연 시간",
+      "empty": "로그가 없습니다.",
+      "showing": "총 {total}건 중 {shown}건 표시",
+      "filter": "필터",
+      "download": "다운로드",
+      "prev": "이전",
+      "next": "다음"
+    },
+    "drawer": {
+      "title": "요청 상세",
+      "copyLink": "링크 복사",
+      "linkCopied": "링크가 복사되었습니다",
+      "summary": "요약",
+      "method": "메서드",
+      "status": "상태",
+      "latency": "지연 시간",
+      "timestamp": "시간",
+      "endpoint": "엔드포인트",
+      "projectId": "프로젝트 ID",
+      "metadata": "메타데이터",
+      "noMetadata": "메타데이터가 없습니다."
+    }
   }
 }

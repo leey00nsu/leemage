@@ -283,7 +283,7 @@
     "dashboardLink": "Dashboard",
     "projectsLink": "Projects",
     "apiDocsLink": "API Docs",
-    "logsLink": "Logs",
+    "logsLink": "Monitoring",
     "accountLink": "My Account",
     "menu": "Menu",
     "loginLink": "Login"
@@ -298,7 +298,7 @@
     "dashboard": "Dashboard",
     "projects": "Projects",
     "apiDocs": "API Docs",
-    "logs": "Logs",
+    "logs": "Monitoring",
     "projectsSection": "Projects",
     "noProjects": "No projects yet",
     "accountSettings": "Account settings"
@@ -600,5 +600,62 @@
     "searchPlaceholder": "Search endpoint...",
     "filterSuccess": "Success",
     "filterError": "Error"
+  },
+  "Monitoring": {
+    "pageTitle": "Monitoring",
+    "pageDescription": "Usage and API monitoring.",
+    "heading": "Usage & Monitoring",
+    "subheading": "Track API performance, errors, and activity trends.",
+    "dateRange": {
+      "last24h": "24h",
+      "days": "d"
+    },
+    "kpi": {
+      "totalRequests": "Total Requests",
+      "successRate": "Success Rate",
+      "avgLatency": "Avg Latency"
+    },
+    "filters": {
+      "project": "Project",
+      "allProjects": "All Projects",
+      "all": "All",
+      "success": "Success",
+      "error": "Error"
+    },
+    "charts": {
+      "requestVolume": "Request Volume",
+      "legendTotal": "Total Requests",
+      "legendErrors": "Errors",
+      "noData": "No data available."
+    },
+    "table": {
+      "title": "API Logs",
+      "searchPlaceholder": "Filter logs...",
+      "timestamp": "Timestamp",
+      "method": "Method",
+      "endpoint": "Endpoint",
+      "status": "Status",
+      "latency": "Latency",
+      "empty": "No logs found.",
+      "showing": "Showing {shown} of {total} events",
+      "filter": "Filter",
+      "download": "Download",
+      "prev": "Previous",
+      "next": "Next"
+    },
+    "drawer": {
+      "title": "Request Details",
+      "copyLink": "Copy Link",
+      "linkCopied": "Link copied",
+      "summary": "Summary",
+      "method": "Method",
+      "status": "Status",
+      "latency": "Latency",
+      "timestamp": "Timestamp",
+      "endpoint": "Endpoint",
+      "projectId": "Project ID",
+      "metadata": "Metadata",
+      "noMetadata": "No metadata available."
+    }
   }
 }

@@ -49,22 +49,10 @@ export function Header({ className = "" }: HeaderProps) {
             {t("dashboardLink")}
           </Link>
           <Link
-            href="/projects"
-            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            {t("projectsLink")}
-          </Link>
-          <Link
             href="/api-docs"
             className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
           >
             {t("apiDocsLink")}
-          </Link>
-          <Link
-            href="/logs"
-            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            {t("logsLink")}
           </Link>
         </nav>
 
