@@ -2,6 +2,7 @@ import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { LayoutDashboard, FolderOpen, FileText, BarChart3, User } from "lucide-react";
 import { LogoutButton } from "@/features/auth/logout/ui/logout-button";
+import { LanguageSelectorButton } from "@/features/language/ui/langauge-selector-button";
 import { getTranslations } from "next-intl/server";
 
 export interface AppSidebarProject {
@@ -106,6 +107,9 @@ export async function AppSidebar({ username, projects }: AppSidebarProps) {
               {t("accountSettings")}
             </Link>
           </div>
+        </div>
+        <div className="mt-3">
+          <LanguageSelectorButton className="w-full" />
         </div>
         <div className="mt-3">
           <LogoutButton />

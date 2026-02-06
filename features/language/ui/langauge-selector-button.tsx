@@ -21,7 +21,11 @@ const languages = [
   { value: "ko", label: "한국어" },
 ];
 
-export function LanguageSelectorButton() {
+interface LanguageSelectorButtonProps {
+  className?: string;
+}
+
+export function LanguageSelectorButton({ className }: LanguageSelectorButtonProps) {
   const locale = useLocale();
   const pathname = usePathname();
   const router = useRouter();
@@ -42,7 +46,7 @@ export function LanguageSelectorButton() {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-[150px] justify-between"
+          className={cn("w-[150px] justify-between", className)}
         >
           <div className="flex items-center">
             <Globe className="mr-2 h-4 w-4" />
