@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Plus, Search } from "lucide-react";
+import { AlertTriangle, Copy, Plus, Search } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
@@ -30,15 +30,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/dialog";
-import { ApiKeyDisplay } from "@/entities/api-key/ui/api-key-display";
+import { Checkbox } from "@/shared/ui/checkbox";
 import { ApiKeyError } from "@/entities/api-key/ui/api-key-error";
-import { ApiKeySkeleton } from "@/entities/api-key/ui/api-key-skeleton";
+import { ApiSecurityKeysSkeleton } from "@/features/api-security/ui/api-security-keys-skeleton";
 import { useListApiKeys } from "@/features/api-key/model/list";
 import { useGenerateApiKey } from "@/features/api-key/model/generate";
 import { useRevokeApiKey } from "@/features/api-key/model/revoke";
 import { useRenameApiKey } from "@/features/api-key/model/rename";
+import {
+  API_KEY_PERMISSIONS,
+  DEFAULT_API_KEY_PERMISSIONS,
+  type ApiKeyPermission,
+} from "@/shared/config/api-key-permissions";
+import { API_KEY_PREFIX } from "@/shared/config/api-key";
 
 const PAGE_SIZE = 5;
+const MAX_API_KEY_NAME_LENGTH = 60;
 
 type ApiTab = "apiKeys" | "permissions" | "webhooks";
 
@@ -59,26 +66,54 @@ function maskSecret(prefix: string): string {
   return `${prefix}••••••••`;
 }
 
+function generateClientApiKey(): string {
+  const bytes = new Uint8Array(24);
+  crypto.getRandomValues(bytes);
+  const hex = Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join(
+    "",
+  );
+  return `${API_KEY_PREFIX}${hex}`;
+}
+
 export function ApiSecurityDashboard() {
   const t = useTranslations("ApiSecurity");
   const [activeTab, setActiveTab] = useState<ApiTab>("apiKeys");
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
-  const [generatedKey, setGeneratedKey] = useState<string | null>(null);
   const [revokeTargetId, setRevokeTargetId] = useState<string | null>(null);
+
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [createName, setCreateName] = useState("");
+  const [createPermissions, setCreatePermissions] = useState<ApiKeyPermission[]>(
+    DEFAULT_API_KEY_PERMISSIONS,
+  );
+  const [draftApiKey, setDraftApiKey] = useState<string | null>(null);
+  const [isGeneratedKeySaved, setIsGeneratedKeySaved] = useState(false);
+
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editTargetId, setEditTargetId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
+  const [editPermissions, setEditPermissions] = useState<ApiKeyPermission[]>(
+    DEFAULT_API_KEY_PERMISSIONS,
+  );
+
+  const resetCreateModalState = () => {
+    setIsCreateDialogOpen(false);
+    setCreateName("");
+    setCreatePermissions(DEFAULT_API_KEY_PERMISSIONS);
+    setDraftApiKey(null);
+    setIsGeneratedKeySaved(false);
+  };
 
   const { data: apiKeys, isLoading, error: queryError } = useListApiKeys();
 
   const {
-    mutate: generateApiKey,
-    isPending: isGenerating,
-    error: generateError,
+    mutate: createApiKey,
+    isPending: isCreatingApiKey,
+    error: createError,
   } = useGenerateApiKey({
-    onSuccessCallback: (newKey) => {
-      setGeneratedKey(newKey);
+    onSuccessCallback: () => {
+      resetCreateModalState();
       toast.success(t("keys.generateSuccessToast"));
     },
     onErrorCallback: (err) => {
@@ -115,6 +150,7 @@ export function ApiSecurityDashboard() {
       setIsEditDialogOpen(false);
       setEditTargetId(null);
       setEditName("");
+      setEditPermissions(DEFAULT_API_KEY_PERMISSIONS);
     },
     onErrorCallback: (err) => {
       toast.error(
@@ -123,7 +159,7 @@ export function ApiSecurityDashboard() {
     },
   });
 
-  const error = queryError || generateError || revokeError || renameError;
+  const error = queryError || createError || revokeError || renameError;
   const errorMessage =
     error instanceof Error
       ? error.message
@@ -160,9 +196,58 @@ export function ApiSecurityDashboard() {
     setPage(1);
   };
 
-  const handleGenerate = () => {
-    setGeneratedKey(null);
-    generateApiKey();
+  const handleOpenCreateDialog = () => {
+    try {
+      const newApiKey = generateClientApiKey();
+      setDraftApiKey(newApiKey);
+    } catch {
+      toast.error(t("keys.generateErrorToast"));
+      return;
+    }
+
+    setCreateName("");
+    setCreatePermissions(DEFAULT_API_KEY_PERMISSIONS);
+    setIsGeneratedKeySaved(false);
+    setIsCreateDialogOpen(true);
+  };
+
+  const handleCreatePermissionChange = (
+    permission: ApiKeyPermission,
+    checked: boolean,
+  ) => {
+    if (checked) {
+      setCreatePermissions((prev) =>
+        prev.includes(permission) ? prev : [...prev, permission],
+      );
+      return;
+    }
+
+    setCreatePermissions((prev) => prev.filter((item) => item !== permission));
+  };
+
+  const handleCopyGeneratedKey = async () => {
+    if (!draftApiKey) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(draftApiKey);
+      toast.success(t("keys.revealModal.copySuccess"));
+    } catch {
+      toast.error(t("keys.revealModal.copyError"));
+    }
+  };
+
+  const handleConfirmGeneratedKey = () => {
+    if (!draftApiKey) {
+      return;
+    }
+
+    createApiKey({
+      name: createName,
+      permissions: createPermissions,
+      rawKey: draftApiKey,
+    });
   };
 
   const handleRevoke = (apiKeyId: string) => {
@@ -170,10 +255,33 @@ export function ApiSecurityDashboard() {
     revokeApiKey(apiKeyId);
   };
 
-  const handleOpenEdit = (apiKeyId: string, currentName: string | null) => {
+  const handleOpenEdit = (
+    apiKeyId: string,
+    currentName: string | null,
+    currentPermissions: ApiKeyPermission[],
+  ) => {
     setEditTargetId(apiKeyId);
     setEditName(currentName ?? "");
+    setEditPermissions(
+      currentPermissions.length > 0
+        ? currentPermissions
+        : DEFAULT_API_KEY_PERMISSIONS,
+    );
     setIsEditDialogOpen(true);
+  };
+
+  const handleEditPermissionChange = (
+    permission: ApiKeyPermission,
+    checked: boolean,
+  ) => {
+    if (checked) {
+      setEditPermissions((prev) =>
+        prev.includes(permission) ? prev : [...prev, permission],
+      );
+      return;
+    }
+
+    setEditPermissions((prev) => prev.filter((item) => item !== permission));
   };
 
   const handleRename = () => {
@@ -184,6 +292,7 @@ export function ApiSecurityDashboard() {
     renameApiKey({
       apiKeyId: editTargetId,
       name: editName,
+      permissions: editPermissions,
     });
   };
 
@@ -196,7 +305,7 @@ export function ApiSecurityDashboard() {
         onValueChange={(value) => setActiveTab(value as ApiTab)}
       >
         <div className="border-b border-gray-200 dark:border-gray-800">
-          <TabsList className="h-auto rounded-none bg-transparent p-0 gap-4">
+          <TabsList className="h-auto gap-4 rounded-none bg-transparent p-0">
             <TabsTrigger
               value="apiKeys"
               className="rounded-none border-b-2 border-transparent px-1 py-3 text-sm font-medium text-slate-500 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none"
@@ -219,11 +328,10 @@ export function ApiSecurityDashboard() {
         </div>
 
         <TabsContent value="apiKeys" className="space-y-4">
-          {generatedKey ? <ApiKeyDisplay apiKey={generatedKey} /> : null}
           <ApiKeyError errorMessage={errorMessage} />
 
           {isLoading ? (
-            <ApiKeySkeleton />
+            <ApiSecurityKeysSkeleton />
           ) : (
             <>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -236,7 +344,7 @@ export function ApiSecurityDashboard() {
                     className="pl-9"
                   />
                 </div>
-                <AppButton onClick={handleGenerate} disabled={isGenerating}>
+                <AppButton onClick={handleOpenCreateDialog}>
                   <Plus className="h-4 w-4" />
                   {t("keys.createButton")}
                 </AppButton>
@@ -275,22 +383,22 @@ export function ApiSecurityDashboard() {
                   </div>
                 }
               >
-                <AppTable>
+                <AppTable className="min-w-[980px]">
                   <thead className="bg-gray-50/70 dark:bg-gray-800/20">
                     <tr className="border-b border-gray-200 dark:border-gray-800">
-                      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      <th className="whitespace-nowrap px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                         {t("keys.columns.name")}
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      <th className="whitespace-nowrap px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                         {t("keys.columns.status")}
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      <th className="whitespace-nowrap px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                         {t("keys.columns.secret")}
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      <th className="whitespace-nowrap px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                         {t("keys.columns.lastUsed")}
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      <th className="whitespace-nowrap px-6 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">
                         {t("keys.columns.actions")}
                       </th>
                     </tr>
@@ -313,8 +421,8 @@ export function ApiSecurityDashboard() {
                           key={key.id}
                           className="border-b border-gray-100 transition-colors hover:bg-gray-50/70 dark:border-gray-800 dark:hover:bg-gray-800/30"
                         >
-                          <td className="px-6 py-3">
-                            <div className="flex flex-col">
+                          <td className="min-w-[280px] px-6 py-3">
+                            <div className="flex flex-col gap-1">
                               <span className="text-sm font-medium text-slate-900 dark:text-white">
                                 {key.name ?? t("keys.unnamedKey")}
                               </span>
@@ -323,27 +431,43 @@ export function ApiSecurityDashboard() {
                                   date: formatDateTime(key.createdAt),
                                 })}
                               </span>
+                              <div className="flex flex-wrap gap-1 pt-1">
+                                {key.permissions.map((permission) => (
+                                  <span
+                                    key={`${key.id}-${permission}`}
+                                    className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                                  >
+                                    {t(`keys.permissions.${permission}`)}
+                                  </span>
+                                ))}
+                              </div>
                             </div>
                           </td>
-                          <td className="px-6 py-3">
+                          <td className="whitespace-nowrap px-6 py-3">
                             <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20 dark:bg-emerald-500/10 dark:text-emerald-400">
                               {t("keys.status.active")}
                             </span>
                           </td>
-                          <td className="px-6 py-3 font-mono text-xs text-slate-600 dark:text-slate-400">
+                          <td className="whitespace-nowrap px-6 py-3 font-mono text-xs text-slate-600 dark:text-slate-400">
                             {maskSecret(key.prefix)}
                           </td>
-                          <td className="px-6 py-3 text-xs text-slate-500 dark:text-slate-400">
+                          <td className="whitespace-nowrap px-6 py-3 text-xs text-slate-500 dark:text-slate-400">
                             {key.lastUsedAt
                               ? formatDateTime(key.lastUsedAt)
                               : t("keys.neverUsed")}
                           </td>
-                          <td className="px-6 py-3 text-right">
-                            <div className="flex items-center justify-end gap-2">
+                          <td className="whitespace-nowrap px-6 py-3 text-right">
+                            <div className="flex min-w-fit items-center justify-end gap-2">
                               <AppButton
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleOpenEdit(key.id, key.name)}
+                                onClick={() =>
+                                  handleOpenEdit(
+                                    key.id,
+                                    key.name,
+                                    key.permissions,
+                                  )
+                                }
                               >
                                 {t("keys.actions.edit")}
                               </AppButton>
@@ -392,14 +516,35 @@ export function ApiSecurityDashboard() {
           )}
         </TabsContent>
 
-        <TabsContent value="permissions">
-          <AppCard className="rounded-xl p-8">
+        <TabsContent value="permissions" className="space-y-4">
+          <AppCard className="rounded-xl p-6">
             <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
-              {t("permissions.title")}
+              {t("permissions.guideTitle")}
             </h3>
             <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-              {t("permissions.description")}
+              {t("permissions.guideDescription")}
             </p>
+
+            <div className="mt-5 space-y-3">
+              {API_KEY_PERMISSIONS.map((permission) => (
+                <div
+                  key={`permission-guide-${permission}`}
+                  className="flex items-start justify-between gap-4 rounded-lg border border-gray-200 p-4 dark:border-gray-700"
+                >
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                      {t(`keys.permissions.${permission}`)}
+                    </p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      {t(`permissions.items.${permission}.description`)}
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                    {t(`permissions.items.${permission}.risk`)}
+                  </span>
+                </div>
+              ))}
+            </div>
           </AppCard>
         </TabsContent>
 
@@ -416,12 +561,163 @@ export function ApiSecurityDashboard() {
       </Tabs>
 
       <Dialog
+        open={isCreateDialogOpen}
+        onOpenChange={(open) => {
+          if (!open && isCreatingApiKey) {
+            return;
+          }
+
+          if (!open) {
+            resetCreateModalState();
+          } else {
+            if (!draftApiKey) {
+              try {
+                const newApiKey = generateClientApiKey();
+                setDraftApiKey(newApiKey);
+              } catch {
+                toast.error(t("keys.generateErrorToast"));
+                return;
+              }
+            }
+
+            setIsCreateDialogOpen(true);
+          }
+        }}
+      >
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{t("keys.createModal.title")}</DialogTitle>
+            <DialogDescription>{t("keys.createModal.description")}</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-5">
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-500/20 dark:bg-amber-500/10">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="mt-0.5 h-5 w-5 text-amber-600 dark:text-amber-400" />
+                <div className="text-sm text-amber-900 dark:text-amber-100">
+                  <p className="font-semibold">
+                    {t("keys.revealModal.warningTitle")}
+                  </p>
+                  <p className="mt-1">
+                    {t("keys.revealModal.warningDescription")}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label
+                htmlFor="new-api-key-name"
+                className="text-sm font-medium text-slate-700 dark:text-slate-200"
+              >
+                {t("keys.createModal.nameLabel")}
+              </label>
+              <AppInput
+                id="new-api-key-name"
+                value={createName}
+                onChange={(e) => setCreateName(e.target.value)}
+                placeholder={t("keys.createModal.namePlaceholder")}
+                maxLength={MAX_API_KEY_NAME_LENGTH}
+                autoFocus
+                disabled={isCreatingApiKey}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                {t("keys.createModal.permissionsLabel")}
+              </p>
+              <div className="space-y-2">
+                {API_KEY_PERMISSIONS.map((permission) => (
+                  <label
+                    key={permission}
+                    className="flex items-start justify-between gap-3 rounded-lg border border-gray-200 px-3 py-2 text-sm transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+                  >
+                    <span className="min-w-0">
+                      <span className="block text-slate-700 dark:text-slate-200">
+                        {t(`keys.permissions.${permission}`)}
+                      </span>
+                      <span className="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">
+                        {t(`keys.createModal.permissionDescriptions.${permission}`)}
+                      </span>
+                    </span>
+                    <Checkbox
+                      checked={createPermissions.includes(permission)}
+                      disabled={isCreatingApiKey}
+                      onCheckedChange={(checked) =>
+                        handleCreatePermissionChange(permission, checked === true)
+                      }
+                    />
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                {t("keys.revealModal.secretLabel")}
+              </label>
+              <div className="flex items-stretch gap-2">
+                <div className="min-w-0 flex-1 break-all rounded-lg border border-gray-200 bg-gray-50 p-3 font-mono text-sm leading-relaxed text-slate-700 dark:border-gray-700 dark:bg-gray-800 dark:text-slate-200">
+                  {draftApiKey}
+                </div>
+                <AppButton
+                  variant="outline"
+                  className="h-auto px-3"
+                  onClick={handleCopyGeneratedKey}
+                  aria-label={t("keys.revealModal.copyButton")}
+                  disabled={!draftApiKey}
+                >
+                  <Copy className="h-4 w-4" />
+                </AppButton>
+              </div>
+            </div>
+
+            <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
+              <Checkbox
+                checked={isGeneratedKeySaved}
+                disabled={isCreatingApiKey}
+                onCheckedChange={(checked) =>
+                  setIsGeneratedKeySaved(checked === true)
+                }
+              />
+              {t("keys.revealModal.acknowledge")}
+            </label>
+          </div>
+
+          <DialogFooter>
+            <AppButton
+              variant="outline"
+              onClick={resetCreateModalState}
+              disabled={isCreatingApiKey}
+            >
+              {t("keys.actions.cancel")}
+            </AppButton>
+            <AppButton
+              onClick={handleConfirmGeneratedKey}
+              disabled={
+                !isGeneratedKeySaved ||
+                isCreatingApiKey ||
+                createPermissions.length === 0 ||
+                !draftApiKey
+              }
+            >
+              {isCreatingApiKey
+                ? t("keys.revealModal.doneLoading")
+                : t("keys.revealModal.doneButton")}
+            </AppButton>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
         open={isEditDialogOpen}
         onOpenChange={(open) => {
           setIsEditDialogOpen(open);
           if (!open) {
             setEditTargetId(null);
             setEditName("");
+            setEditPermissions(DEFAULT_API_KEY_PERMISSIONS);
           }
         }}
       >
@@ -445,9 +741,39 @@ export function ApiSecurityDashboard() {
               value={editName}
               onChange={(e) => setEditName(e.target.value)}
               placeholder={t("keys.unnamedKey")}
-              maxLength={60}
+              maxLength={MAX_API_KEY_NAME_LENGTH}
               autoFocus
             />
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
+              {t("keys.createModal.permissionsLabel")}
+            </p>
+            <div className="space-y-2">
+              {API_KEY_PERMISSIONS.map((permission) => (
+                <label
+                  key={`edit-${permission}`}
+                  className="flex items-start justify-between gap-3 rounded-lg border border-gray-200 px-3 py-2 text-sm transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+                >
+                  <span className="min-w-0">
+                    <span className="block text-slate-700 dark:text-slate-200">
+                      {t(`keys.permissions.${permission}`)}
+                    </span>
+                    <span className="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">
+                      {t(`keys.createModal.permissionDescriptions.${permission}`)}
+                    </span>
+                  </span>
+                  <Checkbox
+                    checked={editPermissions.includes(permission)}
+                    disabled={isRenaming}
+                    onCheckedChange={(checked) =>
+                      handleEditPermissionChange(permission, checked === true)
+                    }
+                  />
+                </label>
+              ))}
+            </div>
           </div>
 
           <DialogFooter>
@@ -460,7 +786,7 @@ export function ApiSecurityDashboard() {
             </AppButton>
             <AppButton
               onClick={handleRename}
-              disabled={isRenaming || !editTargetId}
+              disabled={isRenaming || !editTargetId || editPermissions.length === 0}
             >
               {isRenaming
                 ? t("keys.actions.editing")

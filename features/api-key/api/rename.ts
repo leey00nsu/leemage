@@ -2,19 +2,26 @@
 
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth/session-auth";
+import {
+  API_KEY_PERMISSIONS,
+  type ApiKeyPermission,
+} from "@/shared/config/api-key-permissions";
 
 const MAX_API_KEY_NAME_LENGTH = 60;
 
-export async function renameApiKey(
-  apiKeyId: string,
-  nextName: string
-): Promise<void> {
+interface RenameApiKeyInput {
+  apiKeyId: string;
+  name: string;
+  permissions: ApiKeyPermission[];
+}
+
+export async function renameApiKey(input: RenameApiKeyInput): Promise<void> {
   const userIdentifier = await getCurrentUser();
   if (!userIdentifier) {
     throw new Error("인증이 필요합니다.");
   }
 
-  const trimmedName = nextName.trim();
+  const trimmedName = input.name.trim();
   if (!trimmedName) {
     throw new Error("키 이름을 입력해주세요.");
   }
@@ -23,13 +30,23 @@ export async function renameApiKey(
     throw new Error(`키 이름은 ${MAX_API_KEY_NAME_LENGTH}자 이하여야 합니다.`);
   }
 
+  const sanitizedPermissions = Array.from(new Set(input.permissions)).filter(
+    (permission): permission is ApiKeyPermission =>
+      API_KEY_PERMISSIONS.includes(permission),
+  );
+
+  if (sanitizedPermissions.length === 0) {
+    throw new Error("최소 1개 이상의 권한을 선택해주세요.");
+  }
+
   const { count } = await prisma.apiKey.updateMany({
     where: {
-      id: apiKeyId,
+      id: input.apiKeyId,
       userIdentifier,
     },
     data: {
       name: trimmedName,
+      permissions: sanitizedPermissions,
     },
   });
 

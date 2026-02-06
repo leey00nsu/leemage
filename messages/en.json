@@ -220,6 +220,11 @@
       "status": {
         "active": "Active"
       },
+      "permissions": {
+        "read": "Read",
+        "write": "Write",
+        "delete": "Delete"
+      },
       "neverUsed": "Never",
       "unnamedKey": "Untitled key",
       "createdAt": "Created {date}",
@@ -227,10 +232,37 @@
         "default": "No API keys yet. Create your first key.",
         "filtered": "No API keys match your search."
       },
+      "createModal": {
+        "title": "Create API Key",
+        "description": "Set a key name and choose allowed permissions.",
+        "nameLabel": "Key name",
+        "namePlaceholder": "e.g. Production Read-Only",
+        "permissionsLabel": "Permissions",
+        "permissionDescriptions": {
+          "read": "Can call read-only endpoints for listing and fetching resources.",
+          "write": "Can call create/update endpoints that modify data.",
+          "delete": "Can call delete endpoints that remove resources."
+        },
+        "permissionRequired": "Select at least one permission.",
+        "creating": "Creating...",
+        "createButton": "Create key"
+      },
+      "revealModal": {
+        "title": "New API Key Created",
+        "warningTitle": "For security reasons, this key will only be shown once.",
+        "warningDescription": "Save it in a safe place. You won't be able to view it again.",
+        "secretLabel": "Secret Key",
+        "copyButton": "Copy",
+        "copySuccess": "API key copied to clipboard.",
+        "copyError": "Failed to copy API key.",
+        "acknowledge": "I have saved this key in a secure location.",
+        "doneButton": "Done",
+        "doneLoading": "Saving..."
+      },
       "actions": {
         "edit": "Edit",
-        "editDialogTitle": "Edit key name",
-        "editDialogDescription": "Set a readable name for this API key.",
+        "editDialogTitle": "Edit API key",
+        "editDialogDescription": "Update the key name and permissions.",
         "editInputLabel": "Key name",
         "confirmEdit": "Save changes",
         "editing": "Saving...",
@@ -243,15 +275,31 @@
       },
       "generateSuccessToast": "New API key generated. Copy and store it safely.",
       "generateErrorToast": "Failed to generate API key.",
-      "renameSuccessToast": "API key name updated.",
-      "renameErrorToast": "Failed to update API key name.",
+      "renameSuccessToast": "API key updated.",
+      "renameErrorToast": "Failed to update API key.",
       "revokeSuccessToast": "API key revoked.",
       "revokeErrorToast": "Failed to revoke API key.",
       "unknownError": "An unknown error occurred."
     },
     "permissions": {
       "title": "Permissions",
-      "description": "Granular permission controls will be added in a future update."
+      "description": "Review permission meanings and security guidance.",
+      "guideTitle": "Permission Guide",
+      "guideDescription": "Understand what each permission allows and when to use it.",
+      "items": {
+        "read": {
+          "description": "Allows read-only operations such as listing and fetching resources.",
+          "risk": "Low risk"
+        },
+        "write": {
+          "description": "Allows create and update operations that modify data.",
+          "risk": "Medium risk"
+        },
+        "delete": {
+          "description": "Allows delete operations that remove resources, including irreversible actions.",
+          "risk": "High risk"
+        }
+      }
     },
     "webhooks": {
       "title": "Webhooks",

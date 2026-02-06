@@ -61,7 +61,7 @@ export function ApiKeyManager() {
   // 핸들러: 서버 액션 직접 호출 대신 mutate 함수 호출
   const handleGenerateKey = () => {
     setGeneratedKey(null); // 이전 생성 키 숨기기
-    generateMutate();
+    generateMutate({});
   };
 
   // 에러 상태 통합 (쿼리, 생성, 삭제 에러 중 하나라도 있으면 표시)

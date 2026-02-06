@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { generateApiKey } from "../api/generate";
+import { generateApiKey, type GenerateApiKeyInput } from "../api/generate";
 import { apiKeyKeys } from "./query-keys";
 
 interface UseGenerateApiKeyOptions {
@@ -11,7 +11,7 @@ export const useGenerateApiKey = (options?: UseGenerateApiKeyOptions) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: generateApiKey,
+    mutationFn: (input?: GenerateApiKeyInput) => generateApiKey(input),
     onSuccess: (newKey) => {
       queryClient.invalidateQueries({ queryKey: apiKeyKeys.all() });
       if (options?.onSuccessCallback) {

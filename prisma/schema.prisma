@@ -71,6 +71,7 @@ model ApiKey {
   prefix         String    @unique // 키 식별용 접두사 (예: lmk_)
   userIdentifier String    // 키 소유자를 식별하는 값 (예: 사용자 ID, 이메일 등 - 세션에서 얻을 수 있는 고유 값)
   name           String?   // 사용자가 지정하는 키 이름 (선택 사항)
+  permissions    String[]  @default(["read", "write", "delete"]) // 허용 권한 (read/write/delete)
   createdAt      DateTime  @default(now())
   lastUsedAt     DateTime? // 마지막 사용 시각 (선택 사항)
   expiresAt      DateTime? // 만료 시각 (선택 사항)

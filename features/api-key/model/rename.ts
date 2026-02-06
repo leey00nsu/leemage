@@ -1,10 +1,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { renameApiKey } from "../api/rename";
 import { apiKeyKeys } from "./query-keys";
+import type { ApiKeyPermission } from "@/shared/config/api-key-permissions";
 
 interface RenameApiKeyVariables {
   apiKeyId: string;
   name: string;
+  permissions: ApiKeyPermission[];
 }
 
 interface UseRenameApiKeyOptions {
@@ -16,8 +18,7 @@ export const useRenameApiKey = (options?: UseRenameApiKeyOptions) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ apiKeyId, name }: RenameApiKeyVariables) =>
-      renameApiKey(apiKeyId, name),
+    mutationFn: (input: RenameApiKeyVariables) => renameApiKey(input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: apiKeyKeys.all() });
       options?.onSuccessCallback?.();
