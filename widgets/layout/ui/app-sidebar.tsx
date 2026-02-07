@@ -28,7 +28,7 @@ export async function AppSidebar({ username, projects }: AppSidebarProps) {
   return (
     <div className="flex h-full flex-col">
       <div className="flex h-16 items-center gap-2 px-6 border-b border-gray-100 dark:border-gray-800">
-        <Link href="/dashboard" className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2">
           <Image
             src="/logo.webp"
             alt="Leemage"
