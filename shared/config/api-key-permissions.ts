@@ -7,3 +7,19 @@ export const DEFAULT_API_KEY_PERMISSIONS: ApiKeyPermission[] = [
   "write",
   "delete",
 ];
+
+export const API_METHOD_PERMISSION_MAP: Partial<Record<string, ApiKeyPermission>> = {
+  GET: "read",
+  HEAD: "read",
+  OPTIONS: "read",
+  POST: "write",
+  PUT: "write",
+  PATCH: "write",
+  DELETE: "delete",
+};
+
+export function getRequiredPermissionForMethod(
+  method: string,
+): ApiKeyPermission | null {
+  return API_METHOD_PERMISSION_MAP[method.toUpperCase()] ?? null;
+}

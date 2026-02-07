@@ -8,15 +8,18 @@ import {
   loginRateLimiter,
   uploadRateLimiter,
 } from "@/lib/auth/rate-limiter";
+import { getRateLimitPolicyIdForPath } from "@/shared/config/rate-limit";
 
 const intlMiddleware = createMiddleware(routing);
 
 function selectLimiter(pathname: string) {
-  if (pathname === "/api/auth/login") {
+  const policyId = getRateLimitPolicyIdForPath(pathname);
+
+  if (policyId === "login") {
     return loginRateLimiter;
   }
 
-  if (/^\/api\/projects\/[^/]+\/files\/confirm$/.test(pathname)) {
+  if (policyId === "uploadConfirm") {
     return uploadRateLimiter;
   }
 

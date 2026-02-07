@@ -8,6 +8,7 @@ import {
 } from "@/shared/config/api-key";
 import {
   DEFAULT_API_KEY_PERMISSIONS,
+  getRequiredPermissionForMethod,
   type ApiKeyPermission,
 } from "@/shared/config/api-key-permissions";
 import { authLogger, maskApiKey } from "@/lib/logging/secure-logger";
@@ -18,21 +19,11 @@ interface ValidatedApiKey {
   permissions: ApiKeyPermission[];
 }
 
-const METHOD_PERMISSION_MAP: Partial<Record<string, ApiKeyPermission>> = {
-  GET: "read",
-  HEAD: "read",
-  OPTIONS: "read",
-  POST: "write",
-  PUT: "write",
-  PATCH: "write",
-  DELETE: "delete",
-};
-
 function hasMethodPermission(
   method: string,
   permissions: ApiKeyPermission[]
 ): boolean {
-  const requiredPermission = METHOD_PERMISSION_MAP[method.toUpperCase()];
+  const requiredPermission = getRequiredPermissionForMethod(method);
   if (!requiredPermission) {
     return true;
   }

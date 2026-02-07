@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import type { AuthenticatedRequest } from "./session-auth";
+import { RATE_LIMIT_CONFIG } from "@/shared/config/rate-limit";
 
 // ============================================
 // Rate Limit Store Interface & Implementations
@@ -340,21 +341,15 @@ export function withRateLimitAndAuth<T extends Record<string, string | string[]>
 
 /** Login: 5 requests/minute, 15 minute block */
 export const loginRateLimiter = new RateLimiter({
-  windowMs: 60 * 1000,
-  maxRequests: 5,
-  blockDurationMs: 15 * 60 * 1000,
+  ...RATE_LIMIT_CONFIG.login,
 });
 
 /** API: 100 requests/minute, 1 minute block */
 export const apiRateLimiter = new RateLimiter({
-  windowMs: 60 * 1000,
-  maxRequests: 100,
-  blockDurationMs: 60 * 1000,
+  ...RATE_LIMIT_CONFIG.api,
 });
 
 /** Upload: 20 requests/minute, 5 minute block */
 export const uploadRateLimiter = new RateLimiter({
-  windowMs: 60 * 1000,
-  maxRequests: 20,
-  blockDurationMs: 5 * 60 * 1000,
+  ...RATE_LIMIT_CONFIG.uploadConfirm,
 });
