@@ -2,6 +2,14 @@ import * as React from "react";
 
 import { cn } from "@/shared/lib/utils";
 import { AppCard } from "@/shared/ui/app/app-card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/shared/ui/table";
 
 interface AppTableCardProps extends React.ComponentProps<typeof AppCard> {
   heading: React.ReactNode;
@@ -44,11 +52,46 @@ export function AppTableCard({
 export function AppTable({
   className,
   ...props
-}: React.ComponentProps<"table">) {
+}: React.ComponentProps<typeof Table>) {
+  return <Table className={cn("w-full text-left text-sm", className)} {...props} />;
+}
+
+export function AppTableHeader({
+  className,
+  ...props
+}: React.ComponentProps<typeof TableHeader>) {
+  return <TableHeader className={cn("bg-muted/40", className)} {...props} />;
+}
+
+export function AppTableBody({
+  className,
+  ...props
+}: React.ComponentProps<typeof TableBody>) {
+  return <TableBody className={cn(className)} {...props} />;
+}
+
+export function AppTableRow({
+  className,
+  ...props
+}: React.ComponentProps<typeof TableRow>) {
+  return <TableRow className={cn(className)} {...props} />;
+}
+
+export function AppTableHead({
+  className,
+  ...props
+}: React.ComponentProps<typeof TableHead>) {
   return (
-    <table
-      className={cn("w-full text-left text-sm border-collapse", className)}
+    <TableHead
+      className={cn("px-4 py-2.5 text-xs font-semibold text-muted-foreground", className)}
       {...props}
     />
   );
+}
+
+export function AppTableCell({
+  className,
+  ...props
+}: React.ComponentProps<typeof TableCell>) {
+  return <TableCell className={cn("px-4 py-3", className)} {...props} />;
 }
