@@ -32,17 +32,36 @@
   },
   "EndpointCard": {
     "copiedToClipboard": "클립보드에 복사되었습니다.",
+    "pathCopied": "엔드포인트 경로를 복사했습니다.",
+    "responseCopied": "응답 예시를 복사했습니다.",
+    "copyError": "클립보드 복사에 실패했습니다.",
+    "copyPath": "경로 복사",
     "authRequired": "인증 필요",
+    "requiredPermission": "권한",
+    "deprecated": "사용 중단 예정",
+    "noDescription": "설명이 없습니다.",
     "parameters": "Parameters",
     "name": "이름",
+    "location": "위치",
     "type": "타입",
     "required": "필수",
     "description": "설명",
     "yes": "예",
     "no": "아니오",
+    "noParameters": "파라미터가 없습니다.",
     "requestBody": "Request Body",
     "response": "응답",
-    "copy": "복사"
+    "copy": "복사",
+    "noResponse": "응답 예시가 없습니다.",
+    "activeResponse": "현재 선택된 응답 상태: {status}",
+    "rateLimit": "요청 제한",
+    "rateLimitValue": "{requests}회/{windowSeconds}초 (초과 시 {blockSeconds}초 차단)",
+    "permissions": {
+      "read": "Read",
+      "write": "Write",
+      "delete": "Delete",
+      "unknown": "미정"
+    }
   },
   "ProjectCard": {
     "noDescription": "설명이 없습니다."
@@ -308,7 +327,109 @@
   },
   "ApiDocsView": {
     "title": "API 문서",
-    "description": "Leemage API의 사용법과 엔드포인트 정보를 확인하세요. API를 사용하려면 인증이 필요할 수 있습니다.",
+    "description": "OpenAPI 스펙 기반으로 생성된 Leemage API 레퍼런스입니다.",
+    "sidebarBadge": "API REFERENCE",
+    "sidebarTitle": "엔드포인트 탐색",
+    "sections": {
+      "gettingStarted": "Getting Started",
+      "sdk": "SDK",
+      "endpoints": "API Endpoints"
+    },
+    "docs": {
+      "introduction": {
+        "title": "Introduction",
+        "summary": "Leemage API는 프로젝트 단위로 파일을 업로드, 조회, 삭제할 수 있는 REST API입니다.",
+        "paragraph1": "모든 API는 OpenAPI 스펙으로 문서화되며, SDK와 함께 사용하면 업로드/변환 워크플로우를 더 쉽게 구현할 수 있습니다.",
+        "paragraph2": "기본 엔드포인트는 /api/v1이며, 각 요청은 JSON 응답을 반환합니다.",
+        "bullet1": "인증 방식: API Key (Bearer Token)",
+        "bullet2": "응답 형식: application/json",
+        "bullet3": "스펙 파일: GET /api/v1/openapi"
+      },
+      "authentication": {
+        "title": "Authentication",
+        "summary": "보호된 엔드포인트는 Authorization 헤더에 API Key를 포함해야 합니다.",
+        "paragraph1": "API 키는 API & 보안 페이지에서 생성할 수 있으며, 생성 직후 한 번만 Secret Key를 확인할 수 있습니다.",
+        "paragraph2": "요청 메서드에 따라 필요한 권한(read/write/delete)이 다르므로 키 생성 시 권한 범위를 함께 설정해야 합니다.",
+        "bullet1": "형식: Authorization: Bearer <API_KEY>",
+        "bullet2": "유효하지 않은 키 또는 권한 부족 시 401/403 응답",
+        "bullet3": "운영 환경에서는 최소 권한 키 사용 권장",
+        "requestExample": "curl -X GET \\\n  \"https://api.leemage.com/api/v1/projects\" \\\n  -H \"Authorization: Bearer <YOUR_API_KEY>\"",
+        "responseExample": "{\n  \"message\": \"인증 실패: 유효하지 않은 API 키\"\n}"
+      },
+      "rateLimits": {
+        "title": "Rate Limits",
+        "summary": "API는 안정성을 위해 요청 제한(Rate Limit)을 적용합니다.",
+        "paragraph1": "제한에 도달하면 429 상태 코드와 함께 Retry-After, X-RateLimit-* 헤더가 반환됩니다.",
+        "paragraph2": "업로드 확인/로그인과 같은 민감 엔드포인트는 별도 정책이 적용될 수 있습니다.",
+        "bullet1": "한도 초과 시 즉시 재시도하지 말고 Retry-After를 준수하세요.",
+        "bullet2": "클라이언트에서 지수 백오프(Exponential Backoff)를 적용하세요.",
+        "bullet3": "서버 응답의 X-RateLimit-Remaining 값을 모니터링하세요.",
+        "tableTitle": "현재 적용 중인 제한값",
+        "columns": {
+          "scope": "적용 범위",
+          "maxRequests": "최대 요청 수",
+          "window": "윈도우",
+          "blockDuration": "차단 시간"
+        },
+        "rows": {
+          "api": {
+            "scope": "기본 API 엔드포인트 (/api/v1/*)"
+          },
+          "uploadConfirm": {
+            "scope": "업로드 확인 (POST /api/v1/projects/{projectId}/files/confirm)"
+          },
+          "login": {
+            "scope": "대시보드 로그인 (/api/auth/login)"
+          }
+        },
+        "responseExample": "{\n  \"code\": \"RATE_LIMIT_EXCEEDED\",\n  \"message\": \"요청 한도를 초과했습니다. 잠시 후 다시 시도해주세요.\"\n}"
+      },
+      "sdk": {
+        "title": "SDK Quick Start",
+        "summary": "공식 TypeScript SDK로 API 호출을 간단하게 구성할 수 있습니다.",
+        "paragraph1": "SDK는 presign-upload-confirm 과정을 추상화하여 일반 업로드 흐름을 간단한 메서드 호출로 제공합니다.",
+        "paragraph2": "프로젝트 관리, 파일 업로드, 변환 옵션 지정 등 반복 작업을 안전한 타입 기반으로 처리할 수 있습니다.",
+        "bullet1": "npm 설치 후 API 키만으로 클라이언트 초기화 가능",
+        "bullet2": "업로드 진행 상태(onProgress) 콜백 지원",
+        "bullet3": "프로젝트/파일 CRUD를 단일 SDK API로 통합",
+        "quickStartTitle": "SDK Examples",
+        "sourceButton": "SDK 소스 보기",
+        "sourceNote": "현재 SDK는 GitHub의 packages/sdk 경로를 기준으로 관리됩니다.",
+        "responseExample": "{\n  \"note\": \"SDK 예제는 우측 요청 코드 패널 또는 아래 탭에서 확인하세요.\"\n}"
+      }
+    },
+    "searchPlaceholder": "엔드포인트 검색...",
+    "endpointSelectPlaceholder": "엔드포인트 선택",
+    "endpointSelectAria": "엔드포인트 선택",
+    "previous": "이전",
+    "next": "다음",
+    "none": "없음",
+    "exampleRequest": "예제 요청",
+    "exampleResponse": "예제 응답",
+    "copyRequest": "요청 코드 복사",
+    "copyResponse": "응답 코드 복사",
+    "copySdk": "SDK 복사",
+    "requestCopied": "요청 예시를 복사했습니다.",
+    "responseCopied": "응답 예시를 복사했습니다.",
+    "sdkCopied": "SDK 예시를 복사했습니다.",
+    "copyError": "클립보드 복사에 실패했습니다.",
+    "languageSelectAria": "예제 코드 언어 선택",
+    "responseStatusSelectAria": "응답 상태 코드 선택",
+    "quickCopyAria": "요청 예시 빠르게 복사",
+    "referenceNotes": "Reference Notes",
+    "noCodeAvailable": "표시할 코드 예시가 없습니다.",
+    "languages": {
+      "curl": "cURL",
+      "sdk": "SDK"
+    },
+    "breadcrumbs": {
+      "reference": "API Reference"
+    },
+    "endpointSdk": {
+      "title": "Endpoint SDK Example",
+      "description": "선택한 API 엔드포인트에 대응하는 SDK 호출 예시입니다.",
+      "empty": "이 엔드포인트에 대한 SDK 예시가 아직 준비되지 않았습니다."
+    },
     "categoryTitle": "카테고리",
     "noData": "API 문서가 없습니다."
   },
@@ -716,7 +837,11 @@
     "filterAll": "전체",
     "searchPlaceholder": "엔드포인트 검색...",
     "filterSuccess": "성공",
-    "filterError": "실패"
+    "filterError": "실패",
+    "rowsPerPage": "페이지당 행 수",
+    "page": "페이지",
+    "previous": "이전",
+    "next": "다음"
   },
   "Monitoring": {
     "pageTitle": "모니터링",

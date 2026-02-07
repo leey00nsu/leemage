@@ -29,7 +29,7 @@ export const createProjectRequestSchema = z
       .max(50, { message: "프로젝트 이름은 50자를 초과할 수 없습니다." })
       .openapi({
         description: "프로젝트 이름 (3-50자)",
-        example: "내 웹사이트 에셋",
+        example: "Website Assets",
       }),
     description: z
       .string()
@@ -37,7 +37,7 @@ export const createProjectRequestSchema = z
       .optional()
       .openapi({
         description: "프로젝트 설명 (최대 200자)",
-        example: "웹사이트에서 사용할 이미지 모음",
+        example: "Image collection used for the website",
       }),
     storageProvider: storageProviderSchema
       .default("OCI")
@@ -57,14 +57,14 @@ export const projectResponseSchema = z
     }),
     name: z.string().openapi({
       description: "프로젝트 이름",
-      example: "내 웹사이트 에셋",
+      example: "Website Assets",
     }),
     description: z
       .string()
       .nullable()
       .openapi({
         description: "프로젝트 설명",
-        example: "웹사이트에서 사용할 이미지 모음",
+        example: "Image collection used for the website",
       }),
     storageProvider: storageProviderSchema.openapi({
       description: "스토리지 프로바이더",
@@ -105,7 +105,7 @@ export const updateProjectRequestSchema = z
       .optional()
       .openapi({
         description: "프로젝트 이름 (1-50자)",
-        example: "수정된 프로젝트 이름",
+        example: "Updated Project Name",
       }),
     description: z
       .string()
@@ -113,7 +113,7 @@ export const updateProjectRequestSchema = z
       .optional()
       .openapi({
         description: "프로젝트 설명 (최대 200자)",
-        example: "수정된 프로젝트 설명",
+        example: "Updated project description",
       }),
   })
   .openapi("UpdateProjectRequest");

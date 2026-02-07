@@ -1,5 +1,6 @@
 import { OpenAPISpec } from "@/lib/openapi/generator";
 import { ApiCategory, ApiEndpoint } from "./types";
+import { getRequiredPermissionForMethod } from "@/shared/config/api-key-permissions";
 
 type OpenAPIMethod = "get" | "post" | "put" | "delete" | "patch";
 type UIMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
@@ -194,6 +195,10 @@ function transformOperation(
   t?: TranslationGetter
 ): ApiEndpoint {
   const hasAuth = operation.security && operation.security.length > 0;
+  const normalizedMethod = method.toUpperCase() as UIMethod;
+  const requiredPermission = hasAuth
+    ? getRequiredPermissionForMethod(normalizedMethod)
+    : null;
 
   // 엔드포인트 설명 번역
   const summaryKey = getEndpointTranslationKey(method, path, "summary");
@@ -209,10 +214,11 @@ function transformOperation(
   }
 
   return {
-    method: method.toUpperCase() as UIMethod,
+    method: normalizedMethod,
     path: path,
     description,
     auth: hasAuth ?? false,
+    requiredPermission,
     deprecated: operation.deprecated,
     parameters: transformParameters(operation.parameters),
     requestBody: transformRequestBody(spec, operation.requestBody, t),
@@ -232,6 +238,7 @@ function transformParameters(
     .filter((p) => p.in === "path" || p.in === "query")
     .map((p) => ({
       name: p.name,
+      location: p.in,
       type: p.schema?.type || "string",
       required: p.required ?? false,
       description: p.description || "",
@@ -438,6 +445,57 @@ function getPropertyType(prop: OpenAPISchemaProperty): string {
   return prop.type || "any";
 }
 
+const EXAMPLE_TEXT_TRANSLATIONS: Record<string, string> = {
+  "인증 실패: 유효하지 않은 API 키": "apiDocs.errors.unauthorized",
+  "프로젝트를 찾을 수 없습니다.": "apiDocs.errors.notFound.project",
+  "프로젝트를 찾을 수 없음": "apiDocs.errors.notFound.project",
+  "파일을 찾을 수 없습니다.": "apiDocs.errors.notFound.file",
+  "파일을 찾을 수 없음": "apiDocs.errors.notFound.file",
+  "잘못된 요청 형식입니다.": "apiDocs.errors.badRequest",
+  "요청 처리 중 오류가 발생했습니다.": "apiDocs.errors.badRequest",
+  "서버 오류가 발생했습니다.": "apiDocs.errors.serverError",
+  "필수 항목입니다.": "apiDocs.errors.validationError",
+  "작업이 완료되었습니다.": "apiDocs.responses.success",
+  "파일 업로드 완료": "apiDocs.responses.fileUploadComplete",
+};
+
+function translateExampleString(
+  value: string,
+  t?: TranslationGetter
+): string {
+  if (!t) return value;
+
+  const translationKey = EXAMPLE_TEXT_TRANSLATIONS[value];
+  if (!translationKey) return value;
+
+  const translated = t(translationKey);
+  return translated !== translationKey ? translated : value;
+}
+
+function localizeExampleValue(
+  value: unknown,
+  t?: TranslationGetter
+): unknown {
+  if (typeof value === "string") {
+    return translateExampleString(value, t);
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => localizeExampleValue(item, t));
+  }
+
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([key, item]) => [
+        key,
+        localizeExampleValue(item, t),
+      ])
+    );
+  }
+
+  return value;
+}
+
 /**
  * 스키마에서 예제 생성 (번역 적용)
  */
@@ -450,33 +508,7 @@ function generateExample(
 
   // 스키마에 example이 있으면 사용 (에러 메시지 번역 적용)
   if (schema.example !== undefined) {
-    // 에러 메시지 예제 번역
-    if (t && typeof schema.example === "object" && schema.example !== null) {
-      const example = schema.example as Record<string, unknown>;
-      if ("message" in example && typeof example.message === "string") {
-        // 에러 메시지 패턴 매칭 및 번역
-        const errorTranslations: Record<string, string> = {
-          "인증 실패: 유효하지 않은 API 키": "apiDocs.errors.unauthorized",
-          "프로젝트를 찾을 수 없습니다.": "apiDocs.errors.notFound.project",
-          "파일을 찾을 수 없습니다.": "apiDocs.errors.notFound.file",
-          "잘못된 요청 형식입니다.": "apiDocs.errors.badRequest",
-          "서버 오류가 발생했습니다.": "apiDocs.errors.serverError",
-          "요청 처리 중 오류가 발생했습니다.": "apiDocs.errors.badRequest",
-          "필수 항목입니다.": "apiDocs.errors.validationError",
-          "작업이 완료되었습니다.": "apiDocs.responses.success",
-          "파일 업로드 완료": "apiDocs.responses.fileUploadComplete",
-        };
-
-        const translationKey = errorTranslations[example.message as string];
-        if (translationKey) {
-          const translated = t(translationKey);
-          if (translated !== translationKey) {
-            return { ...example, message: translated };
-          }
-        }
-      }
-    }
-    return schema.example;
+    return localizeExampleValue(schema.example, t);
   }
 
   // 배열 타입 처리
@@ -493,7 +525,7 @@ function generateExample(
     const example: Record<string, unknown> = {};
     for (const [name, prop] of Object.entries(schema.properties)) {
       if (prop.example !== undefined) {
-        example[name] = prop.example;
+        example[name] = localizeExampleValue(prop.example, t);
       } else if (prop.$ref) {
         const refSchema = resolveSchema(spec, { $ref: prop.$ref });
         example[name] = generateExample(spec, refSchema, t);
@@ -515,7 +547,7 @@ function generateExample(
         example[name] = null;
       }
     }
-    return example;
+    return localizeExampleValue(example, t);
   }
 
   return {};

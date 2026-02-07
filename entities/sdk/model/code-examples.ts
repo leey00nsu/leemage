@@ -13,84 +13,58 @@ export interface SdkCodeExample {
 type Locale = "ko" | "en";
 
 const codeExamplesKo = {
-  upload: `// client.files.upload(projectId, file, options?)
-// - projectId: 프로젝트 ID
-// - file: File 객체 (브라우저) 또는 { name, type, size, arrayBuffer } (Node.js)
-// - options?: { variants?, onProgress? }
-
-const file = await client.files.upload(projectId, fileInput, {
-  // 이미지 변환 옵션 (이미지 파일에만 적용)
+  upload: `const file = await client.files.upload(projectId, fileInput, {
   variants: [
-    { sizeLabel: "source", format: "webp" },     // 원본 크기
-    { sizeLabel: "max800", format: "webp" },     // 최대 800px
-    { sizeLabel: "1200x800", format: "avif" },   // 커스텀 크기
+    { sizeLabel: "source", format: "webp" },
+    { sizeLabel: "max800", format: "webp" },
+    { sizeLabel: "1200x800", format: "avif" },
   ],
-  // 진행 상태 콜백
   onProgress: (progress) => {
     console.log(\`\${progress.stage}: \${progress.percent}%\`);
-    // stage: "presign" | "upload" | "confirm"
   },
 });
 
-// 결과: FileResponse
-console.log(file.id);       // 파일 ID
-console.log(file.variants); // 변환된 이미지 URL 배열`,
-  projects: `// 프로젝트 목록 조회
-const projects = await client.projects.list();
+console.log(file.id);
+console.log(file.variants);`,
+  projects: `const projects = await client.projects.list();
 
-// 프로젝트 생성
 const project = await client.projects.create({
   name: "My Project",
   description: "프로젝트 설명",
-  storageProvider: "OCI", // "OCI" | "R2"
+  storageProvider: "OCI",
 });
 
-// 프로젝트 상세 조회 (파일 목록 포함)
 const details = await client.projects.get(project.id);
 console.log(details.files);
 
-// 프로젝트 삭제
 await client.projects.delete(project.id);`,
 };
 
 const codeExamplesEn = {
-  upload: `// client.files.upload(projectId, file, options?)
-// - projectId: Project ID
-// - file: File object (browser) or { name, type, size, arrayBuffer } (Node.js)
-// - options?: { variants?, onProgress? }
-
-const file = await client.files.upload(projectId, fileInput, {
-  // Image transformation options (only for image files)
+  upload: `const file = await client.files.upload(projectId, fileInput, {
   variants: [
-    { sizeLabel: "source", format: "webp" },     // Original size
-    { sizeLabel: "max800", format: "webp" },     // Max 800px
-    { sizeLabel: "1200x800", format: "avif" },   // Custom size
+    { sizeLabel: "source", format: "webp" },
+    { sizeLabel: "max800", format: "webp" },
+    { sizeLabel: "1200x800", format: "avif" },
   ],
-  // Progress callback
   onProgress: (progress) => {
     console.log(\`\${progress.stage}: \${progress.percent}%\`);
-    // stage: "presign" | "upload" | "confirm"
   },
 });
 
-// Result: FileResponse
-console.log(file.id);       // File ID
-console.log(file.variants); // Converted image URLs array`,
-  projects: `// List projects
-const projects = await client.projects.list();
+console.log(file.id);
+console.log(file.variants);`,
+  projects: `const projects = await client.projects.list();
 
-// Create project
 const project = await client.projects.create({
   name: "My Project",
   description: "Project description",
-  storageProvider: "OCI", // "OCI" | "R2"
+  storageProvider: "OCI",
 });
 
-// Get project details (includes file list)
 const details = await client.projects.get(project.id);
 console.log(details.files);
 
-// Delete project
 await client.projects.delete(project.id);`,
 };
 
@@ -102,7 +76,16 @@ export function getSdkCodeExamples(locale: Locale): SdkCodeExample[] {
       id: "install",
       language: "bash",
       filename: "terminal",
-      code: `npm install leemage-sdk`,
+      code:
+        locale === "ko"
+          ? `git clone https://github.com/leey00nsu/leemage.git
+cd leemage/packages/sdk
+npm install
+npm run build`
+          : `git clone https://github.com/leey00nsu/leemage.git
+cd leemage/packages/sdk
+npm install
+npm run build`,
     },
     {
       id: "init",
@@ -112,7 +95,7 @@ export function getSdkCodeExamples(locale: Locale): SdkCodeExample[] {
 
 const client = new LeemageClient({
   apiKey: "your-api-key",
-  baseUrl: "https://leemage.example.com", // optional
+  baseUrl: "https://leemage.example.com",
 });`,
       highlightLines: [3, 4, 5],
     },

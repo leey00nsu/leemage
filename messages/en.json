@@ -32,17 +32,36 @@
   },
   "EndpointCard": {
     "copiedToClipboard": "Copied to clipboard.",
+    "pathCopied": "Endpoint path copied.",
+    "responseCopied": "Response example copied.",
+    "copyError": "Failed to copy to clipboard.",
+    "copyPath": "Copy path",
     "authRequired": "Auth Required",
+    "requiredPermission": "Permission",
+    "deprecated": "Deprecated",
+    "noDescription": "No description available.",
     "parameters": "Parameters",
     "name": "Name",
+    "location": "Location",
     "type": "Type",
     "required": "Required",
     "description": "Description",
     "yes": "Yes",
     "no": "No",
+    "noParameters": "No parameters.",
     "requestBody": "Request Body",
     "response": "Response",
-    "copy": "Copy"
+    "copy": "Copy",
+    "noResponse": "No response example available.",
+    "activeResponse": "Current response status: {status}",
+    "rateLimit": "Rate limit",
+    "rateLimitValue": "{requests} req/{windowSeconds}s (block {blockSeconds}s)",
+    "permissions": {
+      "read": "Read",
+      "write": "Write",
+      "delete": "Delete",
+      "unknown": "Unknown"
+    }
   },
   "ProjectCard": {
     "noDescription": "No description provided."
@@ -308,7 +327,109 @@
   },
   "ApiDocsView": {
     "title": "API Documentation",
-    "description": "Explore the usage and endpoint information for the Leemage API. Authentication may be required to use the API.",
+    "description": "Leemage API reference generated from the OpenAPI specification.",
+    "sidebarBadge": "API REFERENCE",
+    "sidebarTitle": "Browse Endpoints",
+    "sections": {
+      "gettingStarted": "Getting Started",
+      "sdk": "SDK",
+      "endpoints": "API Endpoints"
+    },
+    "docs": {
+      "introduction": {
+        "title": "Introduction",
+        "summary": "The Leemage API provides REST endpoints for uploading, listing, and deleting files by project.",
+        "paragraph1": "All API routes are documented from the OpenAPI specification, and the SDK helps simplify upload and transformation workflows.",
+        "paragraph2": "The base API namespace is /api/v1 and all endpoints return JSON responses.",
+        "bullet1": "Authentication: API Key (Bearer Token)",
+        "bullet2": "Response format: application/json",
+        "bullet3": "OpenAPI spec: GET /api/v1/openapi"
+      },
+      "authentication": {
+        "title": "Authentication",
+        "summary": "Protected endpoints require an API key in the Authorization header.",
+        "paragraph1": "You can create API keys on the API & Security page. The secret key is shown only once right after creation.",
+        "paragraph2": "Each HTTP method requires a different permission scope (read/write/delete), so configure scopes when creating keys.",
+        "bullet1": "Header format: Authorization: Bearer <API_KEY>",
+        "bullet2": "Returns 401/403 for invalid key or insufficient permissions",
+        "bullet3": "Use least-privilege keys in production",
+        "requestExample": "curl -X GET \\\n  \"https://api.leemage.com/api/v1/projects\" \\\n  -H \"Authorization: Bearer <YOUR_API_KEY>\"",
+        "responseExample": "{\n  \"message\": \"Authentication failed: invalid API key\"\n}"
+      },
+      "rateLimits": {
+        "title": "Rate Limits",
+        "summary": "API requests are rate-limited for platform stability.",
+        "paragraph1": "When the limit is exceeded, the API returns HTTP 429 with Retry-After and X-RateLimit-* headers.",
+        "paragraph2": "Sensitive endpoints such as login and upload confirmation can use stricter policies.",
+        "bullet1": "Honor Retry-After before retrying requests",
+        "bullet2": "Use exponential backoff in clients",
+        "bullet3": "Monitor X-RateLimit-Remaining in responses",
+        "tableTitle": "Current enforced limits",
+        "columns": {
+          "scope": "Scope",
+          "maxRequests": "Max requests",
+          "window": "Window",
+          "blockDuration": "Block duration"
+        },
+        "rows": {
+          "api": {
+            "scope": "Default API endpoints (/api/v1/*)"
+          },
+          "uploadConfirm": {
+            "scope": "Upload confirm (POST /api/v1/projects/{projectId}/files/confirm)"
+          },
+          "login": {
+            "scope": "Dashboard login (/api/auth/login)"
+          }
+        },
+        "responseExample": "{\n  \"code\": \"RATE_LIMIT_EXCEEDED\",\n  \"message\": \"Request limit exceeded. Please try again later.\"\n}"
+      },
+      "sdk": {
+        "title": "SDK Quick Start",
+        "summary": "Use the official TypeScript SDK to simplify API integration.",
+        "paragraph1": "The SDK abstracts presign-upload-confirm into higher-level methods for common file workflows.",
+        "paragraph2": "You can safely implement project/file operations and transformation options with typed interfaces.",
+        "bullet1": "Initialize with API key after npm install",
+        "bullet2": "Supports upload progress callback (onProgress)",
+        "bullet3": "Unified project and file CRUD APIs",
+        "quickStartTitle": "SDK Examples",
+        "sourceButton": "View SDK Source",
+        "sourceNote": "The SDK is currently maintained from the GitHub packages/sdk directory.",
+        "responseExample": "{\n  \"note\": \"Check SDK examples in the right request panel or tab section below.\"\n}"
+      }
+    },
+    "searchPlaceholder": "Search endpoints...",
+    "endpointSelectPlaceholder": "Select endpoint",
+    "endpointSelectAria": "Select endpoint",
+    "previous": "Previous",
+    "next": "Next",
+    "none": "None",
+    "exampleRequest": "Example Request",
+    "exampleResponse": "Example Response",
+    "copyRequest": "Copy request code",
+    "copyResponse": "Copy response code",
+    "copySdk": "Copy SDK",
+    "requestCopied": "Request example copied.",
+    "responseCopied": "Response example copied.",
+    "sdkCopied": "SDK example copied.",
+    "copyError": "Failed to copy to clipboard.",
+    "languageSelectAria": "Select request code language",
+    "responseStatusSelectAria": "Select response status code",
+    "quickCopyAria": "Quick copy request example",
+    "referenceNotes": "Reference Notes",
+    "noCodeAvailable": "No code example available.",
+    "languages": {
+      "curl": "cURL",
+      "sdk": "SDK"
+    },
+    "breadcrumbs": {
+      "reference": "API Reference"
+    },
+    "endpointSdk": {
+      "title": "Endpoint SDK Example",
+      "description": "SDK call example corresponding to the selected API endpoint.",
+      "empty": "No SDK example is available for this endpoint yet."
+    },
     "categoryTitle": "Categories",
     "noData": "No API documentation available."
   },
@@ -716,7 +837,11 @@
     "filterAll": "All",
     "searchPlaceholder": "Search endpoint...",
     "filterSuccess": "Success",
-    "filterError": "Error"
+    "filterError": "Error",
+    "rowsPerPage": "Rows per page",
+    "page": "Page",
+    "previous": "Previous",
+    "next": "Next"
   },
   "Monitoring": {
     "pageTitle": "Monitoring",
