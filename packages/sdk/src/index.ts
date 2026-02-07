@@ -40,6 +40,8 @@ export {
   LeemageError,
   AuthenticationError,
   NotFoundError,
+  PermissionDeniedError,
+  RateLimitError,
   ValidationError,
   FileTooLargeError,
   ServerError,

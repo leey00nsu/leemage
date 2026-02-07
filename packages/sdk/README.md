@@ -21,7 +21,8 @@ import { LeemageClient } from "leemage-sdk";
 
 const client = new LeemageClient({
   apiKey: "your-api-key",
-  // baseUrl: "https://your-leemage-instance.com" // 선택사항
+  baseUrl: "https://your-leemage-instance.com",
+  // allowInsecureHttp: true, // 로컬 개발에서만 사용
 });
 ```
 
@@ -76,7 +77,10 @@ console.log(uploadedFile.variants); // 변환된 이미지 URL들
 import { readFile } from "fs/promises";
 import { LeemageClient } from "leemage-sdk";
 
-const client = new LeemageClient({ apiKey: "your-api-key" });
+const client = new LeemageClient({
+  apiKey: "your-api-key",
+  baseUrl: "https://your-leemage-instance.com",
+});
 
 const buffer = await readFile("./image.jpg");
 const file = {
@@ -120,6 +124,8 @@ SDK는 타입화된 에러 클래스를 제공합니다:
 import {
   LeemageClient,
   AuthenticationError,
+  PermissionDeniedError,
+  RateLimitError,
   NotFoundError,
   ValidationError,
   FileTooLargeError,
@@ -130,6 +136,10 @@ try {
 } catch (error) {
   if (error instanceof AuthenticationError) {
     console.error("API 키를 확인하세요");
+  } else if (error instanceof PermissionDeniedError) {
+    console.error("권한이 없습니다");
+  } else if (error instanceof RateLimitError) {
+    console.error(`요청 한도 초과, ${error.retryAfter ?? 0}초 후 재시도`);
   } else if (error instanceof NotFoundError) {
     console.error("프로젝트를 찾을 수 없습니다");
   } else if (error instanceof ValidationError) {

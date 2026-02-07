@@ -10,6 +10,7 @@ import type {
   UploadableFile,
 } from "../types/api";
 import { NetworkError } from "../errors";
+import { encodePathSegment } from "../utils/path";
 
 /**
  * Files API 클라이언트
@@ -27,8 +28,9 @@ export class FilesResource {
     projectId: string,
     data: PresignRequest
   ): Promise<PresignResponse> {
+    const encodedProjectId = encodePathSegment(projectId, "projectId");
     return this.client.post<PresignResponse>(
-      `/api/v1/projects/${projectId}/files/presign`,
+      `/api/v1/projects/${encodedProjectId}/files/presign`,
       data
     );
   }
@@ -43,8 +45,9 @@ export class FilesResource {
     projectId: string,
     data: ConfirmRequest
   ): Promise<ConfirmResponse> {
+    const encodedProjectId = encodePathSegment(projectId, "projectId");
     return this.client.post<ConfirmResponse>(
-      `/api/v1/projects/${projectId}/files/confirm`,
+      `/api/v1/projects/${encodedProjectId}/files/confirm`,
       data
     );
   }
@@ -61,8 +64,10 @@ export class FilesResource {
    * ```
    */
   async delete(projectId: string, fileId: string): Promise<MessageResponse> {
+    const encodedProjectId = encodePathSegment(projectId, "projectId");
+    const encodedFileId = encodePathSegment(fileId, "fileId");
     return this.client.delete<MessageResponse>(
-      `/api/v1/projects/${projectId}/files/${fileId}`
+      `/api/v1/projects/${encodedProjectId}/files/${encodedFileId}`
     );
   }
 

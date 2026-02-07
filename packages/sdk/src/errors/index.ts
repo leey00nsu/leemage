@@ -28,8 +28,16 @@ export class LeemageError extends Error {
           status,
           response.errors
         );
+      case 403:
+        return new PermissionDeniedError(
+          response.message,
+          status,
+          response.errors
+        );
       case 404:
         return new NotFoundError(response.message, status, response.errors);
+      case 429:
+        return new RateLimitError(response.message, status, response.errors);
       case 413:
         return new FileTooLargeError(response.message, status, response.errors);
       case 500:
@@ -69,6 +77,20 @@ export class NotFoundError extends LeemageError {
 }
 
 /**
+ * 권한 부족 에러 (403)
+ */
+export class PermissionDeniedError extends LeemageError {
+  constructor(
+    message = "요청 권한이 없습니다.",
+    status = 403,
+    errors?: Record<string, string[]>
+  ) {
+    super(message, status, errors);
+    this.name = "PermissionDeniedError";
+  }
+}
+
+/**
  * 유효성 검사 에러 (400)
  */
 export class ValidationError extends LeemageError {
@@ -79,6 +101,24 @@ export class ValidationError extends LeemageError {
   ) {
     super(message, status, errors);
     this.name = "ValidationError";
+  }
+}
+
+/**
+ * 요청 제한 초과 에러 (429)
+ */
+export class RateLimitError extends LeemageError {
+  readonly retryAfter?: number;
+
+  constructor(
+    message = "요청 한도를 초과했습니다. 잠시 후 다시 시도해주세요.",
+    status = 429,
+    errors?: Record<string, string[]>,
+    retryAfter?: number
+  ) {
+    super(message, status, errors);
+    this.name = "RateLimitError";
+    this.retryAfter = retryAfter;
   }
 }
 

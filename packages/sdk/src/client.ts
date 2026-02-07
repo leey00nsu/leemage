@@ -15,10 +15,8 @@ export interface LeemageClientOptions {
 
   /**
    * API 베이스 URL
-   *
-   * @default "https://leemage.leey00nsu.com"
    */
-  baseUrl?: string;
+  baseUrl: string;
 
   /**
    * 요청 타임아웃 (밀리초)
@@ -26,6 +24,14 @@ export interface LeemageClientOptions {
    * @default 30000
    */
   timeout?: number;
+
+  /**
+   * HTTP(baseUrl이 http://인 경우) 허용 여부
+   *
+   * 보안을 위해 기본값은 false이며, 로컬 개발 환경에서만 true로 설정하세요.
+   * @default false
+   */
+  allowInsecureHttp?: boolean;
 }
 
 /**
@@ -38,7 +44,8 @@ export interface LeemageClientOptions {
  * import { LeemageClient } from "leemage-sdk";
  *
  * const client = new LeemageClient({
- *   apiKey: "your-api-key"
+ *   apiKey: "your-api-key",
+ *   baseUrl: "https://api.your-domain.com"
  * });
  *
  * // 프로젝트 목록 조회
@@ -68,14 +75,20 @@ export class LeemageClient {
   private readonly client: FetchClient;
 
   constructor(options: LeemageClientOptions) {
-    if (!options.apiKey) {
+    const apiKey = options.apiKey?.trim();
+    if (!apiKey) {
       throw new Error("apiKey는 필수입니다.");
+    }
+    const baseUrl = options.baseUrl?.trim();
+    if (!baseUrl) {
+      throw new Error("baseUrl은 필수입니다.");
     }
 
     this.client = new FetchClient({
-      baseUrl: options.baseUrl ?? "https://leemage.leey00nsu.com",
-      apiKey: options.apiKey,
+      baseUrl,
+      apiKey,
       timeout: options.timeout,
+      allowInsecureHttp: options.allowInsecureHttp,
     });
 
     this.projects = new ProjectsResource(this.client);

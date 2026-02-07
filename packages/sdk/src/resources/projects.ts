@@ -5,6 +5,7 @@ import type {
   CreateProjectRequest,
   MessageResponse,
 } from "../types/api";
+import { encodePathSegment } from "../utils/path";
 
 /**
  * Projects API 클라이언트
@@ -37,7 +38,10 @@ export class ProjectsResource {
    * ```
    */
   async get(projectId: string): Promise<ProjectDetails> {
-    return this.client.get<ProjectDetails>(`/api/v1/projects/${projectId}`);
+    const encodedProjectId = encodePathSegment(projectId, "projectId");
+    return this.client.get<ProjectDetails>(
+      `/api/v1/projects/${encodedProjectId}`
+    );
   }
 
   /**
@@ -69,6 +73,9 @@ export class ProjectsResource {
    * ```
    */
   async delete(projectId: string): Promise<MessageResponse> {
-    return this.client.delete<MessageResponse>(`/api/v1/projects/${projectId}`);
+    const encodedProjectId = encodePathSegment(projectId, "projectId");
+    return this.client.delete<MessageResponse>(
+      `/api/v1/projects/${encodedProjectId}`
+    );
   }
 }
