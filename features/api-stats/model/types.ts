@@ -33,7 +33,34 @@ export interface LogEntry {
   statusCode: number;
   durationMs: number | null;
   createdAt: string;
+  projectId?: string | null;
   metadata?: Record<string, unknown> | null; // 추가 정보 (파일명 등)
+  authSource?: "ui" | "apiKey";
+  apiKeyId?: string | null;
+  apiKeyName?: string | null;
+  apiKeyPrefix?: string | null;
+}
+
+export type ApiLogStatusFilter = "all" | "success" | "error";
+
+export interface ApiStatsLogQuery {
+  page?: number;
+  pageSize?: number;
+  status?: ApiLogStatusFilter;
+  method?: string;
+  actor?: string;
+  search?: string;
+  statusCodeClasses?: Array<"2xx" | "3xx" | "4xx" | "5xx">;
+  latencyMinMs?: number;
+  latencyMaxMs?: number;
+  metadataKeyword?: string;
+}
+
+export interface ApiStatsLogsPage {
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
 }
 
 export interface ApiStatsResponse {
@@ -42,4 +69,5 @@ export interface ApiStatsResponse {
   byTime: TimeStats[];
   byStatus: StatusCodeStats[];
   logs: LogEntry[];
+  logsPage?: ApiStatsLogsPage;
 }
