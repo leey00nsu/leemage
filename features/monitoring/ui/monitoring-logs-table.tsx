@@ -1,22 +1,33 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Download, Filter, Search, ChevronLeft, ChevronRight } from "lucide-react";
-
 import type { LogEntry } from "@/features/api-stats/model/types";
 import { AppTable, AppTableCard } from "@/shared/ui/app/app-table";
-import { AppInput } from "@/shared/ui/app/app-input";
-import { AppIconButton } from "@/shared/ui/app/app-icon-button";
 import { AppMethodBadge } from "@/shared/ui/app/app-method-badge";
 import { AppStatusPill } from "@/shared/ui/app/app-status-pill";
-import { formatEndpoint } from "@/features/monitoring/lib/monitoring-utils";
+import {
+  buildMonitoringLogDescription,
+  stripQuery,
+} from "@/features/monitoring/lib/log-description";
+import { resolveMonitoringLogActor } from "@/features/monitoring/lib/log-actor";
+import type { AdvancedLogFilters } from "@/features/monitoring/model/filters";
+import { MonitoringLogsTableActions } from "@/features/monitoring/ui/monitoring-logs-table-actions";
+import { MonitoringLogsTableFooter } from "@/features/monitoring/ui/monitoring-logs-table-footer";
 
 interface MonitoringLogsTableProps {
   logs: LogEntry[];
   totalLogs: number;
   searchQuery: string;
   onSearchChange: (value: string) => void;
+  apiKeyNameById: Record<string, string>;
+  advancedFilters: AdvancedLogFilters;
+  onAdvancedFiltersChange: (next: AdvancedLogFilters) => void;
+  rowsPerPage: number;
+  onRowsPerPageChange: (next: number) => void;
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (next: number) => void;
+  onRowClick: (log: LogEntry) => void;
 }
 
 export function MonitoringLogsTable({
@@ -24,108 +35,109 @@ export function MonitoringLogsTable({
   totalLogs,
   searchQuery,
   onSearchChange,
+  apiKeyNameById,
+  advancedFilters,
+  onAdvancedFiltersChange,
+  rowsPerPage,
+  onRowsPerPageChange,
+  currentPage,
+  totalPages,
+  onPageChange,
+  onRowClick,
 }: MonitoringLogsTableProps) {
   const t = useTranslations("Monitoring");
-  const router = useRouter();
-
-  const handleRowClick = (logId: string) => {
-    router.push(`/monitoring/${logId}`);
-  };
 
   return (
     <AppTableCard
       heading={t("table.title")}
       actions={
-        <>
-          <div className="relative">
-            <Search className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 h-4 w-4" />
-            <AppInput
-              value={searchQuery}
-              onChange={(event) => onSearchChange(event.target.value)}
-              placeholder={t("table.searchPlaceholder")}
-              className="pl-8 pr-3 py-1.5 text-xs w-48"
-            />
-          </div>
-          <AppIconButton aria-label={t("table.filter")}>
-            <Filter className="h-4 w-4" />
-          </AppIconButton>
-          <AppIconButton aria-label={t("table.download")}>
-            <Download className="h-4 w-4" />
-          </AppIconButton>
-        </>
+        <MonitoringLogsTableActions
+          searchQuery={searchQuery}
+          onSearchChange={onSearchChange}
+          advancedFilters={advancedFilters}
+          onAdvancedFiltersChange={onAdvancedFiltersChange}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={onRowsPerPageChange}
+        />
       }
       footer={
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-slate-500 dark:text-slate-400">
-            {t("table.showing", {
-              shown: logs.length,
-              total: totalLogs,
-            })}
-          </span>
-          <div className="flex items-center gap-2">
-            <AppIconButton disabled aria-label={t("table.prev")}>
-              <ChevronLeft className="h-4 w-4" />
-            </AppIconButton>
-            <AppIconButton disabled aria-label={t("table.next")}>
-              <ChevronRight className="h-4 w-4" />
-            </AppIconButton>
-          </div>
-        </div>
+        <MonitoringLogsTableFooter
+          totalLogs={totalLogs}
+          logsLength={logs.length}
+          rowsPerPage={rowsPerPage}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+        />
       }
     >
       <AppTable>
-        <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-800 text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">
+        <thead className="border-b border-gray-200 bg-gray-50 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:border-gray-800 dark:bg-gray-800 dark:text-slate-400">
           <tr>
-            <th className="px-6 py-3 whitespace-nowrap">{t("table.timestamp")}</th>
-            <th className="px-6 py-3 whitespace-nowrap">{t("table.method")}</th>
-            <th className="px-6 py-3 whitespace-nowrap">{t("table.endpoint")}</th>
-            <th className="px-6 py-3 whitespace-nowrap">{t("table.status")}</th>
-            <th className="px-6 py-3 whitespace-nowrap text-right">
+            <th className="whitespace-nowrap px-6 py-3">{t("table.timestamp")}</th>
+            <th className="whitespace-nowrap px-6 py-3">{t("table.method")}</th>
+            <th className="whitespace-nowrap px-6 py-3">{t("table.description")}</th>
+            <th className="whitespace-nowrap px-6 py-3">{t("table.status")}</th>
+            <th className="whitespace-nowrap px-6 py-3">{t("table.apiKey")}</th>
+            <th className="whitespace-nowrap px-6 py-3 text-right">
               {t("table.latency")}
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100 dark:divide-gray-800/50 text-slate-700 dark:text-slate-300">
+        <tbody className="divide-y divide-gray-100 text-slate-700 dark:divide-gray-800/50 dark:text-slate-300">
           {logs.length === 0 ? (
             <tr>
-              <td colSpan={5} className="px-6 py-6 text-center text-sm text-slate-500">
+              <td colSpan={6} className="px-6 py-6 text-center text-sm text-slate-500">
                 {t("table.empty")}
               </td>
             </tr>
           ) : (
             logs.map((log) => {
               const formattedTime = new Date(log.createdAt).toLocaleString();
-              const displayEndpoint = formatEndpoint(log.endpoint, log.metadata);
+              const displayEndpoint = stripQuery(log.endpoint);
+              const description = buildMonitoringLogDescription(log, t);
+              const actor = resolveMonitoringLogActor(log, {
+                apiKeyNameById,
+                uiLabel: t("table.ui"),
+                unknownApiKeyLabel: t("table.unknownApiKey"),
+              });
+
               return (
                 <tr
                   key={log.id}
-                  className="hover:bg-gray-50/80 dark:hover:bg-gray-800/30 transition-colors cursor-pointer"
-                  onClick={() => handleRowClick(log.id)}
+                  className="cursor-pointer transition-colors hover:bg-gray-50/80 dark:hover:bg-gray-800/30"
+                  onClick={() => onRowClick(log)}
                   onKeyDown={(event) => {
                     if (event.key === "Enter" || event.key === " ") {
                       event.preventDefault();
-                      handleRowClick(log.id);
+                      onRowClick(log);
                     }
                   }}
                   role="button"
                   tabIndex={0}
                 >
-                  <td className="px-6 py-3 font-mono text-xs whitespace-nowrap">
+                  <td className="whitespace-nowrap px-6 py-3 font-mono text-xs">
                     {formattedTime}
                   </td>
-                  <td className="px-6 py-3 whitespace-nowrap">
+                  <td className="whitespace-nowrap px-6 py-3">
                     <AppMethodBadge method={log.method} />
                   </td>
                   <td
-                    className="px-6 py-3 font-mono text-xs text-slate-600 dark:text-slate-400 whitespace-nowrap"
+                    className="px-6 py-3 text-xs text-slate-700 dark:text-slate-200"
                     title={log.endpoint}
                   >
-                    {displayEndpoint}
+                    <p className="font-medium">{description}</p>
+                    <p className="mt-1 break-all font-mono text-[11px] text-slate-500 dark:text-slate-400">
+                      {displayEndpoint}
+                    </p>
                   </td>
-                  <td className="px-6 py-3 whitespace-nowrap">
+                  <td className="whitespace-nowrap px-6 py-3">
                     <AppStatusPill statusCode={log.statusCode} />
                   </td>
-                  <td className="px-6 py-3 text-right font-mono text-xs whitespace-nowrap">
+                  <td className="whitespace-nowrap px-6 py-3 text-xs text-slate-600 dark:text-slate-300">
+                    {actor.label}
+                  </td>
+                  <td className="whitespace-nowrap px-6 py-3 text-right font-mono text-xs">
                     {log.durationMs ? `${log.durationMs}ms` : "-"}
                   </td>
                 </tr>
@@ -137,4 +149,3 @@ export function MonitoringLogsTable({
     </AppTableCard>
   );
 }
-

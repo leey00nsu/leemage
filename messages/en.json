@@ -860,6 +860,10 @@
     "filters": {
       "project": "Project",
       "allProjects": "All Projects",
+      "actor": "Authentication Method",
+      "allActors": "All Authentication Methods",
+      "ui": "UI",
+      "unknownApiKey": "Unknown API Key",
       "all": "All",
       "success": "Success",
       "error": "Error"
@@ -875,15 +879,40 @@
       "searchPlaceholder": "Filter logs...",
       "timestamp": "Timestamp",
       "method": "Method",
-      "endpoint": "Endpoint",
+      "description": "Description",
       "status": "Status",
+      "apiKey": "API Key",
+      "ui": "UI",
+      "unknownApiKey": "Unknown API Key",
       "latency": "Latency",
       "empty": "No logs found.",
-      "showing": "Showing {shown} of {total} events",
+      "showingRange": "{start}-{end} / {total}",
       "filter": "Filter",
       "download": "Download",
+      "rowsPerPage": "Rows",
       "prev": "Previous",
-      "next": "Next"
+      "next": "Next",
+      "advancedFilters": {
+        "statusCodeClass": "Status Code Group",
+        "latencyRange": "Latency Range",
+        "minMs": "Min ms",
+        "maxMs": "Max ms",
+        "metadataKeyword": "Search Metadata",
+        "metadataPlaceholder": "fileName, contentType, etc.",
+        "reset": "Reset"
+      },
+      "events": {
+        "unknownFile": "Unknown file",
+        "filePresign": "Issue upload URL for project {projectId} ({fileName})",
+        "fileConfirm": "Confirm upload for project {projectId} ({fileName})",
+        "projectList": "List projects",
+        "projectCreate": "Create project",
+        "projectRead": "Read project {projectId}",
+        "projectUpdate": "Update project {projectId}",
+        "projectDelete": "Delete project {projectId}",
+        "fileDelete": "Delete file {fileId} from project {projectId}",
+        "default": "{method} {endpoint}"
+      }
     },
     "drawer": {
       "title": "Request Details",
@@ -894,8 +923,15 @@
       "status": "Status",
       "latency": "Latency",
       "timestamp": "Timestamp",
+      "source": "Request Source",
+      "apiKey": "API Key",
+      "unknownApiKey": "Unknown API Key",
       "endpoint": "Endpoint",
       "projectId": "Project ID",
+      "sources": {
+        "ui": "UI",
+        "apiKey": "API Key"
+      },
       "metadata": "Metadata",
       "noMetadata": "No metadata available."
     }

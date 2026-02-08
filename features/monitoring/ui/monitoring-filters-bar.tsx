@@ -5,7 +5,12 @@ import { useTranslations } from "next-intl";
 import { AppButton } from "@/shared/ui/app/app-button";
 import { AppSelect } from "@/shared/ui/app/app-select";
 import { AppCard } from "@/shared/ui/app/app-card";
-import { ALL_METHODS, MethodFilter, StatusFilter } from "@/features/monitoring/model/filters";
+import {
+  ALL_METHODS,
+  ActorFilter,
+  MethodFilter,
+  StatusFilter,
+} from "@/features/monitoring/model/filters";
 
 interface ProjectOption {
   id: string;
@@ -16,6 +21,9 @@ interface MonitoringFiltersBarProps {
   projects?: ProjectOption[];
   selectedProjectId: string;
   onProjectChange: (value: string) => void;
+  actorFilter: ActorFilter;
+  onActorChange: (value: ActorFilter) => void;
+  actorOptions: { value: string; label: string }[];
   statusFilter: StatusFilter;
   onStatusChange: (value: StatusFilter) => void;
   methodFilter: MethodFilter;
@@ -27,6 +35,9 @@ export function MonitoringFiltersBar({
   projects,
   selectedProjectId,
   onProjectChange,
+  actorFilter,
+  onActorChange,
+  actorOptions,
   statusFilter,
   onStatusChange,
   methodFilter,
@@ -50,6 +61,14 @@ export function MonitoringFiltersBar({
               })) ?? []),
             ]}
             aria-label={t("filters.project")}
+          />
+        </div>
+        <div className="min-w-[220px]">
+          <AppSelect
+            value={actorFilter}
+            onChange={(value) => onActorChange(value as ActorFilter)}
+            options={actorOptions}
+            aria-label={t("filters.actor")}
           />
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -96,4 +115,3 @@ export function MonitoringFiltersBar({
     </AppCard>
   );
 }
-

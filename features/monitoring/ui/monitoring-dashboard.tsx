@@ -1,72 +1,87 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import type { DateRange } from "react-day-picker";
 
 import { useApiStats } from "@/features/api-stats/model/use-api-stats";
+import type { LogEntry } from "@/features/api-stats/model/types";
+import { useListApiKeys } from "@/features/api-key/model/list";
 import { useGetProjects } from "@/features/projects/list/model/get";
 import { MonitoringHeader } from "@/features/monitoring/ui/monitoring-header";
 import { MonitoringKpiGrid } from "@/features/monitoring/ui/monitoring-kpi-grid";
 import { MonitoringFiltersBar } from "@/features/monitoring/ui/monitoring-filters-bar";
 import { MonitoringRequestChart } from "@/features/monitoring/ui/monitoring-request-chart";
 import { MonitoringLogsTable } from "@/features/monitoring/ui/monitoring-logs-table";
+import { MonitoringLogDrawer } from "@/features/monitoring/ui/monitoring-log-drawer";
 import { MonitoringSkeleton } from "@/features/monitoring/ui/monitoring-skeleton";
-import { createDateRange } from "@/features/monitoring/lib/monitoring-utils";
-import { MethodFilter, StatusFilter } from "@/features/monitoring/model/filters";
+import { resolveMonitoringLogActor } from "@/features/monitoring/lib/log-actor";
+import { useMonitoringDashboardState } from "@/features/monitoring/model/use-monitoring-dashboard-state";
+import type { MonitoringLogDetail } from "@/features/monitoring/model/types";
 import { AppCard } from "@/shared/ui/app/app-card";
+
+function toMonitoringLogDetail(log: LogEntry): MonitoringLogDetail {
+  return {
+    id: log.id,
+    endpoint: log.endpoint,
+    method: log.method,
+    statusCode: log.statusCode,
+    durationMs: log.durationMs,
+    createdAt: log.createdAt,
+    metadata: log.metadata ?? null,
+    projectId: log.projectId ?? null,
+  };
+}
 
 export function MonitoringDashboard() {
   const t = useTranslations("Monitoring");
-  const [calendarOpen, setCalendarOpen] = useState(false);
-  const [selectedProjectId, setSelectedProjectId] = useState("all");
-  const [dateRange, setDateRange] = useState(() => createDateRange(7));
-  const [selectedQuickRange, setSelectedQuickRange] = useState<number | null>(7);
-  const [tempRange, setTempRange] = useState<DateRange | undefined>(undefined);
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
-  const [methodFilter, setMethodFilter] = useState<MethodFilter>("all");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedLog, setSelectedLog] = useState<MonitoringLogDetail | null>(null);
 
   const { data: projects } = useGetProjects();
+  const { data: apiKeys } = useListApiKeys();
+  const state = useMonitoringDashboardState();
   const { data, isLoading, error } = useApiStats(
-    selectedProjectId === "all" ? undefined : selectedProjectId,
-    dateRange.from,
-    dateRange.to
+    state.selectedProjectId === "all" ? undefined : state.selectedProjectId,
+    state.dateRange.from,
+    state.dateRange.to,
+    state.logQuery,
   );
 
-  const filteredLogs = useMemo(() => {
-    if (!data?.logs) return [];
-    return data.logs.filter((log) => {
-      if (
-        statusFilter === "success" &&
-        (log.statusCode < 200 || log.statusCode >= 400)
-      ) {
-        return false;
-      }
-      if (
-        statusFilter === "error" &&
-        log.statusCode >= 200 &&
-        log.statusCode < 400
-      ) {
-        return false;
-      }
-      if (methodFilter !== "all" && log.method !== methodFilter) {
-        return false;
-      }
-      if (
-        searchQuery &&
-        !log.endpoint.toLowerCase().includes(searchQuery.toLowerCase())
-      ) {
-        return false;
-      }
-      return true;
+  const apiKeyNameById = useMemo(() => {
+    const keys = apiKeys ?? [];
+    return Object.fromEntries(
+      keys.map((key) => [key.id, key.name?.trim() || key.prefix]),
+    );
+  }, [apiKeys]);
+
+  const actorOptions = useMemo(() => {
+    const options = [
+      { value: "all", label: t("filters.allActors") },
+      { value: "ui", label: t("filters.ui") },
+      ...(apiKeys ?? []).map((key) => ({
+        value: `apiKey:${key.id}`,
+        label: key.name?.trim() || key.prefix,
+      })),
+    ];
+
+    const hasUnknownApiKeyLog = (data?.logs ?? []).some((log) => {
+      const actor = resolveMonitoringLogActor(log, { apiKeyNameById });
+      return actor.filterValue === "apiKey:unknown";
     });
-  }, [data?.logs, statusFilter, methodFilter, searchQuery]);
+
+    if (hasUnknownApiKeyLog || state.actorFilter === "apiKey:unknown") {
+      options.push({
+        value: "apiKey:unknown",
+        label: t("filters.unknownApiKey"),
+      });
+    }
+
+    return options;
+  }, [apiKeys, data?.logs, apiKeyNameById, state.actorFilter, t]);
 
   const availableMethods = useMemo(() => {
-    if (!data?.logs) return new Set<string>();
-    return new Set(data.logs.map((log) => log.method));
-  }, [data?.logs]);
+    if (!data?.byEndpoint) return new Set<string>();
+    return new Set(data.byEndpoint.map((item) => item.method));
+  }, [data?.byEndpoint]);
 
   const chartData = useMemo(() => {
     return (data?.byTime ?? []).map((item) => ({
@@ -80,26 +95,14 @@ export function MonitoringDashboard() {
     }));
   }, [data?.byTime]);
 
-  const totalLogs = data?.logs.length ?? 0;
+  const totalLogs = data?.logsPage?.total ?? data?.logs.length ?? 0;
+  const totalPages = data?.logsPage?.totalPages ?? 1;
 
-  const handleQuickRange = (days: number) => {
-    setDateRange(createDateRange(days));
-    setSelectedQuickRange(days);
-    setTempRange(undefined);
-  };
-
-  const handleCustomRange = (range: DateRange | undefined) => {
-    setTempRange(range);
-    if (range?.from && range?.to) {
-      const from = new Date(range.from);
-      from.setHours(0, 0, 0, 0);
-      const to = new Date(range.to);
-      to.setHours(23, 59, 59, 999);
-      setDateRange({ from, to });
-      setSelectedQuickRange(null);
-      setCalendarOpen(false);
+  useEffect(() => {
+    if (state.currentPage > totalPages) {
+      state.setCurrentPage(totalPages);
     }
-  };
+  }, [state.currentPage, state.setCurrentPage, totalPages]);
 
   if (isLoading) {
     return <MonitoringSkeleton />;
@@ -116,33 +119,55 @@ export function MonitoringDashboard() {
   return (
     <div className="space-y-6">
       <MonitoringHeader
-        dateRange={dateRange}
-        selectedQuickRange={selectedQuickRange}
-        calendarOpen={calendarOpen}
-        onCalendarOpenChange={setCalendarOpen}
-        onQuickRange={handleQuickRange}
-        tempRange={tempRange}
-        onTempRangeChange={handleCustomRange}
+        dateRange={state.dateRange}
+        selectedQuickRange={state.selectedQuickRange}
+        calendarOpen={state.calendarOpen}
+        onCalendarOpenChange={state.setCalendarOpen}
+        onQuickRange={state.handleQuickRange}
+        tempRange={state.tempRange}
+        onTempRangeChange={state.handleCustomRange}
       />
       <MonitoringKpiGrid summary={data.summary} />
       <MonitoringFiltersBar
         projects={projects}
-        selectedProjectId={selectedProjectId}
-        onProjectChange={setSelectedProjectId}
-        statusFilter={statusFilter}
-        onStatusChange={setStatusFilter}
-        methodFilter={methodFilter}
-        onMethodChange={setMethodFilter}
+        selectedProjectId={state.selectedProjectId}
+        onProjectChange={state.setSelectedProjectId}
+        actorFilter={state.actorFilter}
+        onActorChange={state.setActorFilter}
+        actorOptions={actorOptions}
+        statusFilter={state.statusFilter}
+        onStatusChange={state.setStatusFilter}
+        methodFilter={state.methodFilter}
+        onMethodChange={state.setMethodFilter}
         availableMethods={availableMethods}
       />
       <MonitoringRequestChart data={chartData} />
       <MonitoringLogsTable
-        logs={filteredLogs}
+        logs={data.logs}
         totalLogs={totalLogs}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
+        searchQuery={state.searchQuery}
+        onSearchChange={state.setSearchQuery}
+        apiKeyNameById={apiKeyNameById}
+        advancedFilters={state.advancedFilters}
+        onAdvancedFiltersChange={state.setAdvancedFilters}
+        rowsPerPage={state.rowsPerPage}
+        onRowsPerPageChange={state.setRowsPerPage}
+        currentPage={state.currentPage}
+        totalPages={totalPages}
+        onPageChange={state.setCurrentPage}
+        onRowClick={(log) => setSelectedLog(toMonitoringLogDetail(log))}
       />
+      {selectedLog ? (
+        <MonitoringLogDrawer
+          log={selectedLog}
+          open
+          onOpenChange={(open) => {
+            if (!open) {
+              setSelectedLog(null);
+            }
+          }}
+        />
+      ) : null}
     </div>
   );
 }
-
