@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Calendar as CalendarIcon } from "lucide-react";
 import type { DateRange } from "react-day-picker";
 
@@ -9,6 +9,7 @@ import { AppPageHeader } from "@/shared/ui/app/app-page-header";
 import { AppButton } from "@/shared/ui/app/app-button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover";
 import { Calendar } from "@/shared/ui/calendar";
+import { getDateFnsLocale } from "@/shared/lib/date-fns-locale";
 import { formatDateLabel } from "@/features/monitoring/lib/monitoring-utils";
 
 interface MonitoringHeaderProps {
@@ -31,10 +32,12 @@ export function MonitoringHeader({
   onTempRangeChange,
 }: MonitoringHeaderProps) {
   const t = useTranslations("Monitoring");
+  const locale = useLocale();
+  const calendarLocale = useMemo(() => getDateFnsLocale(locale), [locale]);
 
   const dateRangeLabel = useMemo(
-    () => `${formatDateLabel(dateRange.from)} - ${formatDateLabel(dateRange.to)}`,
-    [dateRange.from, dateRange.to]
+    () => `${formatDateLabel(dateRange.from, locale)} - ${formatDateLabel(dateRange.to, locale)}`,
+    [dateRange.from, dateRange.to, locale]
   );
 
   return (
@@ -68,6 +71,7 @@ export function MonitoringHeader({
             <PopoverContent className="w-auto p-0" align="end">
               <Calendar
                 mode="range"
+                locale={calendarLocale}
                 defaultMonth={dateRange.from}
                 selected={tempRange ?? { from: dateRange.from, to: dateRange.to }}
                 onSelect={onTempRangeChange}
@@ -81,4 +85,3 @@ export function MonitoringHeader({
     />
   );
 }
-

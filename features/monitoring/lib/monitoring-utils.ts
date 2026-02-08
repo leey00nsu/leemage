@@ -14,8 +14,8 @@ export function createDateRange(days: number): { from: Date; to: Date } {
   return { from, to };
 }
 
-export function formatDateLabel(date: Date): string {
-  return date.toLocaleDateString("en-US", {
+export function formatDateLabel(date: Date, locale: string): string {
+  return date.toLocaleDateString(locale, {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -38,4 +38,3 @@ export function formatEndpoint(
   }
   return endpoint.replace(/\/api\/(v1\/)?/, "").slice(0, 36);
 }
-

@@ -1,4 +1,4 @@
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Calendar as CalendarIcon, FolderOpen, Search } from "lucide-react";
 import type { DateRange } from "react-day-picker";
 
@@ -10,6 +10,7 @@ import {
   PopoverTrigger,
 } from "@/shared/ui/popover";
 import { Calendar } from "@/shared/ui/calendar";
+import { getDateFnsLocale } from "@/shared/lib/date-fns-locale";
 import {
   Select,
   SelectContent,
@@ -69,6 +70,8 @@ export function ApiStatsFilters({
   onSearchQueryChange,
 }: ApiStatsFiltersProps) {
   const t = useTranslations("ApiLogs");
+  const locale = useLocale();
+  const calendarLocale = getDateFnsLocale(locale);
 
   return (
     <>
@@ -122,6 +125,7 @@ export function ApiStatsFilters({
             <PopoverContent className="w-auto p-0" align="end">
               <Calendar
                 mode="range"
+                locale={calendarLocale}
                 defaultMonth={dateRange.from}
                 selected={tempRange ?? { from: dateRange.from, to: dateRange.to }}
                 onSelect={onCustomRangeSelect}

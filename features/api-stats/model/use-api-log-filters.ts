@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLocale } from "next-intl";
 import type { DateRange } from "react-day-picker";
 
 import {
@@ -19,6 +20,7 @@ const ALL_METHODS = ["GET", "POST", "PUT", "DELETE", "PATCH"] as const;
 
 export function useApiLogFilters(options: UseApiLogFiltersOptions = {}) {
   const { initialProjectId } = options;
+  const locale = useLocale();
 
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState<string | undefined>(
@@ -53,8 +55,9 @@ export function useApiLogFilters(options: UseApiLogFiltersOptions = {}) {
     }
   };
 
-  const dateRangeLabel = `${formatDateLabel(dateRange.from)} - ${formatDateLabel(
+  const dateRangeLabel = `${formatDateLabel(dateRange.from, locale)} - ${formatDateLabel(
     dateRange.to,
+    locale,
   )}`;
 
   return {

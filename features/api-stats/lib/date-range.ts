@@ -19,8 +19,8 @@ export function createDateRange(days: number): DashboardDateRange {
   return { from, to };
 }
 
-export function formatDateLabel(date: Date): string {
-  return date.toLocaleDateString("en-US", {
+export function formatDateLabel(date: Date, locale: string): string {
+  return date.toLocaleDateString(locale, {
     month: "short",
     day: "numeric",
     year: "numeric",
