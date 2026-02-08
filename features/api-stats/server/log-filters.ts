@@ -96,7 +96,7 @@ function buildMetadataFilter(logMetadataKeyword: string): Prisma.ApiLogWhereInpu
   };
 }
 
-function buildActorFilter(logActor: string | null): Prisma.ApiLogWhereInput | null {
+function buildSingleActorFilter(logActor: string): Prisma.ApiLogWhereInput | null {
   if (logActor === "ui") {
     return {
       OR: [
@@ -141,10 +141,30 @@ function buildActorFilter(logActor: string | null): Prisma.ApiLogWhereInput | nu
   return { metadata: { path: ["apiKeyId"], equals: apiKeyId } };
 }
 
+function buildActorFilter(logActors: string[]): Prisma.ApiLogWhereInput | null {
+  if (logActors.length === 0) {
+    return null;
+  }
+
+  const conditions = logActors
+    .map((actor) => buildSingleActorFilter(actor))
+    .filter((condition): condition is Prisma.ApiLogWhereInput => Boolean(condition));
+
+  if (conditions.length === 0) {
+    return null;
+  }
+
+  if (conditions.length === 1) {
+    return conditions[0];
+  }
+
+  return { OR: conditions };
+}
+
 export function buildStatsWhere({ userId, params }: BuildLogFiltersInput): StatsWhere {
   const baseWhere: Prisma.ApiLogWhereInput = {
     userId,
-    ...(params.projectId ? { projectId: params.projectId } : {}),
+    ...(params.projectIds.length > 0 ? { projectId: { in: params.projectIds } } : {}),
   };
 
   const periodWhere: Prisma.ApiLogWhereInput = {
@@ -159,7 +179,7 @@ export function buildStatsWhere({ userId, params }: BuildLogFiltersInput): Stats
     buildStatusCodeClassFilter(params.logStatusCodeClasses),
     buildLatencyFilter(params.logLatencyMinMsRaw, params.logLatencyMaxMsRaw),
     buildMetadataFilter(params.logMetadataKeyword),
-    buildActorFilter(params.logActor),
+    buildActorFilter(params.logActors),
   ].filter((filter): filter is Prisma.ApiLogWhereInput => Boolean(filter));
 
   return {

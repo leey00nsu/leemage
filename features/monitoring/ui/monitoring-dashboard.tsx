@@ -17,6 +17,7 @@ import { MonitoringSkeleton } from "@/features/monitoring/ui/monitoring-skeleton
 import { resolveMonitoringLogActor } from "@/features/monitoring/lib/log-actor";
 import { useMonitoringDashboardState } from "@/features/monitoring/model/use-monitoring-dashboard-state";
 import type { MonitoringLogDetail } from "@/features/monitoring/model/types";
+import type { ActorFilter } from "@/features/monitoring/model/filters";
 import { AppCard } from "@/shared/ui/app/app-card";
 
 function toMonitoringLogDetail(log: LogEntry): MonitoringLogDetail {
@@ -39,8 +40,16 @@ export function MonitoringDashboard() {
   const { data: projects } = useGetProjects();
   const { data: apiKeys } = useListApiKeys();
   const state = useMonitoringDashboardState();
+  const projectOptions = useMemo(
+    () =>
+      (projects ?? []).map((project) => ({
+        value: project.id,
+        label: project.name,
+      })),
+    [projects],
+  );
   const { data, isLoading, error } = useApiStats(
-    state.selectedProjectId === "all" ? undefined : state.selectedProjectId,
+    state.selectedProjectIds.length > 0 ? state.selectedProjectIds : undefined,
     state.dateRange.from,
     state.dateRange.to,
     state.logQuery,
@@ -53,12 +62,11 @@ export function MonitoringDashboard() {
     );
   }, [apiKeys]);
 
-  const actorOptions = useMemo(() => {
+  const actorOptions = useMemo<Array<{ value: ActorFilter; label: string }>>(() => {
     const options = [
-      { value: "all", label: t("filters.allActors") },
-      { value: "ui", label: t("filters.ui") },
+      { value: "ui" as ActorFilter, label: t("filters.ui") },
       ...(apiKeys ?? []).map((key) => ({
-        value: `apiKey:${key.id}`,
+        value: `apiKey:${key.id}` as ActorFilter,
         label: key.name?.trim() || key.prefix,
       })),
     ];
@@ -68,15 +76,18 @@ export function MonitoringDashboard() {
       return actor.filterValue === "apiKey:unknown";
     });
 
-    if (hasUnknownApiKeyLog || state.actorFilter === "apiKey:unknown") {
+    if (
+      hasUnknownApiKeyLog ||
+      state.selectedActors.includes("apiKey:unknown")
+    ) {
       options.push({
-        value: "apiKey:unknown",
+        value: "apiKey:unknown" as ActorFilter,
         label: t("filters.unknownApiKey"),
       });
     }
 
     return options;
-  }, [apiKeys, data?.logs, apiKeyNameById, state.actorFilter, t]);
+  }, [apiKeys, data?.logs, apiKeyNameById, state.selectedActors, t]);
 
   const availableMethods = useMemo(() => {
     if (!data?.byEndpoint) return new Set<string>();
@@ -104,6 +115,28 @@ export function MonitoringDashboard() {
     }
   }, [state.currentPage, state.setCurrentPage, totalPages]);
 
+  useEffect(() => {
+    if (state.selectedProjectIds.length === 0) return;
+
+    const validValues = new Set(projectOptions.map((option) => option.value));
+    const next = state.selectedProjectIds.filter((value) => validValues.has(value));
+
+    if (next.length !== state.selectedProjectIds.length) {
+      state.setSelectedProjectIds(next);
+    }
+  }, [projectOptions, state.selectedProjectIds, state.setSelectedProjectIds]);
+
+  useEffect(() => {
+    if (state.selectedActors.length === 0) return;
+
+    const validValues = new Set(actorOptions.map((option) => option.value));
+    const next = state.selectedActors.filter((value) => validValues.has(value));
+
+    if (next.length !== state.selectedActors.length) {
+      state.setSelectedActors(next);
+    }
+  }, [actorOptions, state.selectedActors, state.setSelectedActors]);
+
   if (isLoading) {
     return <MonitoringSkeleton />;
   }
@@ -127,13 +160,12 @@ export function MonitoringDashboard() {
         tempRange={state.tempRange}
         onTempRangeChange={state.handleCustomRange}
       />
-      <MonitoringKpiGrid summary={data.summary} />
       <MonitoringFiltersBar
-        projects={projects}
-        selectedProjectId={state.selectedProjectId}
-        onProjectChange={state.setSelectedProjectId}
-        actorFilter={state.actorFilter}
-        onActorChange={state.setActorFilter}
+        projectOptions={projectOptions}
+        selectedProjectIds={state.selectedProjectIds}
+        onProjectChange={state.setSelectedProjectIds}
+        selectedActors={state.selectedActors}
+        onActorChange={state.setSelectedActors}
         actorOptions={actorOptions}
         statusFilter={state.statusFilter}
         onStatusChange={state.setStatusFilter}
@@ -141,6 +173,7 @@ export function MonitoringDashboard() {
         onMethodChange={state.setMethodFilter}
         availableMethods={availableMethods}
       />
+      <MonitoringKpiGrid summary={data.summary} />
       <MonitoringRequestChart data={chartData} />
       <MonitoringLogsTable
         logs={data.logs}

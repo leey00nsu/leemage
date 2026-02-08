@@ -48,7 +48,7 @@ export interface ApiStatsLogQuery {
   pageSize?: number;
   status?: ApiLogStatusFilter;
   method?: string;
-  actor?: string;
+  actors?: string[];
   search?: string;
   statusCodeClasses?: Array<"2xx" | "3xx" | "4xx" | "5xx">;
   latencyMinMs?: number;

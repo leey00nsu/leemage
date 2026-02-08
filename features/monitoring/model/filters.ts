@@ -1,6 +1,6 @@
 export type StatusFilter = "all" | "success" | "error";
 export type MethodFilter = "all" | "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
-export type ActorFilter = "all" | "ui" | `apiKey:${string}`;
+export type ActorFilter = "ui" | "apiKey:unknown" | `apiKey:${string}`;
 export type StatusCodeClassFilter = "2xx" | "3xx" | "4xx" | "5xx";
 
 export interface AdvancedLogFilters {

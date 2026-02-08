@@ -864,6 +864,9 @@
       "allActors": "All Authentication Methods",
       "ui": "UI",
       "unknownApiKey": "Unknown API Key",
+      "selectAll": "Select all",
+      "noOptions": "No options available.",
+      "selectedCount": "{count} selected",
       "all": "All",
       "success": "Success",
       "error": "Error"

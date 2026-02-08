@@ -10,19 +10,30 @@ export const STATUS_CODE_CLASS_TO_RANGE = {
 export type StatusCodeClass = keyof typeof STATUS_CODE_CLASS_TO_RANGE;
 
 export interface StatsQueryParams {
-  projectId: string | null;
+  projectIds: string[];
   startDate: Date;
   endDate: Date;
   logPage: number;
   logPageSize: number;
   logStatus: string | null;
   logMethod: string | null;
-  logActor: string | null;
+  logActors: string[];
   logSearch: string;
   logStatusCodeClasses: StatusCodeClass[];
   logLatencyMinMsRaw: string | null;
   logLatencyMaxMsRaw: string | null;
   logMetadataKeyword: string;
+}
+
+function parseListParam(value: string | null): string[] {
+  if (!value) return [];
+
+  const parsed = value
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
+
+  return Array.from(new Set(parsed));
 }
 
 function parsePositiveInt(
@@ -73,16 +84,24 @@ export function parseStatsQueryParams(request: NextRequest): StatsQueryParams {
     searchParams.get("startDate"),
     searchParams.get("endDate"),
   );
+  const projectIds = parseListParam(searchParams.get("projectIds"));
+  const logActors = parseListParam(searchParams.get("logActors"));
 
   return {
-    projectId: searchParams.get("projectId"),
+    projectIds:
+      projectIds.length > 0
+        ? projectIds
+        : parseListParam(searchParams.get("projectId")),
     startDate,
     endDate,
     logPage: parsePositiveInt(searchParams.get("logPage"), 1, 100_000),
     logPageSize: parsePositiveInt(searchParams.get("logPageSize"), 100, 200),
     logStatus: searchParams.get("logStatus"),
     logMethod: searchParams.get("logMethod"),
-    logActor: searchParams.get("logActor"),
+    logActors:
+      logActors.length > 0
+        ? logActors
+        : parseListParam(searchParams.get("logActor")),
     logSearch: searchParams.get("logSearch")?.trim() ?? "",
     logStatusCodeClasses: parseStatusCodeClasses(
       searchParams.get("logStatusCodeClasses"),

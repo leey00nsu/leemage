@@ -9,22 +9,29 @@ import { fetchApiStats } from "../api/fetch-stats";
 import type { ApiStatsLogQuery } from "./types";
 
 export function useApiStats(
-  projectId?: string,
+  projectIds?: string | string[],
   startDate?: Date,
   endDate?: Date,
   logQuery?: ApiStatsLogQuery,
 ) {
+  const normalizedProjectIds = Array.isArray(projectIds)
+    ? projectIds
+    : projectIds
+      ? [projectIds]
+      : [];
+  const serializedProjectIds =
+    normalizedProjectIds.length > 0 ? JSON.stringify(normalizedProjectIds) : "";
   const serializedLogQuery = logQuery ? JSON.stringify(logQuery) : "";
 
   return useQuery({
     queryKey: [
       "api-stats",
-      projectId,
+      serializedProjectIds,
       startDate?.toISOString(),
       endDate?.toISOString(),
       serializedLogQuery,
     ],
-    queryFn: () => fetchApiStats(projectId, startDate, endDate, logQuery),
+    queryFn: () => fetchApiStats(normalizedProjectIds, startDate, endDate, logQuery),
     staleTime: 1000 * 60, // 1분간 캐시
   });
 }

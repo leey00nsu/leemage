@@ -1,10 +1,13 @@
 "use client";
 
+import { useMemo } from "react";
 import { useTranslations } from "next-intl";
+import { ChevronDown } from "lucide-react";
 
 import { AppButton } from "@/shared/ui/app/app-button";
-import { AppSelect } from "@/shared/ui/app/app-select";
 import { AppCard } from "@/shared/ui/app/app-card";
+import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover";
+import { Checkbox } from "@/shared/ui/checkbox";
 import {
   ALL_METHODS,
   ActorFilter,
@@ -12,18 +15,18 @@ import {
   StatusFilter,
 } from "@/features/monitoring/model/filters";
 
-interface ProjectOption {
-  id: string;
-  name: string;
+interface FilterOption {
+  value: string;
+  label: string;
 }
 
 interface MonitoringFiltersBarProps {
-  projects?: ProjectOption[];
-  selectedProjectId: string;
-  onProjectChange: (value: string) => void;
-  actorFilter: ActorFilter;
-  onActorChange: (value: ActorFilter) => void;
-  actorOptions: { value: string; label: string }[];
+  projectOptions: FilterOption[];
+  selectedProjectIds: string[];
+  onProjectChange: (value: string[]) => void;
+  selectedActors: ActorFilter[];
+  onActorChange: (value: ActorFilter[]) => void;
+  actorOptions: { value: ActorFilter; label: string }[];
   statusFilter: StatusFilter;
   onStatusChange: (value: StatusFilter) => void;
   methodFilter: MethodFilter;
@@ -32,10 +35,10 @@ interface MonitoringFiltersBarProps {
 }
 
 export function MonitoringFiltersBar({
-  projects,
-  selectedProjectId,
+  projectOptions,
+  selectedProjectIds,
   onProjectChange,
-  actorFilter,
+  selectedActors,
   onActorChange,
   actorOptions,
   statusFilter,
@@ -47,30 +50,24 @@ export function MonitoringFiltersBar({
   const t = useTranslations("Monitoring");
 
   return (
-    <AppCard className="p-4 border border-gray-200 dark:border-gray-800 rounded-xl">
+    <AppCard className="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
       <div className="flex flex-wrap items-center gap-3">
-        <div className="min-w-[200px]">
-          <AppSelect
-            value={selectedProjectId}
-            onChange={onProjectChange}
-            options={[
-              { value: "all", label: t("filters.allProjects") },
-              ...(projects?.map((project) => ({
-                value: project.id,
-                label: project.name,
-              })) ?? []),
-            ]}
-            aria-label={t("filters.project")}
-          />
-        </div>
-        <div className="min-w-[220px]">
-          <AppSelect
-            value={actorFilter}
-            onChange={(value) => onActorChange(value as ActorFilter)}
-            options={actorOptions}
-            aria-label={t("filters.actor")}
-          />
-        </div>
+        <MultiCheckFilter
+          label={t("filters.project")}
+          allLabel={t("filters.allProjects")}
+          selectedValues={selectedProjectIds}
+          onChange={onProjectChange}
+          options={projectOptions}
+          ariaLabel={t("filters.project")}
+        />
+        <MultiCheckFilter
+          label={t("filters.actor")}
+          allLabel={t("filters.allActors")}
+          selectedValues={selectedActors}
+          onChange={(values) => onActorChange(values as ActorFilter[])}
+          options={actorOptions}
+          ariaLabel={t("filters.actor")}
+        />
         <div className="flex flex-wrap items-center gap-2">
           {(["all", "success", "error"] as const).map((status) => (
             <AppButton
@@ -82,8 +79,8 @@ export function MonitoringFiltersBar({
               {status === "all"
                 ? t("filters.all")
                 : status === "success"
-                ? t("filters.success")
-                : t("filters.error")}
+                  ? t("filters.success")
+                  : t("filters.error")}
             </AppButton>
           ))}
         </div>
@@ -113,5 +110,133 @@ export function MonitoringFiltersBar({
         </div>
       </div>
     </AppCard>
+  );
+}
+
+interface MultiCheckFilterProps {
+  label: string;
+  allLabel: string;
+  selectedValues: string[];
+  onChange: (values: string[]) => void;
+  options: FilterOption[];
+  ariaLabel: string;
+}
+
+function MultiCheckFilter({
+  label,
+  allLabel,
+  selectedValues,
+  onChange,
+  options,
+  ariaLabel,
+}: MultiCheckFilterProps) {
+  const t = useTranslations("Monitoring");
+  const optionValues = useMemo(
+    () => options.map((option) => option.value),
+    [options],
+  );
+  const selectedSet = useMemo(
+    () => new Set(selectedValues),
+    [selectedValues],
+  );
+  const isAllSelected =
+    selectedValues.length === 0 || selectedValues.length === optionValues.length;
+
+  const summary = useMemo(() => {
+    if (isAllSelected || options.length === 0) {
+      return allLabel;
+    }
+
+    if (selectedValues.length === 1) {
+      return (
+        options.find((option) => option.value === selectedValues[0])?.label || allLabel
+      );
+    }
+
+    return t("filters.selectedCount", { count: selectedValues.length });
+  }, [allLabel, isAllSelected, options, selectedValues, t]);
+
+  const toggleOption = (value: string) => {
+    if (optionValues.length === 0) return;
+
+    if (isAllSelected) {
+      const next = optionValues.filter((item) => item !== value);
+      onChange(next);
+      return;
+    }
+
+    const nextSet = new Set(selectedValues);
+    if (nextSet.has(value)) {
+      if (nextSet.size === 1) return;
+      nextSet.delete(value);
+    } else {
+      nextSet.add(value);
+    }
+
+    if (nextSet.size === optionValues.length) {
+      onChange([]);
+      return;
+    }
+
+    onChange(Array.from(nextSet));
+  };
+
+  return (
+    <div className="min-w-[220px]">
+      <Popover>
+        <PopoverTrigger asChild>
+          <AppButton
+            variant="outline"
+            size="sm"
+            className="h-9 w-full justify-between px-3"
+            aria-label={ariaLabel}
+          >
+            <span className="truncate text-left">
+              {label}: {summary}
+            </span>
+            <ChevronDown className="h-4 w-4 shrink-0 opacity-70" />
+          </AppButton>
+        </PopoverTrigger>
+        <PopoverContent align="start" className="w-[320px] p-3">
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              {label}
+            </p>
+            <AppButton
+              variant="ghost"
+              size="sm"
+              onClick={() => onChange([])}
+              className="h-7 px-2 text-xs"
+            >
+              {t("filters.selectAll")}
+            </AppButton>
+          </div>
+          <div className="max-h-64 space-y-1 overflow-y-auto pr-1">
+            {options.length === 0 ? (
+              <p className="px-1 py-2 text-xs text-slate-500">
+                {t("filters.noOptions")}
+              </p>
+            ) : (
+              options.map((option) => {
+                const checked = isAllSelected || selectedSet.has(option.value);
+
+                return (
+                  <label
+                    key={option.value}
+                    className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 hover:bg-accent"
+                  >
+                    <Checkbox
+                      checked={checked}
+                      onCheckedChange={() => toggleOption(option.value)}
+                    />
+                    <span className="truncate text-sm">{option.label}</span>
+                  </label>
+                );
+              })
+            )}
+          </div>
+        </PopoverContent>
+      </Popover>
+    </div>
   );
 }

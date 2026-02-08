@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
   const params = parseStatsQueryParams(request);
 
   try {
-    const { periodWhere, logsWhere } = buildStatsWhere({ userId, params });
+    const { logsWhere } = buildStatsWhere({ userId, params });
 
     const [
       totalCalls,
@@ -35,35 +35,33 @@ export async function GET(request: NextRequest) {
       byEndpoint,
       timeLogs,
       byStatus,
-      totalFilteredLogs,
       logs,
     ] = await Promise.all([
-      prisma.apiLog.count({ where: periodWhere }),
+      prisma.apiLog.count({ where: logsWhere }),
       prisma.apiLog.count({
-        where: { ...periodWhere, statusCode: { lt: 400 } },
+        where: { ...logsWhere, statusCode: { lt: 400 } },
       }),
       prisma.apiLog.aggregate({
-        where: periodWhere,
+        where: logsWhere,
         _avg: { durationMs: true },
       }),
       prisma.apiLog.groupBy({
         by: ["endpoint", "method"],
-        where: periodWhere,
+        where: logsWhere,
         _count: { id: true },
         orderBy: { _count: { id: "desc" } },
         take: 10,
       }),
       prisma.apiLog.findMany({
-        where: periodWhere,
+        where: logsWhere,
         select: { createdAt: true, statusCode: true },
       }),
       prisma.apiLog.groupBy({
         by: ["statusCode"],
-        where: periodWhere,
+        where: logsWhere,
         _count: { id: true },
         orderBy: { statusCode: "asc" },
       }),
-      prisma.apiLog.count({ where: logsWhere }),
       prisma.apiLog.findMany({
         where: logsWhere,
         orderBy: { createdAt: "desc" },
@@ -81,6 +79,7 @@ export async function GET(request: NextRequest) {
         },
       }),
     ]);
+    const totalFilteredLogs = totalCalls;
 
     const totalPages = Math.max(
       1,

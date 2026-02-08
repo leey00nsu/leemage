@@ -16,22 +16,22 @@ const ROWS_PER_PAGE_STORAGE_KEY = "monitoring.logs.rowsPerPage";
 
 export interface MonitoringDashboardState {
   calendarOpen: boolean;
-  selectedProjectId: string;
+  selectedProjectIds: string[];
   dateRange: { from: Date; to: Date };
   selectedQuickRange: number | null;
   tempRange: DateRange | undefined;
   statusFilter: ApiLogStatusFilter;
   methodFilter: MethodFilter;
-  actorFilter: ActorFilter;
+  selectedActors: ActorFilter[];
   searchQuery: string;
   advancedFilters: AdvancedLogFilters;
   rowsPerPage: number;
   currentPage: number;
   setCalendarOpen: (next: boolean) => void;
-  setSelectedProjectId: (next: string) => void;
+  setSelectedProjectIds: (next: string[]) => void;
   setStatusFilter: (next: ApiLogStatusFilter) => void;
   setMethodFilter: (next: MethodFilter) => void;
-  setActorFilter: (next: ActorFilter) => void;
+  setSelectedActors: (next: ActorFilter[]) => void;
   setSearchQuery: (next: string) => void;
   setAdvancedFilters: (next: AdvancedLogFilters) => void;
   setRowsPerPage: (next: number) => void;
@@ -43,7 +43,7 @@ export interface MonitoringDashboardState {
     pageSize: number;
     status: ApiLogStatusFilter;
     method: MethodFilter;
-    actor: ActorFilter;
+    actors?: ActorFilter[];
     search?: string;
     statusCodeClasses: AdvancedLogFilters["statusCodeClasses"];
     latencyMinMs?: number;
@@ -54,13 +54,13 @@ export interface MonitoringDashboardState {
 
 export function useMonitoringDashboardState(): MonitoringDashboardState {
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const [selectedProjectId, setSelectedProjectId] = useState("all");
+  const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>([]);
   const [dateRange, setDateRange] = useState(() => createDateRange(7));
   const [selectedQuickRange, setSelectedQuickRange] = useState<number | null>(7);
   const [tempRange, setTempRange] = useState<DateRange | undefined>(undefined);
   const [statusFilter, setStatusFilter] = useState<ApiLogStatusFilter>("all");
   const [methodFilter, setMethodFilter] = useState<MethodFilter>("all");
-  const [actorFilter, setActorFilter] = useState<ActorFilter>("all");
+  const [selectedActors, setSelectedActors] = useState<ActorFilter[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [advancedFilters, setAdvancedFilters] = useState<AdvancedLogFilters>(
     DEFAULT_ADVANCED_LOG_FILTERS,
@@ -85,12 +85,12 @@ export function useMonitoringDashboardState(): MonitoringDashboardState {
   useEffect(() => {
     setCurrentPage(1);
   }, [
-    selectedProjectId,
+    selectedProjectIds,
     dateRange.from?.toISOString(),
     dateRange.to?.toISOString(),
     statusFilter,
     methodFilter,
-    actorFilter,
+    selectedActors,
     searchQuery,
     advancedFilters,
     rowsPerPage,
@@ -102,7 +102,7 @@ export function useMonitoringDashboardState(): MonitoringDashboardState {
       pageSize: rowsPerPage,
       status: statusFilter,
       method: methodFilter,
-      actor: actorFilter,
+      actors: selectedActors.length > 0 ? selectedActors : undefined,
       search: searchQuery.trim() || undefined,
       statusCodeClasses: advancedFilters.statusCodeClasses,
       latencyMinMs: advancedFilters.latencyMinMs,
@@ -114,7 +114,7 @@ export function useMonitoringDashboardState(): MonitoringDashboardState {
       rowsPerPage,
       statusFilter,
       methodFilter,
-      actorFilter,
+      selectedActors,
       searchQuery,
       advancedFilters,
     ],
@@ -141,22 +141,22 @@ export function useMonitoringDashboardState(): MonitoringDashboardState {
 
   return {
     calendarOpen,
-    selectedProjectId,
+    selectedProjectIds,
     dateRange,
     selectedQuickRange,
     tempRange,
     statusFilter,
     methodFilter,
-    actorFilter,
+    selectedActors,
     searchQuery,
     advancedFilters,
     rowsPerPage,
     currentPage,
     setCalendarOpen,
-    setSelectedProjectId,
+    setSelectedProjectIds,
     setStatusFilter,
     setMethodFilter,
-    setActorFilter,
+    setSelectedActors,
     setSearchQuery,
     setAdvancedFilters,
     setRowsPerPage,

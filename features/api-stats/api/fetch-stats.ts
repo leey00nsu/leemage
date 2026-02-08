@@ -6,13 +6,20 @@ import { ApiStatsResponse } from "../model/types";
 import type { ApiStatsLogQuery } from "../model/types";
 
 export async function fetchApiStats(
-  projectId?: string,
+  projectIds?: string | string[],
   startDate?: Date,
   endDate?: Date,
   logQuery?: ApiStatsLogQuery,
 ): Promise<ApiStatsResponse> {
   const params = new URLSearchParams();
-  if (projectId) params.set("projectId", projectId);
+  const normalizedProjectIds = Array.isArray(projectIds)
+    ? projectIds
+    : projectIds
+      ? [projectIds]
+      : [];
+  if (normalizedProjectIds.length > 0) {
+    params.set("projectIds", normalizedProjectIds.join(","));
+  }
   if (startDate) params.set("startDate", startDate.toISOString());
   if (endDate) params.set("endDate", endDate.toISOString());
   if (typeof logQuery?.page === "number") {
@@ -27,8 +34,8 @@ export async function fetchApiStats(
   if (logQuery?.method && logQuery.method !== "all") {
     params.set("logMethod", logQuery.method);
   }
-  if (logQuery?.actor && logQuery.actor !== "all") {
-    params.set("logActor", logQuery.actor);
+  if (logQuery?.actors && logQuery.actors.length > 0) {
+    params.set("logActors", logQuery.actors.join(","));
   }
   if (logQuery?.search?.trim()) {
     params.set("logSearch", logQuery.search.trim());
