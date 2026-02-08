@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getSessionDefault, SessionData } from "@/lib/session";
 import { logApiCall } from "@/lib/api/api-logger";
+import { consumeResponseLogMetadata } from "@/lib/api/request-log-metadata";
 
 /**
  * Session authentication options
@@ -108,6 +109,7 @@ export function withSessionAuth<T extends Record<string, string | string[]>>(
 
     // Execute the original handler
     const response = await handler(authenticatedReq, context);
+    const extraMetadata = consumeResponseLogMetadata(response);
 
     // Log the API call (don't await to avoid blocking response)
     const durationMs = Date.now() - startTime;
@@ -125,6 +127,10 @@ export function withSessionAuth<T extends Record<string, string | string[]>>(
       method: req.method,
       statusCode: response.status,
       durationMs,
+      metadata: {
+        ...(extraMetadata ?? {}),
+        authSource: "ui",
+      },
     }).catch(() => {
       // Ignore logging errors silently
     });

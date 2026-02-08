@@ -16,7 +16,7 @@ import {
   validateContentTypeExtension,
 } from "@/lib/validation/file-validator";
 import { checkStorageQuotaOptimized } from "@/lib/api/storage-quota";
-import { logApiCall } from "@/lib/api/api-logger";
+import { attachResponseLogMetadata } from "@/lib/api/request-log-metadata";
 
 export type PresignRequest = z.infer<typeof presignRequestSchema>;
 
@@ -162,7 +162,7 @@ export async function presignHandler(
       },
     });
 
-    const response: PresignResponse = {
+    const payload: PresignResponse = {
       presignedUrl: parResult.presignedUrl,
       objectName,
       objectUrl: parResult.objectUrl,
@@ -170,23 +170,14 @@ export async function presignHandler(
       expiresAt: parResult.expiresAt.toISOString(),
     };
 
-    // 파일 업로드 로그 기록 (파일명, 크기 포함)
-    logApiCall({
-      userId,
-      projectId,
-      endpoint: `/api/projects/${projectId}/files/presign`,
-      method: "POST",
-      statusCode: 200,
-      metadata: {
-        fileName,
-        fileSize,
-        contentType,
-      },
-    }).catch(() => {
-      // 로깅 실패는 무시
+    const response = NextResponse.json(payload, { status: 200 });
+    attachResponseLogMetadata(response, {
+      fileName,
+      fileSize,
+      contentType,
+      fileType: isImage ? "image" : "other",
     });
-
-    return NextResponse.json(response, { status: 200 });
+    return response;
   } catch (error) {
     console.error("Presign API error:", error);
     return NextResponse.json(
