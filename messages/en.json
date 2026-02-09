@@ -99,6 +99,58 @@
     "usernameLabel": "Username:",
     "noUsername": "No user information"
   },
+  "AccountProfile": {
+    "title": "Profile Settings",
+    "description": "Manage your account information and default preferences.",
+    "comingSoonNotice": "Timezone/notification saving is coming soon. Theme changes are applied immediately.",
+    "fallbackName": "Unknown User",
+    "fallbackEmail": "No email available",
+    "accountInformation": {
+      "title": "Account Information",
+      "nameLabel": "Full Name",
+      "emailLabel": "Email Address",
+      "timezoneLabel": "Timezone"
+    },
+    "security": {
+      "title": "Security",
+      "secureBadge": "Secure",
+      "passwordTitle": "Password",
+      "passwordDescription": "Review and update your password history.",
+      "updatePassword": "Update password (Coming soon)",
+      "twoFactorTitle": "Two-Factor Authentication",
+      "twoFactorDescription": "Require an additional verification step when signing in.",
+      "twoFactorNote": "Two-factor authentication will be available soon."
+    },
+    "preferences": {
+      "title": "Preferences",
+      "themeTitle": "Interface Theme",
+      "themeDescription": "Theme changes apply globally across the app immediately.",
+      "notificationsTitle": "Notifications",
+      "productUpdates": "Receive product updates",
+      "weeklyDigest": "Receive weekly digest reports"
+    },
+    "workspace": {
+      "title": "Workspace",
+      "name": "Leemage Workspace",
+      "plan": "Free Plan",
+      "role": "Owner",
+      "userIdLabel": "User ID"
+    },
+    "deactivateAccount": "Deactivate account (Coming soon)",
+    "actions": {
+      "saveComingSoon": "Save (Coming soon)"
+    },
+    "toasts": {
+      "notReadyTitle": "This feature is not available yet.",
+      "notReadyDescription": "Profile save support will be provided soon."
+    }
+  },
+  "ThemeSelector": {
+    "ariaLabel": "Select theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
   "ApiKeyStatus": {
     "apiKeySet": "API Key is set",
     "noApiKeyTitle": "No API Key",

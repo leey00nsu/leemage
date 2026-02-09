@@ -99,6 +99,58 @@
     "usernameLabel": "사용자 이름:",
     "noUsername": "사용자 정보 없음"
   },
+  "AccountProfile": {
+    "title": "프로필 설정",
+    "description": "계정 정보와 기본 환경설정을 관리합니다.",
+    "comingSoonNotice": "시간대/알림 저장 기능은 준비 중이며, 현재는 테마 변경만 즉시 반영됩니다.",
+    "fallbackName": "이름 없음",
+    "fallbackEmail": "이메일 정보 없음",
+    "accountInformation": {
+      "title": "계정 정보",
+      "nameLabel": "이름",
+      "emailLabel": "이메일",
+      "timezoneLabel": "시간대"
+    },
+    "security": {
+      "title": "보안",
+      "secureBadge": "보안 상태 양호",
+      "passwordTitle": "비밀번호",
+      "passwordDescription": "최근 비밀번호 변경 내역을 확인하고 갱신하세요.",
+      "updatePassword": "비밀번호 변경 (준비중)",
+      "twoFactorTitle": "2단계 인증",
+      "twoFactorDescription": "로그인 시 추가 인증을 요구해 보안을 강화합니다.",
+      "twoFactorNote": "2단계 인증은 추후 제공될 예정입니다."
+    },
+    "preferences": {
+      "title": "환경설정",
+      "themeTitle": "인터페이스 테마",
+      "themeDescription": "여기서 변경한 테마는 앱 전체에 즉시 적용됩니다.",
+      "notificationsTitle": "알림",
+      "productUpdates": "제품 업데이트 알림 받기",
+      "weeklyDigest": "주간 요약 리포트 받기"
+    },
+    "workspace": {
+      "title": "워크스페이스",
+      "name": "Leemage Workspace",
+      "plan": "Free Plan",
+      "role": "Owner",
+      "userIdLabel": "사용자 ID"
+    },
+    "deactivateAccount": "계정 비활성화 (준비중)",
+    "actions": {
+      "saveComingSoon": "저장 (준비중)"
+    },
+    "toasts": {
+      "notReadyTitle": "아직 지원되지 않는 기능입니다.",
+      "notReadyDescription": "프로필 저장 기능은 곧 제공될 예정입니다."
+    }
+  },
+  "ThemeSelector": {
+    "ariaLabel": "테마 선택",
+    "light": "라이트",
+    "dark": "다크",
+    "system": "시스템"
+  },
   "ApiKeyStatus": {
     "apiKeySet": "API 키가 설정되어 있습니다",
     "noApiKeyTitle": "API 키 없음",

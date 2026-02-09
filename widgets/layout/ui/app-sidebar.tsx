@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { LogoutButton } from "@/features/auth/logout/ui/logout-button";
 import { LanguageSelectorButton } from "@/features/language/ui/langauge-selector-button";
+import { ThemeSelector } from "@/features/theme/ui/theme-selector";
 import { getTranslations } from "next-intl/server";
 
 export interface AppSidebarProject {
@@ -124,6 +125,9 @@ export async function AppSidebar({ username, projects }: AppSidebarProps) {
         </div>
         <div className="mt-3">
           <LanguageSelectorButton className="w-full" />
+        </div>
+        <div className="mt-3">
+          <ThemeSelector className="w-full" />
         </div>
         <div className="mt-3">
           <LogoutButton />

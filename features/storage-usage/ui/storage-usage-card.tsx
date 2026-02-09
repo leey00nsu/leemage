@@ -4,14 +4,8 @@ import { useTranslations } from "next-intl";
 import { useStorageUsage } from "../model/use-storage-usage";
 import { formatBytes } from "@/shared/lib/format-bytes";
 import { calculateRemainingSpace } from "@/shared/lib/storage-quota-utils";
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/shared/ui/card";
 import { Skeleton } from "@/shared/ui/skeleton";
+import { AppCard } from "@/shared/ui/app/app-card";
 import {
     HardDrive,
     FolderOpen,
@@ -32,63 +26,61 @@ export function StorageUsageCard({ className }: StorageUsageCardProps) {
 
     if (isLoading) {
         return (
-            <Card className={className}>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
+            <AppCard className={className}>
+                <div className="p-6 md:p-8">
+                    <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white">
                         <HardDrive className="h-5 w-5" />
                         {t("title")}
-                    </CardTitle>
-                    <CardDescription>{t("description")}</CardDescription>
-                </CardHeader>
-                <CardContent>
+                    </h2>
+                    <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                        {t("description")}
+                    </p>
                     <div className="space-y-4">
-                        <Skeleton className="h-24 w-full" />
-                        <Skeleton className="h-20 w-full" />
+                        <Skeleton className="mt-5 h-28 w-full rounded-xl" />
+                        <Skeleton className="h-24 w-full rounded-xl" />
                     </div>
-                </CardContent>
-            </Card>
+                </div>
+            </AppCard>
         );
     }
 
     if (error) {
         return (
-            <Card className={className}>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
+            <AppCard className={className}>
+                <div className="p-6 md:p-8">
+                    <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white">
                         <HardDrive className="h-5 w-5" />
                         {t("title")}
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="flex items-center gap-2 text-destructive">
+                    </h2>
+                    <div className="mt-4 flex items-center gap-2 text-red-600 dark:text-red-400">
                         <AlertCircle className="h-4 w-4" />
                         <span>{t("error")}</span>
                     </div>
-                </CardContent>
-            </Card>
+                </div>
+            </AppCard>
         );
     }
 
     return (
-        <Card className={className}>
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+        <AppCard className={className}>
+            <div className="p-6 md:p-8">
+                <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white">
                     <HardDrive className="h-5 w-5" />
                     {t("title")}
-                </CardTitle>
-                <CardDescription>{t("description")}</CardDescription>
-            </CardHeader>
-            <CardContent>
+                </h2>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                    {t("description")}
+                </p>
                 <div className="space-y-4">
                     {/* Total Usage */}
-                    <div className="rounded-lg border p-4">
-                        <div className="text-sm font-medium text-muted-foreground mb-2">
+                    <div className="mt-5 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/40">
+                        <div className="mb-2 text-sm font-medium text-slate-500 dark:text-slate-400">
                             {t("totalUsage")}
                         </div>
-                        <div className="text-2xl font-bold">
+                        <div className="text-2xl font-bold text-slate-900 dark:text-white">
                             {formatBytes(data?.total.bytes ?? 0)}
                         </div>
-                        <div className="flex gap-4 mt-2 text-sm text-muted-foreground">
+                        <div className="mt-2 flex gap-4 text-sm text-slate-500 dark:text-slate-400">
                             <span className="flex items-center gap-1">
                                 <FolderOpen className="h-3 w-3" />
                                 {data?.total.projects ?? 0} {t("projects")}
@@ -111,12 +103,12 @@ export function StorageUsageCard({ className }: StorageUsageCardProps) {
                                 return (
                                     <div
                                         key={provider.provider}
-                                        className="rounded-lg border p-4"
+                                        className="rounded-xl border border-gray-200 p-4 dark:border-gray-800"
                                     >
                                         {/* Header */}
                                         <div className="flex items-center justify-between mb-3">
                                             <div className="flex items-center gap-2">
-                                                <span className="font-medium">
+                                                <span className="font-medium text-slate-900 dark:text-white">
                                                     {provider.provider === "OCI"
                                                         ? t("ociStorage")
                                                         : t("r2Storage")}
@@ -126,7 +118,7 @@ export function StorageUsageCard({ className }: StorageUsageCardProps) {
                                                     currentQuota={provider.quota}
                                                 />
                                             </div>
-                                            <div className="text-sm text-muted-foreground">
+                                            <div className="text-sm text-slate-500 dark:text-slate-400">
                                                 {formatBytes(provider.bytes)}
                                                 {provider.quota && (
                                                     <span> / {formatBytes(provider.quota)}</span>
@@ -141,7 +133,7 @@ export function StorageUsageCard({ className }: StorageUsageCardProps) {
                                         />
 
                                         {/* Stats */}
-                                        <div className="text-xs text-muted-foreground mt-2">
+                                        <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">
                                             {provider.projects} {t("projects")} · {provider.files}{" "}
                                             {t("files")}
                                         </div>
@@ -176,12 +168,12 @@ export function StorageUsageCard({ className }: StorageUsageCardProps) {
 
                     {/* No data state */}
                     {(!data?.providers || data.providers.length === 0) && (
-                        <div className="text-center text-sm text-muted-foreground py-4">
+                        <div className="py-4 text-center text-sm text-slate-500 dark:text-slate-400">
                             {t("noData")}
                         </div>
                     )}
                 </div>
-            </CardContent>
-        </Card>
+            </div>
+        </AppCard>
     );
 }

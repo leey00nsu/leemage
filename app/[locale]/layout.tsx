@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "../globals.css";
 import { QueryProvider } from "@/providers/QueryProvider";
+import { ThemeProvider } from "@/providers/theme-provider";
 import { Toaster } from "@/shared/ui/sonner";
 import localFont from "next/font/local";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
@@ -32,13 +33,20 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang={locale} className={`${pretendard.variable}`}>
+    <html lang={locale} className={`${pretendard.variable}`} suppressHydrationWarning>
       <body className={pretendard.className}>
         <NextIntlClientProvider locale={locale}>
-          <QueryProvider>
-            {children}
-            <Toaster richColors position="top-right" />
-          </QueryProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <QueryProvider>
+              {children}
+              <Toaster richColors position="top-right" />
+            </QueryProvider>
+          </ThemeProvider>
         </NextIntlClientProvider>
       </body>
     </html>
