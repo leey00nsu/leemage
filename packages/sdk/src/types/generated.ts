@@ -712,12 +712,12 @@ export interface components {
         CreateProjectRequest: {
             /**
              * @description 프로젝트 이름 (3-50자)
-             * @example 내 웹사이트 에셋
+             * @example Website Assets
              */
             name: string;
             /**
              * @description 프로젝트 설명 (최대 200자)
-             * @example 웹사이트에서 사용할 이미지 모음
+             * @example Image collection used for the website
              */
             description?: string;
             /**
@@ -731,12 +731,12 @@ export interface components {
         UpdateProjectRequest: {
             /**
              * @description 프로젝트 이름 (1-50자)
-             * @example 수정된 프로젝트 이름
+             * @example Updated Project Name
              */
             name?: string;
             /**
              * @description 프로젝트 설명 (최대 200자)
-             * @example 수정된 프로젝트 설명
+             * @example Updated project description
              */
             description?: string;
         };
@@ -748,12 +748,12 @@ export interface components {
             id: string;
             /**
              * @description 프로젝트 이름
-             * @example 내 웹사이트 에셋
+             * @example Website Assets
              */
             name: string;
             /**
              * @description 프로젝트 설명
-             * @example 웹사이트에서 사용할 이미지 모음
+             * @example Image collection used for the website
              */
             description: string | null;
             /**
