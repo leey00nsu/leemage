@@ -13,8 +13,15 @@ import {
 import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
 
-import { Link } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { ApiCategory, ApiEndpoint } from "@/entities/api-docs/model/types";
+import {
+  ActiveItemKey,
+  FlattenedEndpoint,
+  StaticDocKey,
+  flattenApiDocs,
+  getHrefByActiveKey,
+} from "@/entities/api-docs/model/navigation";
 import { getEndpointSdkExample } from "@/entities/api-docs/model/endpoint-sdk-examples";
 import { getSdkCodeExamples } from "@/entities/sdk/model/code-examples";
 import { EndpointCard } from "@/entities/api-docs/ui/endpoint-card";
@@ -38,23 +45,10 @@ import { CodeBlock } from "@/shared/ui/code-block";
 
 interface ApiDocsViewProps {
   apiDocs: ApiCategory[];
+  activeItemKey: ActiveItemKey;
 }
 
 const SDK_SOURCE_URL = "https://github.com/leey00nsu/leemage/tree/main/packages/sdk";
-
-interface FlattenedEndpoint {
-  key: `endpoint:${string}`;
-  categoryName: string;
-  categoryDescription: string;
-  endpoint: ApiEndpoint;
-}
-
-type StaticDocKey =
-  | "doc:introduction"
-  | "doc:authentication"
-  | "doc:rate-limits"
-  | "doc:sdk";
-type ActiveItemKey = StaticDocKey | `endpoint:${string}` | "";
 type StaticDocSection = "gettingStarted" | "sdk";
 type SdkTabId = "install" | "init" | "upload" | "projects";
 
@@ -135,17 +129,17 @@ function buildCurlCommand(endpoint: ApiEndpoint): string {
   return lines.join("\n");
 }
 
-export function ApiDocsView({ apiDocs }: ApiDocsViewProps) {
+export function ApiDocsView({ apiDocs, activeItemKey }: ApiDocsViewProps) {
   const t = useTranslations("ApiDocsView");
   const sdkT = useTranslations("SdkQuickStart");
   const locale = useLocale() as "ko" | "en";
+  const router = useRouter();
   const tRaw = (key: string): string => {
     const value = t.raw(key);
     return typeof value === "string" ? value : String(value);
   };
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeItemKey, setActiveItemKey] = useState<ActiveItemKey>("doc:introduction");
   const [exampleLanguage, setExampleLanguage] = useState("curl");
   const [activeResponseStatus, setActiveResponseStatus] = useState("");
   const [activeSdkTab, setActiveSdkTab] = useState<SdkTabId>("install");
@@ -249,32 +243,14 @@ export function ApiDocsView({ apiDocs }: ApiDocsViewProps) {
       .filter((category) => category.endpoints.length > 0);
   }, [apiDocs, searchQuery]);
 
-  const flattenedEndpoints = useMemo<FlattenedEndpoint[]>(() => {
-    return filteredCategories.flatMap((category, categoryIndex) =>
-      category.endpoints.map((endpoint, endpointIndex) => ({
-        key: `endpoint:${category.name}-${endpoint.method}-${endpoint.path}-${categoryIndex}-${endpointIndex}`,
-        categoryName: category.name,
-        categoryDescription: category.description,
-        endpoint,
-      })),
-    );
-  }, [filteredCategories]);
-
-  useEffect(() => {
-    if (!activeItemKey) {
-      setActiveItemKey(staticDocs[0]?.key ?? flattenedEndpoints[0]?.key ?? "");
-      return;
-    }
-
-    const hasStatic = staticDocs.some((doc) => doc.key === activeItemKey);
-    const hasEndpoint = flattenedEndpoints.some(
-      (endpoint) => endpoint.key === activeItemKey,
-    );
-
-    if (!hasStatic && !hasEndpoint) {
-      setActiveItemKey(staticDocs[0]?.key ?? flattenedEndpoints[0]?.key ?? "");
-    }
-  }, [activeItemKey, flattenedEndpoints, staticDocs]);
+  const allFlattenedEndpoints = useMemo<FlattenedEndpoint[]>(
+    () => flattenApiDocs(apiDocs),
+    [apiDocs],
+  );
+  const flattenedEndpoints = useMemo<FlattenedEndpoint[]>(
+    () => flattenApiDocs(filteredCategories),
+    [filteredCategories],
+  );
 
   const selectedStaticDoc = useMemo(
     () => staticDocs.find((doc) => doc.key === activeItemKey) ?? null,
@@ -282,20 +258,22 @@ export function ApiDocsView({ apiDocs }: ApiDocsViewProps) {
   );
 
   const selectedEndpoint = useMemo(
-    () => flattenedEndpoints.find((item) => item.key === activeItemKey) ?? null,
-    [activeItemKey, flattenedEndpoints],
+    () => allFlattenedEndpoints.find((item) => item.key === activeItemKey) ?? null,
+    [activeItemKey, allFlattenedEndpoints],
   );
 
   const selectedEndpointIndex = selectedEndpoint
-    ? flattenedEndpoints.findIndex((item) => item.key === selectedEndpoint.key)
+    ? allFlattenedEndpoints.findIndex((item) => item.key === selectedEndpoint.key)
     : -1;
 
   const previousEndpoint =
-    selectedEndpointIndex > 0 ? flattenedEndpoints[selectedEndpointIndex - 1] : null;
+    selectedEndpointIndex > 0
+      ? allFlattenedEndpoints[selectedEndpointIndex - 1]
+      : null;
   const nextEndpoint =
     selectedEndpointIndex >= 0 &&
-    selectedEndpointIndex < flattenedEndpoints.length - 1
-      ? flattenedEndpoints[selectedEndpointIndex + 1]
+    selectedEndpointIndex < allFlattenedEndpoints.length - 1
+      ? allFlattenedEndpoints[selectedEndpointIndex + 1]
       : null;
 
   const sdkExampleForEndpoint = selectedEndpoint
@@ -372,16 +350,35 @@ export function ApiDocsView({ apiDocs }: ApiDocsViewProps) {
     }
   };
 
-  const mobileOptions = [
-    ...staticDocs.map((doc) => ({
+  const mobileOptions = useMemo(() => {
+    const staticOptions = staticDocs.map((doc) => ({
       value: doc.key,
       label: `${t(`sections.${doc.section}`)} · ${doc.title}`,
-    })),
-    ...flattenedEndpoints.map((item) => ({
+    }));
+    const endpointOptions = flattenedEndpoints.map((item) => ({
       value: item.key,
       label: `${item.endpoint.method} ${item.endpoint.path}`,
-    })),
-  ];
+    }));
+    const all = [...staticOptions, ...endpointOptions];
+
+    if (!all.some((option) => option.value === activeItemKey)) {
+      all.unshift({
+        value: activeItemKey,
+        label: selectedEndpoint
+          ? `${selectedEndpoint.endpoint.method} ${selectedEndpoint.endpoint.path}`
+          : selectedStaticDoc?.title ?? t("title"),
+      });
+    }
+
+    return all;
+  }, [
+    activeItemKey,
+    flattenedEndpoints,
+    selectedEndpoint,
+    selectedStaticDoc,
+    staticDocs,
+    t,
+  ]);
 
   return (
     <div className="h-screen overflow-hidden bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-100">
@@ -428,17 +425,16 @@ export function ApiDocsView({ apiDocs }: ApiDocsViewProps) {
                   .filter((doc) => doc.section === "gettingStarted")
                   .map((doc) => (
                     <li key={doc.key}>
-                      <button
-                        type="button"
-                        onClick={() => setActiveItemKey(doc.key)}
-                        className={`w-full rounded-md px-2.5 py-2 text-left text-xs font-medium transition-colors ${
+                      <Link
+                        href={getHrefByActiveKey(doc.key)}
+                        className={`block w-full rounded-md px-2.5 py-2 text-left text-xs font-medium transition-colors ${
                           activeItemKey === doc.key
                             ? "bg-white text-slate-900 shadow-sm ring-1 ring-slate-200 dark:bg-slate-800 dark:text-white dark:ring-slate-700"
                             : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800/70"
                         }`}
                       >
                         {doc.title}
-                      </button>
+                      </Link>
                     </li>
                   ))}
               </ul>
@@ -453,17 +449,16 @@ export function ApiDocsView({ apiDocs }: ApiDocsViewProps) {
                   .filter((doc) => doc.section === "sdk")
                   .map((doc) => (
                     <li key={doc.key}>
-                      <button
-                        type="button"
-                        onClick={() => setActiveItemKey(doc.key)}
-                        className={`w-full rounded-md px-2.5 py-2 text-left text-xs font-medium transition-colors ${
+                      <Link
+                        href={getHrefByActiveKey(doc.key)}
+                        className={`block w-full rounded-md px-2.5 py-2 text-left text-xs font-medium transition-colors ${
                           activeItemKey === doc.key
                             ? "bg-white text-slate-900 shadow-sm ring-1 ring-slate-200 dark:bg-slate-800 dark:text-white dark:ring-slate-700"
                             : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800/70"
                         }`}
                       >
                         {doc.title}
-                      </button>
+                      </Link>
                     </li>
                   ))}
               </ul>
@@ -483,10 +478,9 @@ export function ApiDocsView({ apiDocs }: ApiDocsViewProps) {
                       .filter((item) => item.categoryName === category.name)
                       .map((item) => (
                         <li key={item.key}>
-                          <button
-                            type="button"
-                            onClick={() => setActiveItemKey(item.key)}
-                            className={`w-full rounded-md px-2.5 py-2 text-left transition-colors ${
+                          <Link
+                            href={getHrefByActiveKey(item.key)}
+                            className={`block w-full rounded-md px-2.5 py-2 text-left transition-colors ${
                               activeItemKey === item.key
                                 ? "bg-white text-slate-900 shadow-sm ring-1 ring-slate-200 dark:bg-slate-800 dark:text-white dark:ring-slate-700"
                                 : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800/70"
@@ -501,7 +495,7 @@ export function ApiDocsView({ apiDocs }: ApiDocsViewProps) {
                             <p className="mt-1 truncate text-xs text-slate-500 dark:text-slate-400">
                               {item.endpoint.description}
                             </p>
-                          </button>
+                          </Link>
                         </li>
                       ))}
                   </ul>
@@ -555,7 +549,9 @@ export function ApiDocsView({ apiDocs }: ApiDocsViewProps) {
                   </div>
                   <AppSelect
                     value={activeItemKey}
-                    onChange={(value) => setActiveItemKey(value as ActiveItemKey)}
+                    onChange={(value) =>
+                      router.push(getHrefByActiveKey(value as ActiveItemKey))
+                    }
                     options={mobileOptions}
                     placeholder={t("endpointSelectPlaceholder")}
                     aria-label={t("endpointSelectAria")}
@@ -747,40 +743,54 @@ export function ApiDocsView({ apiDocs }: ApiDocsViewProps) {
                   </section>
 
                   <section className="grid gap-3 border-t border-slate-200 pt-6 sm:grid-cols-2 dark:border-slate-800">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        previousEndpoint && setActiveItemKey(previousEndpoint.key)
-                      }
-                      disabled={!previousEndpoint}
-                      className="rounded-lg border border-slate-200 p-4 text-left transition-colors enabled:hover:border-primary enabled:hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:enabled:hover:bg-slate-900/50"
-                    >
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        {t("previous")}
-                      </p>
-                      <p className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-800 dark:text-slate-200">
-                        <ChevronLeft className="h-4 w-4" />
-                        {previousEndpoint
-                          ? `${previousEndpoint.endpoint.method} ${previousEndpoint.endpoint.path}`
-                          : t("none")}
-                      </p>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => nextEndpoint && setActiveItemKey(nextEndpoint.key)}
-                      disabled={!nextEndpoint}
-                      className="rounded-lg border border-slate-200 p-4 text-right transition-colors enabled:hover:border-primary enabled:hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:enabled:hover:bg-slate-900/50"
-                    >
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        {t("next")}
-                      </p>
-                      <p className="mt-2 flex items-center justify-end gap-2 text-sm font-medium text-slate-800 dark:text-slate-200">
-                        {nextEndpoint
-                          ? `${nextEndpoint.endpoint.method} ${nextEndpoint.endpoint.path}`
-                          : t("none")}
-                        <ChevronRight className="h-4 w-4" />
-                      </p>
-                    </button>
+                    {previousEndpoint ? (
+                      <Link
+                        href={getHrefByActiveKey(previousEndpoint.key)}
+                        className="rounded-lg border border-slate-200 p-4 text-left transition-colors hover:border-primary hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-900/50"
+                      >
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          {t("previous")}
+                        </p>
+                        <p className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-800 dark:text-slate-200">
+                          <ChevronLeft className="h-4 w-4" />
+                          {`${previousEndpoint.endpoint.method} ${previousEndpoint.endpoint.path}`}
+                        </p>
+                      </Link>
+                    ) : (
+                      <div className="rounded-lg border border-slate-200 p-4 text-left opacity-50 dark:border-slate-800">
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          {t("previous")}
+                        </p>
+                        <p className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-800 dark:text-slate-200">
+                          <ChevronLeft className="h-4 w-4" />
+                          {t("none")}
+                        </p>
+                      </div>
+                    )}
+                    {nextEndpoint ? (
+                      <Link
+                        href={getHrefByActiveKey(nextEndpoint.key)}
+                        className="rounded-lg border border-slate-200 p-4 text-right transition-colors hover:border-primary hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-900/50"
+                      >
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          {t("next")}
+                        </p>
+                        <p className="mt-2 flex items-center justify-end gap-2 text-sm font-medium text-slate-800 dark:text-slate-200">
+                          {`${nextEndpoint.endpoint.method} ${nextEndpoint.endpoint.path}`}
+                          <ChevronRight className="h-4 w-4" />
+                        </p>
+                      </Link>
+                    ) : (
+                      <div className="rounded-lg border border-slate-200 p-4 text-right opacity-50 dark:border-slate-800">
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          {t("next")}
+                        </p>
+                        <p className="mt-2 flex items-center justify-end gap-2 text-sm font-medium text-slate-800 dark:text-slate-200">
+                          {t("none")}
+                          <ChevronRight className="h-4 w-4" />
+                        </p>
+                      </div>
+                    )}
                   </section>
                 </div>
               ) : (

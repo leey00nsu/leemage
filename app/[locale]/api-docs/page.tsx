@@ -1,20 +1,14 @@
-import { ApiDocsView } from "@/widgets/api-docs/ui/api-docs-view";
-import { getApiDocsData } from "@/entities/api-docs/model/data";
-import { getLocale, getTranslations } from "next-intl/server";
+import { redirect } from "@/i18n/navigation";
+import { normalizeLocale } from "./_lib/page-helpers";
 
-export default async function PublicApiDocsPage() {
-  const locale = await getLocale();
-  const t = await getTranslations();
+interface ApiDocsRootPageProps {
+  params: Promise<{ locale: string }>;
+}
 
-  const safeT = (key: string): string => {
-    try {
-      return t(key);
-    } catch {
-      return key;
-    }
-  };
-
-  const apiDocsData = await getApiDocsData(locale, safeT);
-
-  return <ApiDocsView apiDocs={apiDocsData} />;
+export default async function ApiDocsRootPage({ params }: ApiDocsRootPageProps) {
+  const { locale } = await params;
+  redirect({
+    locale: normalizeLocale(locale),
+    href: "/api-docs/getting-started/introduction",
+  });
 }
