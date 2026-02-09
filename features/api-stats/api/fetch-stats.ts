@@ -31,7 +31,9 @@ export async function fetchApiStats(
   if (logQuery?.status && logQuery.status !== "all") {
     params.set("logStatus", logQuery.status);
   }
-  if (logQuery?.method && logQuery.method !== "all") {
+  if (logQuery?.methods && logQuery.methods.length > 0) {
+    params.set("logMethods", logQuery.methods.join(","));
+  } else if (logQuery?.method && logQuery.method !== "all") {
     params.set("logMethod", logQuery.method);
   }
   if (logQuery?.actors && logQuery.actors.length > 0) {

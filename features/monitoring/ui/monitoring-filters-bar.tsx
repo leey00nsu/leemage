@@ -29,9 +29,9 @@ interface MonitoringFiltersBarProps {
   actorOptions: { value: ActorFilter; label: string }[];
   statusFilter: StatusFilter;
   onStatusChange: (value: StatusFilter) => void;
-  methodFilter: MethodFilter;
-  onMethodChange: (value: MethodFilter) => void;
-  availableMethods: Set<string>;
+  selectedMethods: MethodFilter[];
+  onMethodChange: (value: MethodFilter[]) => void;
+  methodCounts: Partial<Record<MethodFilter, number>>;
 }
 
 export function MonitoringFiltersBar({
@@ -43,11 +43,41 @@ export function MonitoringFiltersBar({
   actorOptions,
   statusFilter,
   onStatusChange,
-  methodFilter,
+  selectedMethods,
   onMethodChange,
-  availableMethods,
+  methodCounts,
 }: MonitoringFiltersBarProps) {
   const t = useTranslations("Monitoring");
+  const selectedMethodSet = useMemo(
+    () => new Set(selectedMethods),
+    [selectedMethods],
+  );
+  const isAllMethodsSelected = selectedMethods.length === 0;
+
+  const toggleMethod = (method: MethodFilter) => {
+    if (isAllMethodsSelected) {
+      onMethodChange(ALL_METHODS.filter((item) => item !== method));
+      return;
+    }
+
+    const next = new Set(selectedMethods);
+    if (next.has(method)) {
+      next.delete(method);
+    } else {
+      next.add(method);
+    }
+
+    if (next.size === 0) {
+      return;
+    }
+
+    if (next.size === ALL_METHODS.length) {
+      onMethodChange([]);
+      return;
+    }
+
+    onMethodChange(Array.from(next));
+  };
 
   return (
     <AppCard className="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
@@ -86,24 +116,25 @@ export function MonitoringFiltersBar({
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <AppButton
-            variant={methodFilter === "all" ? "default" : "outline"}
+            variant={isAllMethodsSelected ? "default" : "outline"}
             size="sm"
-            onClick={() => onMethodChange("all")}
+            onClick={() => onMethodChange([])}
           >
             {t("filters.all")}
           </AppButton>
           {ALL_METHODS.map((method) => {
-            const isAvailable = availableMethods.has(method);
+            const count = methodCounts[method] ?? 0;
+            const isActive = isAllMethodsSelected || selectedMethodSet.has(method);
             return (
               <AppButton
                 key={method}
-                variant={methodFilter === method ? "default" : "outline"}
+                variant={isActive ? "default" : "outline"}
                 size="sm"
-                onClick={() => onMethodChange(method)}
-                className={!isAvailable ? "opacity-50" : ""}
+                onClick={() => toggleMethod(method)}
+                className={count === 0 ? "opacity-50" : ""}
               >
                 {method}
-                {!isAvailable && <span className="ml-1 text-xs">(0)</span>}
+                <span className="ml-1 text-xs">({count})</span>
               </AppButton>
             );
           })}

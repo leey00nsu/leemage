@@ -21,7 +21,7 @@ export interface MonitoringDashboardState {
   selectedQuickRange: number | null;
   tempRange: DateRange | undefined;
   statusFilter: ApiLogStatusFilter;
-  methodFilter: MethodFilter;
+  selectedMethods: MethodFilter[];
   selectedActors: ActorFilter[];
   searchQuery: string;
   advancedFilters: AdvancedLogFilters;
@@ -30,7 +30,7 @@ export interface MonitoringDashboardState {
   setCalendarOpen: (next: boolean) => void;
   setSelectedProjectIds: (next: string[]) => void;
   setStatusFilter: (next: ApiLogStatusFilter) => void;
-  setMethodFilter: (next: MethodFilter) => void;
+  setSelectedMethods: (next: MethodFilter[]) => void;
   setSelectedActors: (next: ActorFilter[]) => void;
   setSearchQuery: (next: string) => void;
   setAdvancedFilters: (next: AdvancedLogFilters) => void;
@@ -42,7 +42,7 @@ export interface MonitoringDashboardState {
     page: number;
     pageSize: number;
     status: ApiLogStatusFilter;
-    method: MethodFilter;
+    methods?: MethodFilter[];
     actors?: ActorFilter[];
     search?: string;
     statusCodeClasses: AdvancedLogFilters["statusCodeClasses"];
@@ -59,7 +59,7 @@ export function useMonitoringDashboardState(): MonitoringDashboardState {
   const [selectedQuickRange, setSelectedQuickRange] = useState<number | null>(7);
   const [tempRange, setTempRange] = useState<DateRange | undefined>(undefined);
   const [statusFilter, setStatusFilter] = useState<ApiLogStatusFilter>("all");
-  const [methodFilter, setMethodFilter] = useState<MethodFilter>("all");
+  const [selectedMethods, setSelectedMethods] = useState<MethodFilter[]>([]);
   const [selectedActors, setSelectedActors] = useState<ActorFilter[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [advancedFilters, setAdvancedFilters] = useState<AdvancedLogFilters>(
@@ -89,7 +89,7 @@ export function useMonitoringDashboardState(): MonitoringDashboardState {
     dateRange.from?.toISOString(),
     dateRange.to?.toISOString(),
     statusFilter,
-    methodFilter,
+    selectedMethods,
     selectedActors,
     searchQuery,
     advancedFilters,
@@ -101,7 +101,7 @@ export function useMonitoringDashboardState(): MonitoringDashboardState {
       page: currentPage,
       pageSize: rowsPerPage,
       status: statusFilter,
-      method: methodFilter,
+      methods: selectedMethods.length > 0 ? selectedMethods : undefined,
       actors: selectedActors.length > 0 ? selectedActors : undefined,
       search: searchQuery.trim() || undefined,
       statusCodeClasses: advancedFilters.statusCodeClasses,
@@ -113,7 +113,7 @@ export function useMonitoringDashboardState(): MonitoringDashboardState {
       currentPage,
       rowsPerPage,
       statusFilter,
-      methodFilter,
+      selectedMethods,
       selectedActors,
       searchQuery,
       advancedFilters,
@@ -146,7 +146,7 @@ export function useMonitoringDashboardState(): MonitoringDashboardState {
     selectedQuickRange,
     tempRange,
     statusFilter,
-    methodFilter,
+    selectedMethods,
     selectedActors,
     searchQuery,
     advancedFilters,
@@ -155,7 +155,7 @@ export function useMonitoringDashboardState(): MonitoringDashboardState {
     setCalendarOpen,
     setSelectedProjectIds,
     setStatusFilter,
-    setMethodFilter,
+    setSelectedMethods,
     setSelectedActors,
     setSearchQuery,
     setAdvancedFilters,

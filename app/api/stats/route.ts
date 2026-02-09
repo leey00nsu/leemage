@@ -10,6 +10,7 @@ import { buildStatsWhere } from "@/features/api-stats/server/log-filters";
 import { parseStatsQueryParams } from "@/features/api-stats/server/query-params";
 import {
   buildByTime,
+  mapMethodStats,
   mapApiLogs,
   mapEndpointStats,
   mapStatusStats,
@@ -26,13 +27,17 @@ export async function GET(request: NextRequest) {
   const params = parseStatsQueryParams(request);
 
   try {
-    const { logsWhere } = buildStatsWhere({ userId, params });
+    const { logsWhere, methodAvailabilityWhere } = buildStatsWhere({
+      userId,
+      params,
+    });
 
     const [
       totalCalls,
       successCalls,
       avgDuration,
       byEndpoint,
+      byMethod,
       timeLogs,
       byStatus,
       logs,
@@ -51,6 +56,11 @@ export async function GET(request: NextRequest) {
         _count: { id: true },
         orderBy: { _count: { id: "desc" } },
         take: 10,
+      }),
+      prisma.apiLog.groupBy({
+        by: ["method"],
+        where: methodAvailabilityWhere,
+        _count: { id: true },
       }),
       prisma.apiLog.findMany({
         where: logsWhere,
@@ -93,6 +103,7 @@ export async function GET(request: NextRequest) {
         avgResponseTime: Math.round(avgDuration._avg.durationMs || 0),
       },
       byEndpoint: mapEndpointStats(byEndpoint),
+      methodCounts: mapMethodStats(byMethod),
       byTime: buildByTime(timeLogs),
       byStatus: mapStatusStats(byStatus),
       logsPage: {

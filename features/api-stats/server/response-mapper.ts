@@ -11,6 +11,11 @@ type GroupByStatusRow = {
   _count: { id: number };
 };
 
+type GroupByMethodRow = {
+  method: string;
+  _count: { id: number };
+};
+
 type TimeLogRow = {
   createdAt: Date;
   statusCode: number;
@@ -90,6 +95,13 @@ export function buildByTime(timeLogs: TimeLogRow[]) {
 export function mapEndpointStats(byEndpoint: GroupByEndpointRow[]) {
   return byEndpoint.map((item) => ({
     endpoint: item.endpoint,
+    method: item.method,
+    count: item._count.id,
+  }));
+}
+
+export function mapMethodStats(byMethod: GroupByMethodRow[]) {
+  return byMethod.map((item) => ({
     method: item.method,
     count: item._count.id,
   }));

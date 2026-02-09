@@ -26,6 +26,11 @@ export interface StatusCodeStats {
   count: number;
 }
 
+export interface MethodStats {
+  method: string;
+  count: number;
+}
+
 export interface LogEntry {
   id: string;
   endpoint: string;
@@ -47,6 +52,7 @@ export interface ApiStatsLogQuery {
   page?: number;
   pageSize?: number;
   status?: ApiLogStatusFilter;
+  methods?: string[];
   method?: string;
   actors?: string[];
   search?: string;
@@ -66,6 +72,7 @@ export interface ApiStatsLogsPage {
 export interface ApiStatsResponse {
   summary: ApiStatsSummary;
   byEndpoint: EndpointStats[];
+  methodCounts: MethodStats[];
   byTime: TimeStats[];
   byStatus: StatusCodeStats[];
   logs: LogEntry[];

@@ -16,7 +16,7 @@ export interface StatsQueryParams {
   logPage: number;
   logPageSize: number;
   logStatus: string | null;
-  logMethod: string | null;
+  logMethods: string[];
   logActors: string[];
   logSearch: string;
   logStatusCodeClasses: StatusCodeClass[];
@@ -24,6 +24,8 @@ export interface StatsQueryParams {
   logLatencyMaxMsRaw: string | null;
   logMetadataKeyword: string;
 }
+
+const ALLOWED_METHODS = new Set(["GET", "POST", "PUT", "DELETE", "PATCH"]);
 
 function parseListParam(value: string | null): string[] {
   if (!value) return [];
@@ -62,6 +64,22 @@ function parseStatusCodeClasses(value: string | null): StatusCodeClass[] {
   return Array.from(new Set(parsed));
 }
 
+function parseMethods(
+  methodsParam: string | null,
+  legacyMethodParam: string | null,
+): string[] {
+  const methods = parseListParam(methodsParam);
+  const rawMethods = methods.length > 0 ? methods : parseListParam(legacyMethodParam);
+
+  return Array.from(
+    new Set(
+      rawMethods
+        .map((method) => method.toUpperCase())
+        .filter((method) => ALLOWED_METHODS.has(method)),
+    ),
+  );
+}
+
 function parseDateRange(
   startDateParam: string | null,
   endDateParam: string | null,
@@ -97,7 +115,10 @@ export function parseStatsQueryParams(request: NextRequest): StatsQueryParams {
     logPage: parsePositiveInt(searchParams.get("logPage"), 1, 100_000),
     logPageSize: parsePositiveInt(searchParams.get("logPageSize"), 100, 200),
     logStatus: searchParams.get("logStatus"),
-    logMethod: searchParams.get("logMethod"),
+    logMethods: parseMethods(
+      searchParams.get("logMethods"),
+      searchParams.get("logMethod"),
+    ),
     logActors:
       logActors.length > 0
         ? logActors

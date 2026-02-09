@@ -17,7 +17,11 @@ import { MonitoringSkeleton } from "@/features/monitoring/ui/monitoring-skeleton
 import { resolveMonitoringLogActor } from "@/features/monitoring/lib/log-actor";
 import { useMonitoringDashboardState } from "@/features/monitoring/model/use-monitoring-dashboard-state";
 import type { MonitoringLogDetail } from "@/features/monitoring/model/types";
-import type { ActorFilter } from "@/features/monitoring/model/filters";
+import {
+  ALL_METHODS,
+  type ActorFilter,
+  type MethodFilter,
+} from "@/features/monitoring/model/filters";
 import { AppCard } from "@/shared/ui/app/app-card";
 
 function toMonitoringLogDetail(log: LogEntry): MonitoringLogDetail {
@@ -31,6 +35,10 @@ function toMonitoringLogDetail(log: LogEntry): MonitoringLogDetail {
     metadata: log.metadata ?? null,
     projectId: log.projectId ?? null,
   };
+}
+
+function isMethodFilter(value: string): value is MethodFilter {
+  return (ALL_METHODS as string[]).includes(value);
 }
 
 export function MonitoringDashboard() {
@@ -89,10 +97,18 @@ export function MonitoringDashboard() {
     return options;
   }, [apiKeys, data?.logs, apiKeyNameById, state.selectedActors, t]);
 
-  const availableMethods = useMemo(() => {
-    if (!data?.byEndpoint) return new Set<string>();
-    return new Set(data.byEndpoint.map((item) => item.method));
-  }, [data?.byEndpoint]);
+  const methodCounts = useMemo(() => {
+    const entries = data?.methodCounts ?? [];
+    return entries.reduce(
+      (acc, item) => {
+        if (isMethodFilter(item.method)) {
+          acc[item.method] = item.count;
+        }
+        return acc;
+      },
+      {} as Partial<Record<MethodFilter, number>>,
+    );
+  }, [data?.methodCounts]);
 
   const chartData = useMemo(() => {
     return (data?.byTime ?? []).map((item) => ({
@@ -169,9 +185,9 @@ export function MonitoringDashboard() {
         actorOptions={actorOptions}
         statusFilter={state.statusFilter}
         onStatusChange={state.setStatusFilter}
-        methodFilter={state.methodFilter}
-        onMethodChange={state.setMethodFilter}
-        availableMethods={availableMethods}
+        selectedMethods={state.selectedMethods}
+        onMethodChange={state.setSelectedMethods}
+        methodCounts={methodCounts}
       />
       <MonitoringKpiGrid summary={data.summary} />
       <MonitoringRequestChart data={chartData} />

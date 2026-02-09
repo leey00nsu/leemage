@@ -12,6 +12,7 @@ interface BuildLogFiltersInput {
 export interface StatsWhere {
   periodWhere: Prisma.ApiLogWhereInput;
   logsWhere: Prisma.ApiLogWhereInput;
+  methodAvailabilityWhere: Prisma.ApiLogWhereInput;
 }
 
 function buildStatusFilter(logStatus: string | null): Prisma.ApiLogWhereInput | null {
@@ -28,12 +29,16 @@ function buildStatusFilter(logStatus: string | null): Prisma.ApiLogWhereInput | 
   return null;
 }
 
-function buildMethodFilter(logMethod: string | null): Prisma.ApiLogWhereInput | null {
-  if (!logMethod || logMethod === "all") {
+function buildMethodFilter(logMethods: string[]): Prisma.ApiLogWhereInput | null {
+  if (logMethods.length === 0) {
     return null;
   }
 
-  return { method: logMethod.toUpperCase() };
+  if (logMethods.length === 1) {
+    return { method: logMethods[0].toUpperCase() };
+  }
+
+  return { method: { in: logMethods.map((method) => method.toUpperCase()) } };
 }
 
 function buildSearchFilter(logSearch: string): Prisma.ApiLogWhereInput | null {
@@ -172,18 +177,27 @@ export function buildStatsWhere({ userId, params }: BuildLogFiltersInput): Stats
     createdAt: { gte: params.startDate, lte: params.endDate },
   };
 
-  const logWhereAnd: Prisma.ApiLogWhereInput[] = [
+  const commonLogWhereAnd: Prisma.ApiLogWhereInput[] = [
     buildStatusFilter(params.logStatus),
-    buildMethodFilter(params.logMethod),
     buildSearchFilter(params.logSearch),
     buildStatusCodeClassFilter(params.logStatusCodeClasses),
     buildLatencyFilter(params.logLatencyMinMsRaw, params.logLatencyMaxMsRaw),
     buildMetadataFilter(params.logMetadataKeyword),
     buildActorFilter(params.logActors),
   ].filter((filter): filter is Prisma.ApiLogWhereInput => Boolean(filter));
+  const methodFilter = buildMethodFilter(params.logMethods);
+  const logsWhereAnd =
+    methodFilter !== null
+      ? [...commonLogWhereAnd, methodFilter]
+      : commonLogWhereAnd;
 
   return {
     periodWhere,
-    logsWhere: logWhereAnd.length > 0 ? { ...periodWhere, AND: logWhereAnd } : periodWhere,
+    logsWhere:
+      logsWhereAnd.length > 0 ? { ...periodWhere, AND: logsWhereAnd } : periodWhere,
+    methodAvailabilityWhere:
+      commonLogWhereAnd.length > 0
+        ? { ...periodWhere, AND: commonLogWhereAnd }
+        : periodWhere,
   };
 }
