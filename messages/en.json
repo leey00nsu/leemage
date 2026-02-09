@@ -482,7 +482,7 @@
     },
     "endpointSdk": {
       "title": "Endpoint SDK Example",
-      "description": "SDK call example corresponding to the selected API endpoint.",
+      "description": "SDK call example corresponding to the selected API endpoint. For file uploads, prefer client.files.upload(); use presign/confirm only when you need step-by-step control.",
       "empty": "No SDK example is available for this endpoint yet."
     },
     "categoryTitle": "Categories",
@@ -791,11 +791,11 @@
       "files": {
         "presign": {
           "summary": "Generate Presigned URL",
-          "description": "Generate a presigned URL for file upload. Clients can use this URL to upload files directly to OCI."
+          "description": "Generate a presigned URL for file upload. Use this in the manual step-by-step upload flow; in most cases, client.files.upload() handles this automatically."
         },
         "confirm": {
           "summary": "Confirm Upload",
-          "description": "Call after direct upload to OCI to create a file record in the database. For image files, you can request transformation processing with variants option."
+          "description": "Call this after direct upload to OCI to create a file record in the database. For image files, you can request transformation processing with the variants option. Use this in the manual step-by-step upload flow; in most cases, client.files.upload() makes direct calls unnecessary."
         },
         "delete": {
           "summary": "Delete File",

@@ -34,7 +34,11 @@ console.log(project.files);`,
   },
   "POST:/api/v1/projects/{projectId}/files/presign": {
     language: "typescript",
-    code: `const presign = await client.files.presign("projectId", {
+    code: `// 일반 업로드는 client.files.upload() 사용을 권장합니다.
+// await client.files.upload("projectId", fileInput, { variants: [...] });
+
+// 아래는 단계별 제어가 필요할 때 사용하는 수동 업로드 예시입니다.
+const presign = await client.files.presign("projectId", {
   fileName: "image.jpg",
   contentType: "image/jpeg",
   fileSize: 102400,
@@ -42,7 +46,24 @@ console.log(project.files);`,
   },
   "POST:/api/v1/projects/{projectId}/files/confirm": {
     language: "typescript",
-    code: `const result = await client.files.confirm("projectId", {
+    code: `// 일반 업로드는 client.files.upload() 사용을 권장합니다.
+// await client.files.upload("projectId", fileInput, { variants: [...] });
+
+// 아래는 presign -> 직접 업로드 -> confirm 순서의 수동 업로드 예시입니다.
+const presign = await client.files.presign("projectId", {
+  fileName: "image.jpg",
+  contentType: "image/jpeg",
+  fileSize: 102400,
+});
+
+const fileBuffer = await fileInput.arrayBuffer();
+await fetch(presign.presignedUrl, {
+  method: "PUT",
+  headers: { "Content-Type": "image/jpeg" },
+  body: fileBuffer,
+});
+
+const result = await client.files.confirm("projectId", {
   fileId: presign.fileId,
   objectName: presign.objectName,
   fileName: "image.jpg",
@@ -81,7 +102,11 @@ console.log(project.files);`,
   },
   "POST:/api/v1/projects/{projectId}/files/presign": {
     language: "typescript",
-    code: `const presign = await client.files.presign("projectId", {
+    code: `// For typical uploads, prefer client.files.upload().
+// await client.files.upload("projectId", fileInput, { variants: [...] });
+
+// Use this manual step-by-step flow when you need custom control.
+const presign = await client.files.presign("projectId", {
   fileName: "image.jpg",
   contentType: "image/jpeg",
   fileSize: 102400,
@@ -89,7 +114,24 @@ console.log(project.files);`,
   },
   "POST:/api/v1/projects/{projectId}/files/confirm": {
     language: "typescript",
-    code: `const result = await client.files.confirm("projectId", {
+    code: `// For typical uploads, prefer client.files.upload().
+// await client.files.upload("projectId", fileInput, { variants: [...] });
+
+// Manual step-by-step flow: presign -> direct upload -> confirm.
+const presign = await client.files.presign("projectId", {
+  fileName: "image.jpg",
+  contentType: "image/jpeg",
+  fileSize: 102400,
+});
+
+const fileBuffer = await fileInput.arrayBuffer();
+await fetch(presign.presignedUrl, {
+  method: "PUT",
+  headers: { "Content-Type": "image/jpeg" },
+  body: fileBuffer,
+});
+
+const result = await client.files.confirm("projectId", {
   fileId: presign.fileId,
   objectName: presign.objectName,
   fileName: "image.jpg",
