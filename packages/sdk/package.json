@@ -41,7 +41,7 @@
     "sync": "npm run generate && npm run build",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "npm run sync"
+    "prepublishOnly": "npm run typecheck && npm run build"
   },
   "devDependencies": {
     "openapi-typescript": "^7.10.1",

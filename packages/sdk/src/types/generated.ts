@@ -773,11 +773,18 @@ export interface components {
              */
             updatedAt: string;
         };
+        ProjectListItemResponse: components["schemas"]["ProjectResponse"] & {
+            /**
+             * @description 프로젝트에 포함된 파일 개수
+             * @example 12
+             */
+            fileCount: number;
+        };
         ProjectDetailsResponse: components["schemas"]["ProjectResponse"] & {
             /** @description 프로젝트에 속한 파일 목록 */
             files: components["schemas"]["FileResponse"][];
         };
-        ProjectListResponse: components["schemas"]["ProjectResponse"][];
+        ProjectListResponse: components["schemas"]["ProjectListItemResponse"][];
     };
     responses: never;
     parameters: never;

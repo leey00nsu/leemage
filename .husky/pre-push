@@ -8,10 +8,19 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-if ! git diff --quiet -- public/openapi.yaml; then
-  echo "❌ public/openapi.yaml is outdated."
+echo "📦 Verifying SDK generated types are up to date..."
+npm --prefix packages/sdk run generate
+
+if [ $? -ne 0 ]; then
+  echo "❌ SDK type generation failed! Push aborted."
+  exit 1
+fi
+
+if ! git diff --quiet -- public/openapi.yaml packages/sdk/src/types/generated.ts; then
+  echo "❌ Generated spec/types are outdated."
   echo "   Run: npm run openapi:generate"
-  echo "   Then commit: git add public/openapi.yaml && git commit"
+  echo "   Run: npm --prefix packages/sdk run generate"
+  echo "   Then commit: git add public/openapi.yaml packages/sdk/src/types/generated.ts && git commit"
   exit 1
 fi
 

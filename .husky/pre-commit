@@ -8,7 +8,15 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-git add public/openapi.yaml
+echo "📦 Generating SDK types from OpenAPI..."
+npm --prefix packages/sdk run generate
+
+if [ $? -ne 0 ]; then
+  echo "❌ SDK type generation failed! Commit aborted."
+  exit 1
+fi
+
+git add public/openapi.yaml packages/sdk/src/types/generated.ts
 
 echo "🧪 Running tests before commit..."
 npm test -- --run
