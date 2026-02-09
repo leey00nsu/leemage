@@ -48,7 +48,7 @@ interface ApiDocsViewProps {
   activeItemKey: ActiveItemKey;
 }
 
-const SDK_SOURCE_URL = "https://github.com/leey00nsu/leemage/tree/main/packages/sdk";
+const SDK_SOURCE_URL = "https://www.npmjs.com/package/leemage-sdk";
 type StaticDocSection = "gettingStarted" | "sdk";
 type SdkTabId = "install" | "init" | "upload" | "projects";
 

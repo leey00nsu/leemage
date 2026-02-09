@@ -444,12 +444,12 @@
         "summary": "Use the official TypeScript SDK to simplify API integration.",
         "paragraph1": "The SDK abstracts presign-upload-confirm into higher-level methods for common file workflows.",
         "paragraph2": "You can safely implement project/file operations and transformation options with typed interfaces.",
-        "bullet1": "Initialize with API key after npm install",
+        "bullet1": "Install via npm or pnpm, then initialize with your API key",
         "bullet2": "Supports upload progress callback (onProgress)",
         "bullet3": "Unified project and file CRUD APIs",
         "quickStartTitle": "SDK Examples",
-        "sourceButton": "View SDK Source",
-        "sourceNote": "The SDK is currently maintained from the GitHub packages/sdk directory.",
+        "sourceButton": "View on npm",
+        "sourceNote": "Install from npm using npm, pnpm, or yarn.",
         "responseExample": "{\n  \"note\": \"Check SDK examples in the right request panel or tab section below.\"\n}"
       }
     },

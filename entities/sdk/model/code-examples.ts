@@ -78,14 +78,12 @@ export function getSdkCodeExamples(locale: Locale): SdkCodeExample[] {
       filename: "terminal",
       code:
         locale === "ko"
-          ? `git clone https://github.com/leey00nsu/leemage.git
-cd leemage/packages/sdk
-npm install
-npm run build`
-          : `git clone https://github.com/leey00nsu/leemage.git
-cd leemage/packages/sdk
-npm install
-npm run build`,
+          ? `npm install leemage-sdk
+pnpm add leemage-sdk
+yarn add leemage-sdk`
+          : `npm install leemage-sdk
+pnpm add leemage-sdk
+yarn add leemage-sdk`,
     },
     {
       id: "init",

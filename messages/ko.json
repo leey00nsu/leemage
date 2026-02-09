@@ -444,12 +444,12 @@
         "summary": "공식 TypeScript SDK로 API 호출을 간단하게 구성할 수 있습니다.",
         "paragraph1": "SDK는 presign-upload-confirm 과정을 추상화하여 일반 업로드 흐름을 간단한 메서드 호출로 제공합니다.",
         "paragraph2": "프로젝트 관리, 파일 업로드, 변환 옵션 지정 등 반복 작업을 안전한 타입 기반으로 처리할 수 있습니다.",
-        "bullet1": "npm 설치 후 API 키만으로 클라이언트 초기화 가능",
+        "bullet1": "npm/pnpm/yarn 설치 후 API 키로 초기화 가능",
         "bullet2": "업로드 진행 상태(onProgress) 콜백 지원",
         "bullet3": "프로젝트/파일 CRUD를 단일 SDK API로 통합",
         "quickStartTitle": "SDK Examples",
-        "sourceButton": "SDK 소스 보기",
-        "sourceNote": "현재 SDK는 GitHub의 packages/sdk 경로를 기준으로 관리됩니다.",
+        "sourceButton": "npm에서 보기",
+        "sourceNote": "npm 패키지로 배포되며 npm/pnpm/yarn으로 설치할 수 있습니다.",
         "responseExample": "{\n  \"note\": \"SDK 예제는 우측 요청 코드 패널 또는 아래 탭에서 확인하세요.\"\n}"
       }
     },
