@@ -402,6 +402,18 @@ components:
         - storageProvider
         - createdAt
         - updatedAt
+    ProjectListItemResponse:
+      allOf:
+        - $ref: "#/components/schemas/ProjectResponse"
+        - type: object
+          properties:
+            fileCount:
+              type: integer
+              minimum: 0
+              description: 프로젝트에 포함된 파일 개수
+              example: 12
+          required:
+            - fileCount
     ProjectDetailsResponse:
       allOf:
         - $ref: "#/components/schemas/ProjectResponse"
@@ -417,7 +429,7 @@ components:
     ProjectListResponse:
       type: array
       items:
-        $ref: "#/components/schemas/ProjectResponse"
+        $ref: "#/components/schemas/ProjectListItemResponse"
   parameters: {}
 paths:
   /api/v1/projects:

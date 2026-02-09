@@ -1,5 +1,20 @@
 #!/bin/sh
 
+echo "📄 Verifying OpenAPI spec is up to date..."
+npm run openapi:generate
+
+if [ $? -ne 0 ]; then
+  echo "❌ OpenAPI generation failed! Push aborted."
+  exit 1
+fi
+
+if ! git diff --quiet -- public/openapi.yaml; then
+  echo "❌ public/openapi.yaml is outdated."
+  echo "   Run: npm run openapi:generate"
+  echo "   Then commit: git add public/openapi.yaml && git commit"
+  exit 1
+fi
+
 echo "🔨 Running build check before push..."
 npm run build
 

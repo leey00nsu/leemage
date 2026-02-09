@@ -1,5 +1,15 @@
 #!/bin/sh
 
+echo "📄 Generating OpenAPI spec..."
+npm run openapi:generate
+
+if [ $? -ne 0 ]; then
+  echo "❌ OpenAPI generation failed! Commit aborted."
+  exit 1
+fi
+
+git add public/openapi.yaml
+
 echo "🧪 Running tests before commit..."
 npm test -- --run
 
