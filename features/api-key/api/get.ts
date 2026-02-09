@@ -17,6 +17,12 @@ export async function getApiKeyInfo(): Promise<{
   }
 
   const apiKey = await prisma.apiKey.findFirst({
+    where: {
+      userIdentifier,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
     select: {
       prefix: true,
     },

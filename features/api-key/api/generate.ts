@@ -21,7 +21,6 @@ const MAX_API_KEY_NAME_LENGTH = 60;
 export interface GenerateApiKeyInput {
   name?: string;
   permissions?: ApiKeyPermission[];
-  rawKey?: string;
 }
 
 /**
@@ -39,20 +38,8 @@ export async function generateApiKey(input?: GenerateApiKeyInput): Promise<strin
     where: { userIdentifier },
   });
 
-  // 새 API 키 생성 (복수 키 지원)
-  const requestedRawKey = input?.rawKey?.trim();
-  const newApiKey =
-    requestedRawKey && requestedRawKey.length > 0
-      ? requestedRawKey
-      : `${API_KEY_PREFIX}${crypto.randomBytes(24).toString("hex")}`;
-
-  if (!newApiKey.startsWith(API_KEY_PREFIX)) {
-    throw new Error("유효하지 않은 API 키 형식입니다.");
-  }
-
-  if (newApiKey.length <= API_KEY_PREFIX.length) {
-    throw new Error("유효하지 않은 API 키 길이입니다.");
-  }
+  // API 키는 서버에서만 생성합니다.
+  const newApiKey = `${API_KEY_PREFIX}${crypto.randomBytes(24).toString("hex")}`;
 
   const keyLookupPrefix = newApiKey.slice(0, API_KEY_LOOKUP_PREFIX_LENGTH);
   const keyHash = await bcrypt.hash(newApiKey, SALT_ROUNDS);

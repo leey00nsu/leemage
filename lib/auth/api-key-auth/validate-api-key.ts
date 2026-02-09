@@ -64,11 +64,17 @@ export async function validateApiKey(
   }
 
   const lookupPrefix = providedApiKey.slice(0, API_KEY_LOOKUP_PREFIX_LENGTH);
+  const now = new Date();
 
   try {
     const apiKeyCandidates = await prisma.apiKey.findMany({
       where: {
         OR: [{ prefix: lookupPrefix }, { prefix: API_KEY_PREFIX }],
+        AND: [
+          {
+            OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+          },
+        ],
       },
       select: {
         id: true,
