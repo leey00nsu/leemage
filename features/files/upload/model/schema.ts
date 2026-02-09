@@ -15,21 +15,6 @@ type TranslationFunction = (key: string, values?: Record<string, string>) => str
 // 파일 크기 검증이 포함된 기본 파일 스키마
 const validatedFileSchema = createFileSizeSchema(DEFAULT_MAX_FILE_SIZE);
 
-// 이미지 업로드 스키마 팩토리 (variants 필수)
-export const createImageUploadSchema = (t: TranslationFunction) =>
-  z.object({
-    file: validatedFileSchema.refine(
-      (file) => isImageFile(file),
-      t("file.imageOnly")
-    ),
-    formats: z
-      .array(z.enum(AVAILABLE_FORMATS))
-      .min(1, t("file.formatRequired")),
-    sizes: z
-      .array(z.enum(AVAILABLE_SIZES))
-      .min(1, t("file.sizeRequired")),
-  });
-
 // 모든 파일 타입 업로드 스키마 팩토리 (variants 선택적)
 export const createFileUploadSchema = (t: TranslationFunction) =>
   z
@@ -77,19 +62,6 @@ export const createCustomResolutionsArraySchema = (t: TranslationFunction) =>
 
 // ===== 기본 스키마 (서버 사이드 또는 폴백용) =====
 
-export const imageUploadSchema = z.object({
-  file: validatedFileSchema.refine(
-    (file) => isImageFile(file),
-    "이미지 파일만 업로드 가능합니다."
-  ),
-  formats: z
-    .array(z.enum(AVAILABLE_FORMATS))
-    .min(1, "최소 하나 이상의 포맷을 선택해야 합니다."),
-  sizes: z
-    .array(z.enum(AVAILABLE_SIZES))
-    .min(1, "최소 하나 이상의 크기를 선택해야 합니다."),
-});
-
 export const fileUploadSchema = z
   .object({
     file: validatedFileSchema,
@@ -133,7 +105,6 @@ export const customResolutionsArraySchema = z
 
 // ===== 타입 정의 =====
 
-export type ImageUploadFormValues = z.infer<typeof imageUploadSchema>;
 export type FileUploadFormValues = z.infer<typeof fileUploadSchema>;
 export type CustomResolution = z.infer<typeof customResolutionSchema>;
 

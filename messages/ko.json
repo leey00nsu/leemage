@@ -184,10 +184,10 @@
     "title": "API 키 관리",
     "loadingDescription": "API 키 정보를 불러오는 중..."
   },
-  "ImageList": {
-    "noImagesInProject": "이 프로젝트에는 아직 이미지가 없습니다."
+  "FileList": {
+    "noFilesInProject": "이 프로젝트에는 아직 파일이 없습니다."
   },
-  "ImageUploadDialog": {
+  "FileUploadDialog": {
     "uploadSuccess": "파일 \"{fileName}\" 업로드 성공!",
     "selectFileWarning": "업로드할 파일을 선택해주세요.",
     "title": "새 파일 업로드",
@@ -199,10 +199,10 @@
     "nonImageFileInfo": "이 파일은 원본 그대로 업로드됩니다.",
     "quotaExceeded": "스토리지 한도를 초과했습니다. 남은 용량: {remaining}"
   },
-  "DeleteImageDialog": {
+  "DeleteFileDialog": {
     "deleteSuccess": "파일이 삭제되었습니다.",
     "deleteError": "파일 삭제 중 오류가 발생했습니다.",
-    "deleteImageSr": "파일 삭제",
+    "deleteFileSr": "파일 삭제",
     "confirmTitle": "정말로 삭제하시겠습니까?",
     "confirmDescription": "이 작업은 되돌릴 수 없습니다. 파일이 영구적으로 삭제됩니다.",
     "cancel": "취소",
@@ -524,7 +524,7 @@
     "fetchErrorDescription": "프로젝트 정보를 불러오는 중 오류가 발생했습니다.",
     "notFoundTitle": "정보 없음",
     "notFoundDescription": "프로젝트를 찾을 수 없습니다.",
-    "uploadImageButton": "파일 업로드",
+    "uploadFileButton": "파일 업로드",
     "editButton": "수정",
     "copyId": "프로젝트 ID 복사",
     "idCopied": "프로젝트 ID가 클립보드에 복사되었습니다.",
@@ -544,9 +544,9 @@
     "savingButton": "저장 중...",
     "updateSuccessToast": "프로젝트가 수정되었습니다."
   },
-  "ImageDetailsWidget": {
-    "noInfoTitle": "이미지 정보 없음",
-    "noInfoDescription": "이미지 버전을 표시할 수 없습니다.",
+  "FileDetailsWidget": {
+    "noInfoTitle": "미리보기 정보 없음",
+    "noInfoDescription": "표시할 미리보기 버전이 없습니다.",
     "thumbnailInfo": "썸네일"
   },
   "FileDetail": {

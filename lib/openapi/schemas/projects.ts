@@ -37,7 +37,7 @@ export const createProjectRequestSchema = z
       .optional()
       .openapi({
         description: "프로젝트 설명 (최대 200자)",
-        example: "Image collection used for the website",
+        example: "File collection used for the website",
       }),
     storageProvider: storageProviderSchema
       .default("OCI")
@@ -64,7 +64,7 @@ export const projectResponseSchema = z
       .nullable()
       .openapi({
         description: "프로젝트 설명",
-        example: "Image collection used for the website",
+        example: "File collection used for the website",
       }),
     storageProvider: storageProviderSchema.openapi({
       description: "스토리지 프로바이더",

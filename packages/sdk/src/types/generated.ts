@@ -717,7 +717,7 @@ export interface components {
             name: string;
             /**
              * @description 프로젝트 설명 (최대 200자)
-             * @example Image collection used for the website
+             * @example File collection used for the website
              */
             description?: string;
             /**
@@ -753,7 +753,7 @@ export interface components {
             name: string;
             /**
              * @description 프로젝트 설명
-             * @example Image collection used for the website
+             * @example File collection used for the website
              */
             description: string | null;
             /**

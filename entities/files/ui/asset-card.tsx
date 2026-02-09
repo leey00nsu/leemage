@@ -3,14 +3,14 @@
 import { ImageIcon, Layers, MoreVertical } from "lucide-react";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
-import { FileCard } from "../file-card";
-import { VideoCard } from "../video/video-card";
-import { ImageVariantData } from "../../model/types";
+import { FileCard } from "./file-card";
+import { VideoCard } from "./video/video-card";
+import { ImageVariantData } from "../model/types";
 import { isVideoMimeType } from "@/shared/lib/file-utils";
 import { AppAssetCard } from "@/shared/ui/app/app-asset-card";
 import { formatFileSize } from "@/shared/lib/file-utils";
 
-interface ImageCardProps {
+interface AssetCardProps {
   id: string;
   projectId: string;
   name: string;
@@ -22,7 +22,7 @@ interface ImageCardProps {
   size?: number;
 }
 
-export function ImageCard({
+export function AssetCard({
   id,
   projectId,
   name,
@@ -32,7 +32,7 @@ export function ImageCard({
   isImage = true,
   mimeType = "application/octet-stream",
   size = 0,
-}: ImageCardProps) {
+}: AssetCardProps) {
   // 비디오 파일인 경우 VideoCard로 위임
   if (isVideoMimeType(mimeType)) {
     return (

@@ -21,7 +21,7 @@ interface FileDetailWidgetProps {
 }
 
 export function FileDetailWidget({ file }: FileDetailWidgetProps) {
-  const t = useTranslations("ImageDetailsWidget");
+  const t = useTranslations("FileDetailsWidget");
 
   // variants가 비어있으면 비이미지로 처리 (기존 데이터 호환)
   const hasVariants = file.variants && file.variants.length > 0;

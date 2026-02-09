@@ -2,7 +2,7 @@
 
 import { ImageVariantData } from "@/entities/files/model/types";
 import { EmptyFileState } from "@/entities/files/ui/empty-file-state";
-import { ImageCard } from "@/entities/files/ui/image/image-card";
+import { AssetCard } from "@/entities/files/ui/asset-card";
 import { FileGrid } from "@/entities/files/ui/file-grid";
 import { File as PrismaFileType } from "@/lib/generated/prisma";
 import { useTranslations } from "next-intl";
@@ -16,15 +16,15 @@ interface FileListProps {
 }
 
 export function FileList({ files }: FileListProps) {
-  const t = useTranslations("ImageList");
+  const t = useTranslations("FileList");
   if (!files || files.length === 0) {
-    return <EmptyFileState message={t("noImagesInProject")} />;
+    return <EmptyFileState message={t("noFilesInProject")} />;
   }
 
   return (
     <FileGrid>
       {files.map((file, index) => (
-        <ImageCard
+        <AssetCard
           key={file.id}
           id={file.id}
           projectId={file.projectId}

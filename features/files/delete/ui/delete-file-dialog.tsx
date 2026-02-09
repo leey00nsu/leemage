@@ -25,7 +25,7 @@ interface DeleteFileDialogProps {
 
 export function DeleteFileDialog({ file }: DeleteFileDialogProps) {
   const router = useRouter();
-  const t = useTranslations("DeleteImageDialog");
+  const t = useTranslations("DeleteFileDialog");
 
   const deleteMutation = useDeleteFile({
     onSuccessCallback: () => {
@@ -50,7 +50,7 @@ export function DeleteFileDialog({ file }: DeleteFileDialogProps) {
           disabled={deleteMutation.isPending}
         >
           <Trash2 className="h-4 w-4" />
-          <span className="sr-only">{t("deleteImageSr")}</span>
+          <span className="sr-only">{t("deleteFileSr")}</span>
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>

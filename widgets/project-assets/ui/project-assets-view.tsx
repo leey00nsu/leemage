@@ -213,7 +213,7 @@ export function ProjectAssetsView({ projectId }: { projectId: string }) {
           </EditProjectDialog>
           <DeleteProjectButton projectId={project.id} projectName={project.name} />
           <FileUploadDialog projectId={projectId}>
-            <AppButton size="sm">{tProject("uploadImageButton")}</AppButton>
+            <AppButton size="sm">{tProject("uploadFileButton")}</AppButton>
           </FileUploadDialog>
         </div>
       </div>

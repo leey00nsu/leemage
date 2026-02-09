@@ -184,10 +184,10 @@
     "title": "API Key Management",
     "loadingDescription": "Loading API key information..."
   },
-  "ImageList": {
-    "noImagesInProject": "This project does not have any images yet."
+  "FileList": {
+    "noFilesInProject": "This project does not have any files yet."
   },
-  "ImageUploadDialog": {
+  "FileUploadDialog": {
     "uploadSuccess": "File \"{fileName}\" uploaded successfully!",
     "selectFileWarning": "Please select a file to upload.",
     "title": "Upload New File",
@@ -199,10 +199,10 @@
     "nonImageFileInfo": "This file will be uploaded as-is.",
     "quotaExceeded": "Storage quota exceeded. Remaining: {remaining}"
   },
-  "DeleteImageDialog": {
+  "DeleteFileDialog": {
     "deleteSuccess": "File deleted successfully.",
     "deleteError": "An error occurred while deleting the file.",
-    "deleteImageSr": "Delete file",
+    "deleteFileSr": "Delete file",
     "confirmTitle": "Are you sure you want to delete?",
     "confirmDescription": "This action cannot be undone. The file will be permanently deleted.",
     "cancel": "Cancel",
@@ -524,7 +524,7 @@
     "fetchErrorDescription": "An error occurred while fetching project information.",
     "notFoundTitle": "Not Found",
     "notFoundDescription": "Project not found.",
-    "uploadImageButton": "Upload File",
+    "uploadFileButton": "Upload File",
     "editButton": "Edit",
     "copyId": "Copy Project ID",
     "idCopied": "Project ID copied to clipboard.",
@@ -544,9 +544,9 @@
     "savingButton": "Saving...",
     "updateSuccessToast": "Project updated successfully."
   },
-  "ImageDetailsWidget": {
-    "noInfoTitle": "No Image Information",
-    "noInfoDescription": "Cannot display image versions.",
+  "FileDetailsWidget": {
+    "noInfoTitle": "No Preview Information",
+    "noInfoDescription": "Cannot display preview variants.",
     "thumbnailInfo": "Thumbnail"
   },
   "FileDetail": {

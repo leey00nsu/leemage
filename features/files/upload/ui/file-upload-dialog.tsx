@@ -48,7 +48,7 @@ export function FileUploadDialog({
     width: number;
     height: number;
   } | null>(null);
-  const t = useTranslations("ImageUploadDialog");
+  const t = useTranslations("FileUploadDialog");
   const tValidation = useTranslations("Validation");
 
   // i18n 스키마 생성
