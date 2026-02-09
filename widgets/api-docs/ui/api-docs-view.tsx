@@ -385,7 +385,7 @@ export function ApiDocsView({ apiDocs }: ApiDocsViewProps) {
 
   return (
     <div className="h-screen overflow-hidden bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-      <div className="mx-auto flex h-full max-w-[1800px]">
+      <div className="flex h-full w-full">
         <aside className="hidden w-72 shrink-0 border-r border-slate-200 bg-slate-50 lg:flex lg:flex-col dark:border-slate-800 dark:bg-slate-900/60">
           <div className="border-b border-slate-200 px-5 py-4 dark:border-slate-800">
             <Link href="/" className="mb-3 inline-flex items-center gap-2">
@@ -517,7 +517,7 @@ export function ApiDocsView({ apiDocs }: ApiDocsViewProps) {
 
         <div className="flex min-w-0 flex-1">
           <main className="min-w-0 flex-1 overflow-y-auto">
-            <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+            <div className="w-full px-4 py-8 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
               <header className="mb-6 space-y-4">
                 <div>
                   <div className="mb-4 flex items-center justify-between lg:hidden">
