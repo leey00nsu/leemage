@@ -8,7 +8,6 @@ import {
   User,
   Loader2,
   LayoutDashboard,
-  FolderOpen,
   FileText,
   BarChart3,
   Shield,
@@ -47,19 +46,11 @@ export function MobileNavigation({ isLoggedIn }: MobileNavigationProps) {
         </SheetHeader>
         <nav className="flex flex-col gap-2 p-4">
           <Link
-            href="/dashboard"
-            onClick={handleLinkClick}
-            className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-          >
-            <LayoutDashboard className="h-4 w-4" />
-            {t("dashboardLink")}
-          </Link>
-          <Link
             href="/projects"
             onClick={handleLinkClick}
             className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
           >
-            <FolderOpen className="h-4 w-4" />
+            <LayoutDashboard className="h-4 w-4" />
             {t("projectsLink")}
           </Link>
           <Link

@@ -21,7 +21,7 @@ export function FileCard({
   size,
 }: FileCardProps) {
   return (
-    <Link href={`/dashboard/${projectId}/files/${id}`} className="block">
+    <Link href={`/projects/${projectId}/files/${id}`} className="block">
       <AppAssetCard>
         <div className="aspect-square bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
           <FileTypeIcon mimeType={mimeType} size={56} />

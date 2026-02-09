@@ -1,6 +1,6 @@
-import { Project } from "@/lib/generated/prisma";
+import type { ProjectListItem } from "../model/types";
 
-export const getProjects = async (): Promise<Project[]> => {
+export const getProjects = async (): Promise<ProjectListItem[]> => {
   const response = await fetch("/api/projects");
 
   if (!response.ok) {

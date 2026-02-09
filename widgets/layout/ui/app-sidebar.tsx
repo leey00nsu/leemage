@@ -2,7 +2,6 @@ import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import {
   LayoutDashboard,
-  FolderOpen,
   FileText,
   BarChart3,
   Shield,
@@ -45,17 +44,10 @@ export async function AppSidebar({ username, projects }: AppSidebarProps) {
 
       <nav className="flex-1 overflow-y-auto px-3 py-6 space-y-1">
         <Link
-          href="/dashboard"
-          className="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-slate-900 dark:hover:text-white transition-colors"
-        >
-          <LayoutDashboard className="h-4 w-4 text-slate-400 group-hover:text-indigo-500 transition-colors" />
-          {t("dashboard")}
-        </Link>
-        <Link
           href="/projects"
           className="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-slate-900 dark:hover:text-white transition-colors"
         >
-          <FolderOpen className="h-4 w-4 text-slate-400 group-hover:text-indigo-500 transition-colors" />
+          <LayoutDashboard className="h-4 w-4 text-slate-400 group-hover:text-indigo-500 transition-colors" />
           {t("projects")}
         </Link>
         <Link
@@ -93,7 +85,7 @@ export async function AppSidebar({ username, projects }: AppSidebarProps) {
               {projects.map((project) => (
                 <Link
                   key={project.id}
-                  href={`/dashboard/${project.id}`}
+                  href={`/projects/${project.id}`}
                   className="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-slate-900 dark:hover:text-white transition-colors"
                   title={project.name}
                 >

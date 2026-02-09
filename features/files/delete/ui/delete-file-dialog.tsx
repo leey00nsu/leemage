@@ -30,7 +30,7 @@ export function DeleteFileDialog({ file }: DeleteFileDialogProps) {
   const deleteMutation = useDeleteFile({
     onSuccessCallback: () => {
       toast.success(t("deleteSuccess"));
-      router.push(`/dashboard/${file.projectId}`);
+      router.push(`/projects/${file.projectId}`);
     },
     onErrorCallback: () => {
       toast.error(t("deleteError"));

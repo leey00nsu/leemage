@@ -1,33 +1,33 @@
-import { getTranslations } from "next-intl/server";
-import { ProjectList } from "@/features/projects/list/ui/project-list";
-import { Link } from "@/i18n/navigation";
-import { Button } from "@/shared/ui/button";
-import { PlusCircle } from "lucide-react";
-
-export async function generateMetadata() {
-  const t = await getTranslations("ProjectListHeader");
-  return {
-    title: t("title"),
-  };
-}
+import { getLocale, getTranslations } from "next-intl/server";
+import { redirect, Link } from "@/i18n/navigation";
+import { getSessionDefault } from "@/lib/session";
+import { AppButton } from "@/shared/ui/app/app-button";
+import { AppPageHeader } from "@/shared/ui/app/app-page-header";
+import { DashboardProjectList } from "@/widgets/dashboard/ui/dashboard-project-list";
 
 export default async function ProjectsPage() {
-  const t = await getTranslations("ProjectListHeader");
+  const locale = await getLocale();
+  const session = await getSessionDefault();
+  if (!session?.username) {
+    redirect({ href: "/auth/login", locale });
+  }
+
+  const t = await getTranslations("Dashboard");
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">{t("title")}</h1>
-          <p className="text-muted-foreground mt-2">{t("description")}</p>
-        </div>
-        <Link href="/projects/new">
-          <Button size="sm">
-            <PlusCircle className="mr-2 h-4 w-4" /> {t("createButton")}
-          </Button>
-        </Link>
+    <div className="mx-auto max-w-[1600px] px-2 py-2 sm:px-4">
+      <AppPageHeader
+        heading={t("title")}
+        description={t("description")}
+        actions={(
+          <Link href="/projects/new">
+            <AppButton>{t("createProjectButton")}</AppButton>
+          </Link>
+        )}
+      />
+      <div className="mt-6">
+        <DashboardProjectList />
       </div>
-      <ProjectList />
     </div>
   );
 }

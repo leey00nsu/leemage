@@ -43,10 +43,10 @@ export function Header({ className = "" }: HeaderProps) {
         {/* Navigation */}
         <nav className="hidden md:flex items-center space-x-6">
           <Link
-            href="/dashboard"
+            href="/projects"
             className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
           >
-            {t("dashboardLink")}
+            {t("projectsLink")}
           </Link>
           <Link
             href="/api-docs"

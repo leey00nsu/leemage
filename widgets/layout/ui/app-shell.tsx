@@ -17,7 +17,7 @@ export function AppShell({ sidebar, children }: AppShellProps) {
       </aside>
       <main className="flex flex-1 flex-col overflow-hidden">
         <div className="md:hidden flex items-center justify-between px-4 h-14 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
-          <Link href="/dashboard" className="text-sm font-semibold">
+          <Link href="/projects" className="text-sm font-semibold">
             Leemage
           </Link>
           <Sheet>

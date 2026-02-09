@@ -81,6 +81,16 @@ export const projectResponseSchema = z
   })
   .openapi("ProjectResponse");
 
+// 프로젝트 목록 아이템 스키마 (파일 개수 포함)
+export const projectListItemResponseSchema = projectResponseSchema
+  .extend({
+    fileCount: z.number().int().nonnegative().openapi({
+      description: "프로젝트에 포함된 파일 개수",
+      example: 12,
+    }),
+  })
+  .openapi("ProjectListItemResponse");
+
 // 프로젝트 상세 응답 스키마 (파일 목록 포함)
 export const projectDetailsResponseSchema = projectResponseSchema
   .extend({
@@ -92,7 +102,7 @@ export const projectDetailsResponseSchema = projectResponseSchema
 
 // 프로젝트 목록 응답 스키마
 export const projectListResponseSchema = z
-  .array(projectResponseSchema)
+  .array(projectListItemResponseSchema)
   .openapi("ProjectListResponse");
 
 // 프로젝트 수정 요청 스키마
@@ -122,5 +132,6 @@ export const updateProjectRequestSchema = z
 registry.register("CreateProjectRequest", createProjectRequestSchema);
 registry.register("UpdateProjectRequest", updateProjectRequestSchema);
 registry.register("ProjectResponse", projectResponseSchema);
+registry.register("ProjectListItemResponse", projectListItemResponseSchema);
 registry.register("ProjectDetailsResponse", projectDetailsResponseSchema);
 registry.register("ProjectListResponse", projectListResponseSchema);

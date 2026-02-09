@@ -81,7 +81,7 @@ export function ImageCard({
   const resolution = `${displayVariant.width}x${displayVariant.height}`;
 
   return (
-    <Link href={`/dashboard/${projectId}/files/${id}`} className="block">
+    <Link href={`/projects/${projectId}/files/${id}`} className="block">
       <AppAssetCard>
         <div className="aspect-square bg-gray-100 dark:bg-gray-800 relative overflow-hidden flex items-center justify-center">
           <Image

@@ -64,7 +64,10 @@
     }
   },
   "ProjectCard": {
-    "noDescription": "No description provided."
+    "noDescription": "No description provided.",
+    "filesCount": "{count} files",
+    "lastUpdated": "Updated {date}",
+    "unknownUpdatedAt": "Unknown"
   },
   "EmptyProjectState": {
     "defaultMessage": "No projects created yet.\nClick the 'Create New Project' button to get started."
@@ -579,7 +582,9 @@
   },
   "Dashboard": {
     "title": "Dashboard",
-    "noProjectsDescription": "No projects yet. Create one from the Projects tab.",
+    "description": "Select one of your projects and manage assets.",
+    "noProjectsDescription": "No projects yet. Create your first project to get started.",
+    "fetchError": "Failed to load projects.",
     "createProjectButton": "Create project",
     "goProjectsButton": "Go to Projects"
   },

@@ -64,7 +64,10 @@
     }
   },
   "ProjectCard": {
-    "noDescription": "설명이 없습니다."
+    "noDescription": "설명이 없습니다.",
+    "filesCount": "파일 {count}개",
+    "lastUpdated": "수정 {date}",
+    "unknownUpdatedAt": "알 수 없음"
   },
   "EmptyProjectState": {
     "defaultMessage": "아직 생성된 프로젝트가 없습니다.\n'새 프로젝트 생성' 버튼을 클릭하여 시작하세요."
@@ -579,7 +582,9 @@
   },
   "Dashboard": {
     "title": "대시보드",
-    "noProjectsDescription": "프로젝트가 없습니다. 프로젝트 탭에서 프로젝트를 생성해 주세요.",
+    "description": "보유한 프로젝트를 선택하고 자산을 관리하세요.",
+    "noProjectsDescription": "프로젝트가 없습니다. 새 프로젝트를 생성해 주세요.",
+    "fetchError": "프로젝트 목록을 불러오지 못했습니다.",
     "createProjectButton": "프로젝트 만들기",
     "goProjectsButton": "프로젝트로 이동"
   },

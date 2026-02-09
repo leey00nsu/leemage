@@ -1,7 +1,5 @@
-import { prisma } from "@/lib/prisma";
-import { notFound } from "next/navigation";
-import { FileDetailWidget } from "@/widgets/file/ui/file-detail-widget";
-import { FileWithVariants } from "@/entities/files/model/types";
+import { getLocale } from "next-intl/server";
+import { redirect } from "@/i18n/navigation";
 
 interface DashboardFileDetailPageProps {
   params: Promise<{
@@ -13,19 +11,8 @@ interface DashboardFileDetailPageProps {
 export default async function DashboardFileDetailPage({
   params,
 }: DashboardFileDetailPageProps) {
+  const locale = await getLocale();
   const { projectId, fileId } = await params;
 
-  const file = await prisma.file.findFirst({
-    where: {
-      id: fileId,
-      projectId,
-    },
-  });
-
-  if (!file) {
-    notFound();
-  }
-
-  return <FileDetailWidget file={file as FileWithVariants} />;
+  redirect({ href: `/projects/${projectId}/files/${fileId}`, locale });
 }
-

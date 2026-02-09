@@ -35,15 +35,23 @@ export async function getProjectsHandler(
         storageProvider: true,
         createdAt: true,
         updatedAt: true,
+        _count: {
+          select: {
+            files: true,
+          },
+        },
       },
     });
 
     // Date를 ISO 문자열로 변환하고 storageProvider 변환
     const response: ProjectListResponse = projects.map((p) => ({
-      ...p,
+      id: p.id,
+      name: p.name,
+      description: p.description,
       storageProvider: fromPrismaStorageProvider(p.storageProvider),
       createdAt: p.createdAt.toISOString(),
       updatedAt: p.updatedAt.toISOString(),
+      fileCount: p._count.files,
     }));
 
     return NextResponse.json(response);

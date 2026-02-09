@@ -304,7 +304,7 @@ export function ProjectAssetsView({ projectId }: { projectId: string }) {
               return (
                 <Link
                   key={file.id}
-                  href={`/dashboard/${file.projectId}/files/${file.id}`}
+                  href={`/projects/${file.projectId}/files/${file.id}`}
                   className="grid grid-cols-12 gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                 >
                   <div className="col-span-7 flex items-center gap-3 min-w-0">
