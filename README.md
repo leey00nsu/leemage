@@ -1,4 +1,4 @@
-![Leemage Logo](public/logo.webp)
+![Leemage Logo](public/cloudy.png)
 
 <h1 align="center">
   <strong>Leemage</strong>
@@ -43,6 +43,7 @@
 - [설치 및 설정](#설치-및-설정)
 - [API 문서](#api-문서)
 - [프로젝트 구조](#프로젝트-구조)
+- [브랜딩 에셋](#브랜딩-에셋)
 - [테스트](#테스트)
 - [기여하기](#기여하기)
 - [라이선스](#라이선스)
@@ -202,6 +203,12 @@ leemage/
 ```
 
 의존성 규칙: `app` → `widgets` → `features` → `entities` → `shared`
+
+## 브랜딩 에셋
+
+- 기본 로고 원본: `public/cloudy.png`
+- 파비콘: `app/favicon.ico` (로고 원본 기반)
+- UI에서 로고를 표시할 때는 `shared/ui/app/app-logo.tsx`를 공통 사용
 
 ## 테스트
 

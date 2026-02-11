@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import {
   ChevronLeft,
@@ -29,6 +28,7 @@ import { LanguageSelectorButton } from "@/features/language/ui/langauge-selector
 import { AppButton } from "@/shared/ui/app/app-button";
 import { AppCodeBlock } from "@/shared/ui/app/app-code-block";
 import { AppInput } from "@/shared/ui/app/app-input";
+import { AppLogo } from "@/shared/ui/app/app-logo";
 import { AppMethodBadge } from "@/shared/ui/app/app-method-badge";
 import { AppSelect } from "@/shared/ui/app/app-select";
 import {
@@ -386,13 +386,7 @@ export function ApiDocsView({ apiDocs, activeItemKey }: ApiDocsViewProps) {
         <aside className="hidden w-72 shrink-0 border-r border-slate-200 bg-slate-50 lg:flex lg:flex-col dark:border-slate-800 dark:bg-slate-900/60">
           <div className="border-b border-slate-200 px-5 py-4 dark:border-slate-800">
             <Link href="/" className="mb-3 inline-flex items-center gap-2">
-              <Image
-                src="/logo.webp"
-                alt="Leemage"
-                width={24}
-                height={24}
-                className="object-contain"
-              />
+              <AppLogo size={24} />
               <span className="text-base font-bold tracking-tight text-slate-900 dark:text-white">
                 Leemage
               </span>
@@ -516,13 +510,7 @@ export function ApiDocsView({ apiDocs, activeItemKey }: ApiDocsViewProps) {
                 <div>
                   <div className="mb-4 flex items-center justify-between lg:hidden">
                     <Link href="/" className="inline-flex items-center gap-2">
-                      <Image
-                        src="/logo.webp"
-                        alt="Leemage"
-                        width={24}
-                        height={24}
-                        className="object-contain"
-                      />
+                      <AppLogo size={24} />
                       <span className="text-base font-bold tracking-tight text-slate-900 dark:text-white">
                         Leemage
                       </span>

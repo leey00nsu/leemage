@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import {
   LayoutDashboard,
@@ -11,6 +10,7 @@ import { LogoutButton } from "@/features/auth/logout/ui/logout-button";
 import { LanguageSelectorButton } from "@/features/language/ui/langauge-selector-button";
 import { ThemeSelector } from "@/features/theme/ui/theme-selector";
 import { getTranslations } from "next-intl/server";
+import { AppLogo } from "@/shared/ui/app/app-logo";
 
 export interface AppSidebarProject {
   id: string;
@@ -29,13 +29,7 @@ export async function AppSidebar({ username, projects }: AppSidebarProps) {
     <div className="flex h-full flex-col">
       <div className="flex h-16 items-center gap-2 px-6 border-b border-gray-100 dark:border-gray-800">
         <Link href="/" className="flex items-center gap-2">
-          <Image
-            src="/logo.webp"
-            alt="Leemage"
-            width={28}
-            height={28}
-            className="object-contain"
-          />
+          <AppLogo size={28} />
           <span className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">
             Leemage
           </span>

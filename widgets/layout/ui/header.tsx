@@ -1,11 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { LanguageSelectorButton } from "@/features/language/ui/langauge-selector-button";
 import { useEffect, useState } from "react";
 import { User, Loader2 } from "lucide-react";
+import { AppLogo } from "@/shared/ui/app/app-logo";
 import { MobileNavigation } from "./mobile-navigation";
 
 interface HeaderProps {
@@ -30,13 +30,7 @@ export function Header({ className = "" }: HeaderProps) {
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Logo */}
         <Link href="/" className="flex items-center space-x-2">
-          <Image
-            src="/logo.webp"
-            alt="Leemage"
-            width={40}
-            height={40}
-            className="object-contain"
-          />
+          <AppLogo size={40} />
           <span className="text-xl font-bold ">Leemage</span>
         </Link>
 

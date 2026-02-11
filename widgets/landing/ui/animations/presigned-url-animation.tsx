@@ -4,6 +4,7 @@ import { forwardRef, useRef } from "react";
 import { AnimatedBeam } from "@/shared/ui/animated-beam";
 import { FolderOpen } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
+import { AppLogo } from "@/shared/ui/app/app-logo";
 import { OciIcon, R2Icon } from "./storage-icons";
 
 const Circle = forwardRef<
@@ -54,7 +55,7 @@ export function PresignedUrlAnimation() {
 
                 {/* Center - Leemage */}
                 <Circle ref={leemageRef} className="size-14 border-blue-500">
-                    <img src="/logo.webp" alt="Leemage" className="h-8 w-8" />
+                    <AppLogo size={32} className="h-8 w-8" />
                 </Circle>
 
                 {/* Right column - Storage providers */}

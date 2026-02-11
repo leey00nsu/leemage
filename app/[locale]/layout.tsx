@@ -18,6 +18,11 @@ const pretendard = localFont({
 export const metadata: Metadata = {
   title: "Leemage",
   description: "Upload everything on Leemage",
+  icons: {
+    icon: "/cloudy.png",
+    shortcut: "/cloudy.png",
+    apple: "/cloudy.png",
+  },
 };
 
 export default async function RootLayout({

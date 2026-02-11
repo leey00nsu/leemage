@@ -16,6 +16,7 @@ import {
   CloudflareIcon,
   PostgreSQLIcon,
 } from "@/shared/ui/icons/tech-icons";
+import { AppLogo } from "@/shared/ui/app/app-logo";
 
 interface IntegrationsSectionProps {
   className?: string;
@@ -88,11 +89,7 @@ export function IntegrationsSection({
 
               {/* Center logo */}
               <div className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-blue-200 bg-white dark:bg-gray-800 shadow-lg overflow-hidden">
-                <img
-                  src="/logo.webp"
-                  alt="Leemage"
-                  className="h-12 w-12 object-contain"
-                />
+                <AppLogo size={48} />
               </div>
             </div>
           </ScrollFadeIn>
