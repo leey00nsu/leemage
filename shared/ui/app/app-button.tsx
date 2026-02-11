@@ -9,9 +9,8 @@ export function AppButton({
 }: React.ComponentProps<typeof Button>) {
   return (
     <Button
-      className={cn("rounded-lg shadow-sm", className)}
+      className={cn("rounded-lg shadow-none", className)}
       {...props}
     />
   );
 }
-

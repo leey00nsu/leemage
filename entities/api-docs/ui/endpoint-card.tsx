@@ -220,7 +220,7 @@ export function EndpointCard({ endpoint }: EndpointCardProps) {
                 <TabsTrigger
                   key={response.status}
                   value={response.status.toString()}
-                  className="rounded-md px-2.5 py-1.5 text-xs font-medium data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm dark:data-[state=active]:bg-slate-800 dark:data-[state=active]:text-white"
+                  className="rounded-md px-2.5 py-1.5 text-xs font-medium data-[state=active]:bg-white data-[state=active]:text-slate-900 dark:data-[state=active]:bg-slate-800 dark:data-[state=active]:text-white"
                 >
                   {response.status}
                 </TabsTrigger>

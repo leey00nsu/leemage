@@ -24,7 +24,7 @@ export function AppViewToggle({ value, onChange, className }: AppViewToggleProps
         className={cn(
           "p-1.5 rounded-md transition-colors",
           value === "grid"
-            ? "bg-white dark:bg-gray-700 shadow-sm text-slate-900 dark:text-white"
+            ? "bg-white dark:bg-gray-700 text-slate-900 dark:text-white"
             : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
         )}
         aria-pressed={value === "grid"}
@@ -38,7 +38,7 @@ export function AppViewToggle({ value, onChange, className }: AppViewToggleProps
         className={cn(
           "p-1.5 rounded-md transition-colors",
           value === "list"
-            ? "bg-white dark:bg-gray-700 shadow-sm text-slate-900 dark:text-white"
+            ? "bg-white dark:bg-gray-700 text-slate-900 dark:text-white"
             : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
         )}
         aria-pressed={value === "list"}
@@ -49,4 +49,3 @@ export function AppViewToggle({ value, onChange, className }: AppViewToggleProps
     </div>
   );
 }
-
