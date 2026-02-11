@@ -7,7 +7,8 @@ import { useApiStats } from "../model/use-api-stats";
 import { useApiLogFilters } from "../model/use-api-log-filters";
 import { useGetProjects } from "@/features/projects/list/model/get";
 import type { LogEntry } from "../model/types";
-import { Card, CardContent } from "@/shared/ui/card";
+import { AppCard } from "@/shared/ui/app/app-card";
+import { CardContent } from "@/shared/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { ApiStatsFilters } from "./api-stats-filters";
 import { ApiStatsOverviewChart } from "./api-stats-overview-chart";
@@ -74,11 +75,11 @@ export function ApiLogsDashboard({ projectId: initialProjectId }: ApiLogsDashboa
 
   if (error || !data) {
     return (
-      <Card>
+      <AppCard>
         <CardContent className="py-10 text-center text-muted-foreground">
           {t("error")}
         </CardContent>
-      </Card>
+      </AppCard>
     );
   }
 

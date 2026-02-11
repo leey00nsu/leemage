@@ -28,7 +28,7 @@ export function AppTableCard({
   return (
     <AppCard
       className={cn(
-        "rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden",
+        "rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden",
         className
       )}
       {...props}

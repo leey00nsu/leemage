@@ -218,7 +218,7 @@ export function ProjectAssetsView({ projectId }: { projectId: string }) {
         </div>
       </div>
 
-      <div className="mb-6 flex items-center gap-4 text-sm text-muted-foreground border border-gray-200 dark:border-gray-800 rounded-xl p-4 bg-white dark:bg-gray-900 shadow-sm">
+      <div className="mb-6 flex items-center gap-4 text-sm text-muted-foreground border border-gray-200 dark:border-gray-800 rounded-xl p-4 bg-white dark:bg-gray-900 shadow-none hover:shadow-md hover:border-primary/50 transition-all duration-200 dark:hover:border-primary/50">
         <div className="flex items-center gap-1.5">
           <HardDrive className="h-4 w-4" />
           <span>{tProject("storageUsage")}:</span>
@@ -234,7 +234,7 @@ export function ProjectAssetsView({ projectId }: { projectId: string }) {
         </div>
       </div>
 
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4 p-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4 p-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-none hover:shadow-md hover:border-primary/50 transition-all duration-200 dark:hover:border-primary/50">
         <div className="relative max-w-sm w-full md:w-auto flex-1 min-w-[250px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
           <AppInput

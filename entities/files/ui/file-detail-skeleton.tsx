@@ -1,4 +1,5 @@
-import { Card, CardContent, CardHeader } from "@/shared/ui/card";
+import { AppCard } from "@/shared/ui/app/app-card";
+import { CardContent, CardHeader } from "@/shared/ui/card";
 import { Skeleton } from "@/shared/ui/skeleton";
 
 interface FileDetailSkeletonProps {
@@ -8,7 +9,7 @@ interface FileDetailSkeletonProps {
 export function FileDetailSkeleton({ variantCount = 3 }: FileDetailSkeletonProps) {
   return (
     <div className="container mx-auto py-8 px-4">
-      <Card>
+      <AppCard>
         <CardHeader className="flex flex-row items-start justify-between">
           <div className="space-y-2">
             {/* Title */}
@@ -55,7 +56,7 @@ export function FileDetailSkeleton({ variantCount = 3 }: FileDetailSkeletonProps
             </div>
           </div>
         </CardContent>
-      </Card>
+      </AppCard>
     </div>
   );
 }

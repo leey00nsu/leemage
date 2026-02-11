@@ -1,5 +1,6 @@
 import { Skeleton } from "@/shared/ui/skeleton";
-import { Card, CardContent } from "@/shared/ui/card";
+import { AppCard } from "@/shared/ui/app/app-card";
+import { CardContent } from "@/shared/ui/card";
 
 export function ApiLogsSkeleton() {
   return (
@@ -8,13 +9,13 @@ export function ApiLogsSkeleton() {
         <Skeleton className="h-10 w-48" />
         <Skeleton className="h-10 w-48" />
       </div>
-      <Card>
+      <AppCard>
         <CardContent className="pt-4 pb-2">
           <Skeleton className="h-24 w-full" />
         </CardContent>
-      </Card>
+      </AppCard>
       <Skeleton className="h-10 w-48" />
-      <Card>
+      <AppCard>
         <CardContent className="p-0">
           <div className="space-y-2 p-4">
             {[1, 2, 3, 4, 5].map((i) => (
@@ -22,7 +23,7 @@ export function ApiLogsSkeleton() {
             ))}
           </div>
         </CardContent>
-      </Card>
+      </AppCard>
     </div>
   );
 }

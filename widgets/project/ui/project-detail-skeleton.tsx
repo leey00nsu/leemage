@@ -29,13 +29,13 @@ export function ProjectDetailSkeleton({
       </div>
 
       {/* Storage usage bar */}
-      <div className="mb-6 flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+      <div className="mb-6 flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-none dark:border-gray-800 dark:bg-gray-900">
         <Skeleton className="h-4 w-40" />
         <Skeleton className="h-4 w-28" />
       </div>
 
       {/* Search and filter bar */}
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-none dark:border-gray-800 dark:bg-gray-900">
         <div className="relative max-w-sm w-full md:w-auto flex-1 min-w-[250px]">
           <Skeleton className="h-10 w-full" />
         </div>

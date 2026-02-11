@@ -2,7 +2,8 @@ import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { ColumnDef } from "@tanstack/react-table";
 
-import { Card, CardContent } from "@/shared/ui/card";
+import { AppCard } from "@/shared/ui/app/app-card";
+import { CardContent } from "@/shared/ui/card";
 import { AppDataTable } from "@/shared/ui/app/app-data-table";
 
 import type { LogEntry } from "../model/types";
@@ -61,7 +62,7 @@ export function ApiCallsTable({ logs, onRowClick }: ApiCallsTableProps) {
   );
 
   return (
-    <Card>
+    <AppCard>
       <CardContent className="p-0">
         <AppDataTable
           columns={logColumns}
@@ -78,6 +79,6 @@ export function ApiCallsTable({ logs, onRowClick }: ApiCallsTableProps) {
           }}
         />
       </CardContent>
-    </Card>
+    </AppCard>
   );
 }

@@ -1,7 +1,8 @@
+import { AppCard } from "@/shared/ui/app/app-card";
 import { useTranslations } from "next-intl";
 import { Bar, BarChart, XAxis } from "recharts";
 
-import { Card, CardContent } from "@/shared/ui/card";
+import { CardContent } from "@/shared/ui/card";
 import {
   ChartContainer,
   ChartTooltip,
@@ -19,7 +20,7 @@ export function ApiStatsOverviewChart({ byTime }: ApiStatsOverviewChartProps) {
   const t = useTranslations("ApiLogs");
 
   return (
-    <Card>
+    <AppCard>
       <CardContent className="pt-4 pb-2">
         <div className="h-24">
           {byTime.length > 0 ? (
@@ -54,6 +55,6 @@ export function ApiStatsOverviewChart({ byTime }: ApiStatsOverviewChartProps) {
           )}
         </div>
       </CardContent>
-    </Card>
+    </AppCard>
   );
 }

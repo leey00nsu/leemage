@@ -1,8 +1,8 @@
 "use client";
 
 import { Button } from "@/shared/ui/button";
+import { AppCard } from "@/shared/ui/app/app-card";
 import {
-  Card,
   CardHeader,
   CardTitle,
   CardDescription,
@@ -19,7 +19,7 @@ export function NotFound() {
   const locale = (params?.locale as string) || "ko";
 
   return (
-    <Card className="w-full max-w-md text-center shadow-xl  bg-white/80 backdrop-blur-sm dark:bg-gray-900/80">
+    <AppCard className="w-full max-w-md text-center shadow-xl bg-white/80 backdrop-blur-sm dark:bg-gray-900/80">
       <CardHeader className="pb-4">
         {/* 404 일러스트레이션 */}
         <div className="mx-auto mb-6 relative">
@@ -45,6 +45,6 @@ export function NotFound() {
           </Link>
         </Button>
       </CardContent>
-    </Card>
+    </AppCard>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
+import { AppCard } from "@/shared/ui/app/app-card";
+import { CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { Button } from "@/shared/ui/button";
 import { ExternalLink } from "lucide-react";
@@ -16,7 +17,7 @@ export function SdkQuickStart() {
   const getExample = (id: string) => sdkCodeExamples.find((e) => e.id === id)!;
 
   return (
-    <Card className="mb-8">
+    <AppCard className="mb-8">
       <CardHeader>
         <div className="flex items-center justify-between flex-wrap gap-2">
           <CardTitle className="text-xl font-bold flex items-center gap-2">
@@ -62,6 +63,6 @@ export function SdkQuickStart() {
           </TabsContent>
         </Tabs>
       </CardContent>
-    </Card>
+    </AppCard>
   );
 }

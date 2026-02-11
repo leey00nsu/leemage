@@ -5,8 +5,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/shared/ui/button";
+import { AppCard } from "@/shared/ui/app/app-card";
 import {
-  Card,
   CardContent,
   CardDescription,
   CardFooter,
@@ -62,7 +62,7 @@ export function LoginForm() {
   };
 
   return (
-    <Card className="w-full max-w-sm">
+    <AppCard className="w-full max-w-sm">
       <CardHeader>
         <CardTitle className="text-2xl">{t("title")}</CardTitle>
         <CardDescription>{t("description")}</CardDescription>
@@ -118,6 +118,6 @@ export function LoginForm() {
           </Button>
         </CardFooter>
       </form>
-    </Card>
+    </AppCard>
   );
 }

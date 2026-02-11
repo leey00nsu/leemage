@@ -1,6 +1,7 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
+import { AppCard } from "@/shared/ui/app/app-card";
+import { CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Badge } from "@/shared/ui/badge";
 import { ImageIcon } from "lucide-react";
 import { findSourceVariant } from "@/shared/lib/image-utils";
@@ -40,7 +41,7 @@ export function FileDetailWidget({ file }: FileDetailWidgetProps) {
 
     return (
       <div className="container mx-auto py-8 px-4">
-        <Card>
+        <AppCard>
           <CardHeader className="flex flex-row items-start justify-between">
             <div>
               <CardTitle className="truncate" title={file.name}>
@@ -80,7 +81,7 @@ export function FileDetailWidget({ file }: FileDetailWidgetProps) {
               </div>
             </div>
           </CardContent>
-        </Card>
+        </AppCard>
       </div>
     );
   }
@@ -89,7 +90,7 @@ export function FileDetailWidget({ file }: FileDetailWidgetProps) {
   if (!effectiveIsImage) {
     return (
       <div className="container mx-auto py-8 px-4">
-        <Card>
+        <AppCard>
           <CardHeader className="flex flex-row items-start justify-between">
             <div>
               <CardTitle className="truncate" title={file.name}>
@@ -130,7 +131,7 @@ export function FileDetailWidget({ file }: FileDetailWidgetProps) {
               </div>
             </div>
           </CardContent>
-        </Card>
+        </AppCard>
       </div>
     );
   }
@@ -142,7 +143,7 @@ export function FileDetailWidget({ file }: FileDetailWidgetProps) {
 
   if (!displayVariant) {
     return (
-      <Card className="container mx-auto py-8 px-4">
+      <AppCard className="container mx-auto py-8 px-4">
         <CardHeader>
           <CardTitle>{t("noInfoTitle")}</CardTitle>
         </CardHeader>
@@ -150,13 +151,13 @@ export function FileDetailWidget({ file }: FileDetailWidgetProps) {
           <ImageIcon className="h-16 w-16 text-muted-foreground mb-4" />
           <p className="text-muted-foreground">{t("noInfoDescription")}</p>
         </CardContent>
-      </Card>
+      </AppCard>
     );
   }
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <Card>
+      <AppCard>
         <CardHeader className="flex flex-row items-start justify-between">
           <div>
             <CardTitle className="truncate" title={file.name}>
@@ -180,7 +181,7 @@ export function FileDetailWidget({ file }: FileDetailWidgetProps) {
             </div>
           </div>
         </CardContent>
-      </Card>
+      </AppCard>
     </div>
   );
 }

@@ -10,11 +10,11 @@ export function AppCard({
   return (
     <Card
       className={cn(
-        "bg-white dark:bg-gray-900 border-gray-200/70 dark:border-gray-800 shadow-sm",
+        "bg-white dark:bg-gray-900 border-gray-200/70 dark:border-gray-800 shadow-none",
+        "hover:shadow-md hover:border-primary/50 dark:hover:border-primary/50 transition-all duration-200",
         className
       )}
       {...props}
     />
   );
 }
-

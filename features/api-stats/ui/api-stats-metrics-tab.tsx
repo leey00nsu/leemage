@@ -15,12 +15,12 @@ import {
 } from "recharts";
 
 import {
-  Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/shared/ui/card";
+import { AppCard } from "@/shared/ui/app/app-card";
 import { TabsContent } from "@/shared/ui/tabs";
 import {
   ChartContainer,
@@ -55,7 +55,7 @@ export function ApiStatsMetricsTab({ data }: ApiStatsMetricsTabProps) {
   return (
     <TabsContent value="metrics" className="mt-4 space-y-6">
       <div className="grid gap-4 md:grid-cols-4">
-        <Card>
+        <AppCard>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t("totalCalls")}</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
@@ -65,9 +65,9 @@ export function ApiStatsMetricsTab({ data }: ApiStatsMetricsTabProps) {
               {data.summary.totalCalls.toLocaleString()}
             </div>
           </CardContent>
-        </Card>
+        </AppCard>
 
-        <Card>
+        <AppCard>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t("successRate")}</CardTitle>
             <CheckCircle className="h-4 w-4 text-green-500" />
@@ -77,9 +77,9 @@ export function ApiStatsMetricsTab({ data }: ApiStatsMetricsTabProps) {
               {data.summary.successRate.toFixed(1)}%
             </div>
           </CardContent>
-        </Card>
+        </AppCard>
 
-        <Card>
+        <AppCard>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t("errorRate")}</CardTitle>
             <AlertTriangle className="h-4 w-4 text-red-500" />
@@ -89,9 +89,9 @@ export function ApiStatsMetricsTab({ data }: ApiStatsMetricsTabProps) {
               {(100 - data.summary.successRate).toFixed(1)}%
             </div>
           </CardContent>
-        </Card>
+        </AppCard>
 
-        <Card>
+        <AppCard>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t("avgResponseTime")}</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
@@ -99,11 +99,11 @@ export function ApiStatsMetricsTab({ data }: ApiStatsMetricsTabProps) {
           <CardContent>
             <div className="text-2xl font-bold">{data.summary.avgResponseTime}ms</div>
           </CardContent>
-        </Card>
+        </AppCard>
       </div>
 
       {data.byTime.length > 0 && (
-        <Card>
+        <AppCard>
           <CardHeader>
             <CardTitle>{t("callsOverTime")}</CardTitle>
             <CardDescription>{t("callsOverTimeDescription")}</CardDescription>
@@ -152,11 +152,11 @@ export function ApiStatsMetricsTab({ data }: ApiStatsMetricsTabProps) {
               </ComposedChart>
             </ChartContainer>
           </CardContent>
-        </Card>
+        </AppCard>
       )}
 
       {data.byEndpoint.length > 0 && (
-        <Card>
+        <AppCard>
           <CardHeader>
             <CardTitle>{t("byEndpoint")}</CardTitle>
             <CardDescription>{t("byEndpointDescription")}</CardDescription>
@@ -174,7 +174,7 @@ export function ApiStatsMetricsTab({ data }: ApiStatsMetricsTabProps) {
               ))}
             </div>
           </CardContent>
-        </Card>
+        </AppCard>
       )}
     </TabsContent>
   );

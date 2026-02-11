@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { AppCard } from "@/shared/ui/app/app-card";
 import {
-  Card,
   CardContent,
   CardDescription,
   CardHeader,
@@ -77,7 +77,7 @@ export function ApiKeyManager() {
   const hasApiKey = Boolean(apiKeyPrefix);
 
   return (
-    <Card className="w-full max-w-lg">
+    <AppCard className="w-full max-w-lg">
       <CardHeader>
         <CardTitle>{tSkeleton("title")}</CardTitle>
         <CardDescription>{t("cardDescription")}</CardDescription>
@@ -106,6 +106,6 @@ export function ApiKeyManager() {
           />
         )}
       </CardContent>
-    </Card>
+    </AppCard>
   );
 }

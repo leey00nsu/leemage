@@ -1,5 +1,5 @@
+import { AppCard } from "@/shared/ui/app/app-card";
 import {
-  Card,
   CardContent,
   CardDescription,
   CardHeader,
@@ -11,7 +11,7 @@ import { useTranslations } from "next-intl";
 export const ApiKeySkeleton = () => {
   const t = useTranslations("ApiKeySkeleton");
   return (
-    <Card className="w-full max-w-lg">
+    <AppCard className="w-full max-w-lg">
       <CardHeader>
         <CardTitle>{t("title")}</CardTitle>
         <CardDescription>{t("loadingDescription")}</CardDescription>
@@ -29,6 +29,6 @@ export const ApiKeySkeleton = () => {
           <Skeleton className="h-9 w-28" />
         </div>
       </CardContent>
-    </Card>
+    </AppCard>
   );
 };

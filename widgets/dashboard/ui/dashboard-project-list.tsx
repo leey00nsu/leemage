@@ -81,7 +81,7 @@ export function DashboardProjectList() {
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-none hover:shadow-md hover:border-primary/50 transition-all duration-200 dark:border-gray-800 dark:bg-gray-900 dark:hover:border-primary/50">
           <div className="min-w-[250px] max-w-sm flex-1">
             <Skeleton className="h-10 w-full rounded-lg" />
           </div>
@@ -92,7 +92,7 @@ export function DashboardProjectList() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
           {Array.from({ length: 6 }).map((_, index) => (
             <AppProjectCardSkeleton key={index} />
           ))}
@@ -126,7 +126,7 @@ export function DashboardProjectList() {
 
   return (
     <div className="space-y-4">
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-none hover:shadow-md hover:border-primary/50 transition-all duration-200 dark:border-gray-800 dark:bg-gray-900 dark:hover:border-primary/50">
         <div className="relative min-w-[250px] max-w-sm flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
           <AppInput
@@ -175,7 +175,7 @@ export function DashboardProjectList() {
       ) : (
         <>
           {viewMode === "grid" ? (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
               {filteredProjects.map((project) => (
                 <Link key={project.id} href={`/projects/${project.id}`} className="block h-full">
                   <AppProjectCard

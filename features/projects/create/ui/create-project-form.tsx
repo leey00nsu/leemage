@@ -4,8 +4,8 @@ import { useMemo, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/shared/ui/button";
+import { AppCard } from "@/shared/ui/app/app-card";
 import {
-  Card,
   CardContent,
   CardDescription,
   CardFooter,
@@ -90,7 +90,7 @@ export function CreateProjectForm() {
   };
 
   return (
-    <Card className="w-full max-w-2xl">
+    <AppCard className="w-full max-w-2xl">
       <CardHeader>
         <CardTitle className="text-2xl">{t("title")}</CardTitle>
         <CardDescription>{t("description")}</CardDescription>
@@ -195,6 +195,6 @@ export function CreateProjectForm() {
           </Button>
         </CardFooter>
       </form>
-    </Card>
+    </AppCard>
   );
 }
