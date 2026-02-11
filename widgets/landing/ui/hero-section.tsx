@@ -1,7 +1,7 @@
 "use client";
 
 import { Link } from "@/i18n/navigation";
-import { Button } from "@/shared/ui/button";
+import { AppButton } from "@/shared/ui/app/app-button";
 import { ScrollFadeIn } from "@/shared/ui/scroll-fade-in";
 import { FloatingCard } from "@/shared/ui/floating-card";
 import { ArrowRight, FileText, Database, Wand2, FolderOpen, Code } from "lucide-react";
@@ -73,16 +73,16 @@ export function HeroSection({ className = "" }: HeroSectionProps) {
         <ScrollFadeIn delay={200}>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/projects">
-              <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
+              <AppButton size="lg">
                 {t("primaryCta")}
                 <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
+              </AppButton>
             </Link>
             <Link href="/api-docs">
-              <Button size="lg" variant="outline">
+              <AppButton size="lg" variant="outline">
                 <FileText className="mr-2 h-5 w-5" />
                 {t("secondaryCta")}
-              </Button>
+              </AppButton>
             </Link>
           </div>
         </ScrollFadeIn>
