@@ -9,6 +9,8 @@ interface LoginResponse {
 export const login = async (data: LoginFormValues): Promise<LoginResponse> => {
   const response = await fetch("/api/auth/login", {
     method: "POST",
+    credentials: "same-origin",
+    cache: "no-store",
     headers: {
       "Content-Type": "application/json",
     },
