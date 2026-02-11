@@ -3,15 +3,9 @@
 import { useMemo, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/shared/ui/button";
-import { AppCard } from "@/shared/ui/app/app-card";
-import {
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/shared/ui/card";
+import { DialogFooter } from "@/shared/ui/dialog";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { Textarea } from "@/shared/ui/textarea";
@@ -22,16 +16,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/ui/select";
-import { createCreateProjectSchema, CreateProjectFormValues } from "../model/schema";
-import { useRouter } from "@/i18n/navigation";
+import {
+  createCreateProjectSchema,
+  createProjectSchema,
+  CreateProjectFormValues,
+} from "../model/schema";
 import { useCreateProject } from "../model/create";
 import { useAvailableStorageProviders } from "../model/storage-providers";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { StorageProvider } from "@/lib/storage/types";
 
-export function CreateProjectForm() {
-  const router = useRouter();
+interface CreateProjectFormProps {
+  onSuccess?: () => void;
+  onCancel?: () => void;
+}
+
+type CreateProjectFormInput = z.input<typeof createProjectSchema>;
+type CreateProjectFormOutput = z.output<typeof createProjectSchema>;
+
+export function CreateProjectForm({
+  onSuccess,
+  onCancel,
+}: CreateProjectFormProps) {
   const t = useTranslations("CreateProjectForm");
   const tStorage = useTranslations("StorageProvider");
   const tValidation = useTranslations("Validation");
@@ -55,7 +62,7 @@ export function CreateProjectForm() {
     control,
     setValue,
     formState: { errors },
-  } = useForm({
+  } = useForm<CreateProjectFormInput, unknown, CreateProjectFormOutput>({
     resolver: zodResolver(schema),
     defaultValues: {
       name: "",
@@ -78,7 +85,7 @@ export function CreateProjectForm() {
   } = useCreateProject({
     onSuccessCallback: () => {
       toast.success(t("createSuccessToast"));
-      router.push("/projects");
+      onSuccess?.();
     },
     onErrorCallback: (error) => {
       toast.error(error.message);
@@ -89,112 +96,114 @@ export function CreateProjectForm() {
     createProject(data);
   };
 
+  const handleCancel = () => {
+    onCancel?.();
+  };
+
+  const fields = (
+    <>
+      {createError && (
+        <p className="rounded bg-red-100 p-3 text-sm text-red-500">
+          {createError instanceof Error ? createError.message : t("unknownError")}
+        </p>
+      )}
+      <div className="grid gap-2">
+        <Label htmlFor="name">{t("nameLabel")}</Label>
+        <Input
+          id="name"
+          placeholder={t("namePlaceholder")}
+          {...register("name")}
+          disabled={isCreating}
+        />
+        {errors.name && (
+          <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>
+        )}
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor="description">{t("descriptionLabel")}</Label>
+        <Textarea
+          id="description"
+          placeholder={t("descriptionPlaceholder")}
+          {...register("description")}
+          className="min-h-[100px]"
+          disabled={isCreating}
+        />
+        {errors.description && (
+          <p className="mt-1 text-xs text-red-500">{errors.description.message}</p>
+        )}
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor="storageProvider">{t("storageProviderLabel")}</Label>
+        {isLoadingProviders ? (
+          <div className="h-10 animate-pulse rounded-md bg-muted" />
+        ) : availableProviders.length === 0 ? (
+          <p className="rounded bg-red-100 p-3 text-sm text-red-500">
+            {t("noProvidersAvailable")}
+          </p>
+        ) : (
+          <Controller
+            name="storageProvider"
+            control={control}
+            render={({ field }) => (
+              <Select
+                value={field.value}
+                onValueChange={field.onChange}
+                disabled={isCreating || availableProviders.length === 0}
+              >
+                <SelectTrigger id="storageProvider">
+                  <SelectValue placeholder={t("storageProviderLabel")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableProviders.map((provider) => (
+                    <SelectItem key={provider} value={provider}>
+                      <div className="flex flex-col">
+                        <span>{tStorage(provider)}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {tStorage(`${provider}_description`)}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
+        )}
+        <p className="text-xs text-muted-foreground">
+          {t("storageProviderDescription")}
+        </p>
+        {errors.storageProvider && (
+          <p className="mt-1 text-xs text-red-500">
+            {errors.storageProvider.message}
+          </p>
+        )}
+      </div>
+    </>
+  );
+
+  const actions = (
+    <>
+      <Button
+        type="button"
+        variant="outline"
+        onClick={handleCancel}
+        disabled={isCreating}
+      >
+        {t("cancelButton")}
+      </Button>
+      <Button
+        type="submit"
+        disabled={isCreating || isLoadingProviders || availableProviders.length === 0}
+      >
+        {isCreating ? t("creatingButton") : t("createButton")}
+      </Button>
+    </>
+  );
+
   return (
-    <AppCard className="w-full max-w-2xl">
-      <CardHeader>
-        <CardTitle className="text-2xl">{t("title")}</CardTitle>
-        <CardDescription>{t("description")}</CardDescription>
-      </CardHeader>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <CardContent className="grid gap-6">
-          {createError && (
-            <p className="text-sm text-red-500 bg-red-100 p-3 rounded">
-              {createError instanceof Error
-                ? createError.message
-                : t("unknownError")}
-            </p>
-          )}
-          <div className="grid gap-2">
-            <Label htmlFor="name">{t("nameLabel")}</Label>
-            <Input
-              id="name"
-              placeholder={t("namePlaceholder")}
-              {...register("name")}
-              disabled={isCreating}
-            />
-            {errors.name && (
-              <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>
-            )}
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="description">{t("descriptionLabel")}</Label>
-            <Textarea
-              id="description"
-              placeholder={t("descriptionPlaceholder")}
-              {...register("description")}
-              className="min-h-[100px]"
-              disabled={isCreating}
-            />
-            {errors.description && (
-              <p className="text-xs text-red-500 mt-1">
-                {errors.description.message}
-              </p>
-            )}
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="storageProvider">{t("storageProviderLabel")}</Label>
-            {isLoadingProviders ? (
-              <div className="h-10 bg-muted animate-pulse rounded-md" />
-            ) : availableProviders.length === 0 ? (
-              <p className="text-sm text-red-500 bg-red-100 p-3 rounded">
-                {t("noProvidersAvailable")}
-              </p>
-            ) : (
-              <Controller
-                name="storageProvider"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    disabled={isCreating || availableProviders.length === 0}
-                  >
-                    <SelectTrigger id="storageProvider">
-                      <SelectValue placeholder={t("storageProviderLabel")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableProviders.map((provider) => (
-                        <SelectItem key={provider} value={provider}>
-                          <div className="flex flex-col">
-                            <span>{tStorage(provider)}</span>
-                            <span className="text-xs text-muted-foreground">
-                              {tStorage(`${provider}_description`)}
-                            </span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-            )}
-            <p className="text-xs text-muted-foreground">
-              {t("storageProviderDescription")}
-            </p>
-            {errors.storageProvider && (
-              <p className="text-xs text-red-500 mt-1">
-                {errors.storageProvider.message}
-              </p>
-            )}
-          </div>
-        </CardContent>
-        <CardFooter className="mt-6 flex justify-end gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.back()}
-            disabled={isCreating}
-          >
-            {t("cancelButton")}
-          </Button>
-          <Button
-            type="submit"
-            disabled={isCreating || isLoadingProviders || availableProviders.length === 0}
-          >
-            {isCreating ? t("creatingButton") : t("createButton")}
-          </Button>
-        </CardFooter>
-      </form>
-    </AppCard>
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <div className="grid gap-4 py-4">{fields}</div>
+      <DialogFooter>{actions}</DialogFooter>
+    </form>
   );
 }
