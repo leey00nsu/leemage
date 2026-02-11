@@ -1,6 +1,6 @@
 "use client";
 
-import { ImageIcon, Layers, MoreVertical } from "lucide-react";
+import { ImageIcon, Layers } from "lucide-react";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { FileCard } from "./file-card";
@@ -92,11 +92,6 @@ export function AssetCard({
             className="w-full h-full object-contain p-2 transition-transform duration-500 group-hover:scale-105"
             priority={priority}
           />
-          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <div className="p-1.5 bg-white/90 dark:bg-black/70 backdrop-blur rounded-md shadow-sm text-slate-700 dark:text-white">
-              <MoreVertical className="h-4 w-4" />
-            </div>
-          </div>
           <div className="absolute bottom-2 left-2 px-1.5 py-0.5 bg-black/60 backdrop-blur rounded text-[10px] font-mono text-white uppercase">
             {format}
           </div>
