@@ -98,8 +98,15 @@ function buildRequestBodyExample(endpoint: ApiEndpoint): Record<string, unknown>
   );
 }
 
+function getEndpointDisplayPath(endpoint: ApiEndpoint): string {
+  return endpoint.fullPath || endpoint.path;
+}
+
 function buildCurlCommand(endpoint: ApiEndpoint): string {
-  const samplePath = endpoint.path.replace(/\{([^}]+)\}/g, "sample-$1");
+  const samplePath = getEndpointDisplayPath(endpoint).replace(
+    /\{([^}]+)\}/g,
+    "sample-$1",
+  );
   const queryParams =
     endpoint.parameters?.filter((parameter) => parameter.location === "query") ??
     [];
@@ -225,7 +232,12 @@ export function ApiDocsView({ apiDocs, activeItemKey }: ApiDocsViewProps) {
       .map((category) => {
         const isCategoryMatch = category.name.toLowerCase().includes(query);
         const matchedEndpoints = category.endpoints.filter((endpoint) => {
-          return [endpoint.method, endpoint.path, endpoint.description]
+          return [
+            endpoint.method,
+            endpoint.path,
+            getEndpointDisplayPath(endpoint),
+            endpoint.description,
+          ]
             .join(" ")
             .toLowerCase()
             .includes(query);
@@ -357,7 +369,7 @@ export function ApiDocsView({ apiDocs, activeItemKey }: ApiDocsViewProps) {
     }));
     const endpointOptions = flattenedEndpoints.map((item) => ({
       value: item.key,
-      label: `${item.endpoint.method} ${item.endpoint.path}`,
+      label: `${item.endpoint.method} ${getEndpointDisplayPath(item.endpoint)}`,
     }));
     const all = [...staticOptions, ...endpointOptions];
 
@@ -365,7 +377,7 @@ export function ApiDocsView({ apiDocs, activeItemKey }: ApiDocsViewProps) {
       all.unshift({
         value: activeItemKey,
         label: selectedEndpoint
-          ? `${selectedEndpoint.endpoint.method} ${selectedEndpoint.endpoint.path}`
+          ? `${selectedEndpoint.endpoint.method} ${getEndpointDisplayPath(selectedEndpoint.endpoint)}`
           : selectedStaticDoc?.title ?? t("title"),
       });
     }
@@ -483,7 +495,7 @@ export function ApiDocsView({ apiDocs, activeItemKey }: ApiDocsViewProps) {
                             <div className="flex items-center gap-2">
                               <AppMethodBadge method={item.endpoint.method} />
                               <span className="truncate text-xs font-medium">
-                                {item.endpoint.path}
+                                {getEndpointDisplayPath(item.endpoint)}
                               </span>
                             </div>
                             <p className="mt-1 truncate text-xs text-slate-500 dark:text-slate-400">
@@ -712,7 +724,7 @@ export function ApiDocsView({ apiDocs, activeItemKey }: ApiDocsViewProps) {
                       <span>{selectedEndpoint.categoryName}</span>
                       <span>/</span>
                       <span className="font-medium text-slate-700 dark:text-slate-200">
-                        {selectedEndpoint.endpoint.path}
+                        {getEndpointDisplayPath(selectedEndpoint.endpoint)}
                       </span>
                     </div>
                     <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
@@ -762,7 +774,7 @@ export function ApiDocsView({ apiDocs, activeItemKey }: ApiDocsViewProps) {
                         </p>
                         <p className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-800 dark:text-slate-200">
                           <ChevronLeft className="h-4 w-4" />
-                          {`${previousEndpoint.endpoint.method} ${previousEndpoint.endpoint.path}`}
+                          {`${previousEndpoint.endpoint.method} ${getEndpointDisplayPath(previousEndpoint.endpoint)}`}
                         </p>
                       </Link>
                     ) : (
@@ -785,7 +797,7 @@ export function ApiDocsView({ apiDocs, activeItemKey }: ApiDocsViewProps) {
                           {t("next")}
                         </p>
                         <p className="mt-2 flex items-center justify-end gap-2 text-sm font-medium text-slate-800 dark:text-slate-200">
-                          {`${nextEndpoint.endpoint.method} ${nextEndpoint.endpoint.path}`}
+                          {`${nextEndpoint.endpoint.method} ${getEndpointDisplayPath(nextEndpoint.endpoint)}`}
                           <ChevronRight className="h-4 w-4" />
                         </p>
                       </Link>

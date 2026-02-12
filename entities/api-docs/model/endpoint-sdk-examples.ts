@@ -155,7 +155,13 @@ export function getEndpointSdkExample(
   locale: Locale
 ): SdkExampleData | null {
   const key = `${method}:${path}`;
+  const normalizedPath = path.replace(/^\/api\/v1(?=\/|$)/, "") || "/";
+  const normalizedKey = `${method}:${normalizedPath}`;
+  const prefixedKey =
+    normalizedPath === "/"
+      ? `${method}:/api/v1`
+      : `${method}:/api/v1${normalizedPath}`;
   const examples =
     locale === "ko" ? endpointSdkExamplesKo : endpointSdkExamplesEn;
-  return examples[key] || null;
+  return examples[key] || examples[normalizedKey] || examples[prefixedKey] || null;
 }

@@ -101,7 +101,7 @@ async function getResolvedHeadlineAndDescription(
   }
 
   return {
-    headline: `${endpoint.endpoint.method} ${endpoint.endpoint.path}`,
+    headline: `${endpoint.endpoint.method} ${endpoint.endpoint.fullPath || endpoint.endpoint.path}`,
     description: endpoint.endpoint.description || tApiDocs("description"),
   };
 }

@@ -3,6 +3,7 @@ import type { ApiKeyPermission } from "@/shared/config/api-key-permissions";
 export type ApiEndpoint = {
   method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
   path: string;
+  fullPath: string;
   description: string;
   auth: boolean;
   requiredPermission?: ApiKeyPermission | null;

@@ -72,7 +72,8 @@ export function EndpointCard({ endpoint }: EndpointCardProps) {
   const permissionLabel = endpoint.requiredPermission
     ? t(`permissions.${endpoint.requiredPermission}`)
     : t("permissions.unknown");
-  const rateLimit = getRateLimitConfigForPath(endpoint.path);
+  const displayPath = endpoint.fullPath || endpoint.path;
+  const rateLimit = getRateLimitConfigForPath(displayPath);
   const windowSeconds = Math.floor(rateLimit.windowMs / 1000);
   const blockSeconds = Math.floor(rateLimit.blockDurationMs / 1000);
 
@@ -82,13 +83,13 @@ export function EndpointCard({ endpoint }: EndpointCardProps) {
         <div className="flex flex-wrap items-center gap-2">
           <AppMethodBadge method={endpoint.method} className="px-2.5 py-1 text-xs" />
           <code className="rounded-md bg-slate-100 px-2.5 py-1 font-mono text-xs text-slate-700 dark:bg-slate-900 dark:text-slate-300">
-            {endpoint.path}
+            {displayPath}
           </code>
           <AppButton
             variant="ghost"
             size="icon"
             className="h-7 w-7"
-            onClick={() => copyToClipboard(endpoint.path, t("pathCopied"))}
+            onClick={() => copyToClipboard(displayPath, t("pathCopied"))}
             aria-label={t("copyPath")}
           >
             <Copy className="h-4 w-4" />

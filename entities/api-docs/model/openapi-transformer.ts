@@ -125,6 +125,41 @@ const SCHEMA_NAME_MAP: Record<string, string> = {
  */
 const COMMON_FIELDS = ["id", "name", "description", "createdAt", "updatedAt"];
 
+function normalizeBasePath(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed || trimmed === "/") {
+    return "";
+  }
+
+  const withLeadingSlash = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+  return withLeadingSlash.endsWith("/")
+    ? withLeadingSlash.slice(0, -1)
+    : withLeadingSlash;
+}
+
+function getServerBasePath(spec: OpenAPISpec): string {
+  const serverUrl = spec.servers?.[0]?.url;
+  if (!serverUrl) {
+    return "";
+  }
+
+  if (serverUrl.startsWith("/")) {
+    return normalizeBasePath(serverUrl);
+  }
+
+  try {
+    const parsed = new URL(serverUrl);
+    return normalizeBasePath(parsed.pathname);
+  } catch {
+    return normalizeBasePath(serverUrl);
+  }
+}
+
+function joinEndpointPath(basePath: string, path: string): string {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return basePath ? `${basePath}${normalizedPath}` : normalizedPath;
+}
+
 interface OpenAPIOperation {
   tags?: string[];
   summary?: string;
@@ -193,6 +228,7 @@ export function transformOpenAPIToCategories(
   t?: TranslationGetter
 ): ApiCategory[] {
   const categoriesMap = new Map<string, ApiEndpoint[]>();
+  const basePath = getServerBasePath(spec);
 
   // 경로별로 순회
   for (const [path, pathItem] of Object.entries(spec.paths || {})) {
@@ -203,7 +239,14 @@ export function transformOpenAPIToCategories(
       if (!operation) continue;
 
       const tags = operation.tags || ["Default"];
-      const endpoint = transformOperation(spec, path, method, operation, t);
+      const endpoint = transformOperation(
+        spec,
+        path,
+        method,
+        operation,
+        basePath,
+        t
+      );
 
       // 각 태그에 엔드포인트 추가
       for (const tag of tags) {
@@ -238,6 +281,7 @@ function transformOperation(
   path: string,
   method: OpenAPIMethod,
   operation: OpenAPIOperation,
+  basePath: string,
   t?: TranslationGetter
 ): ApiEndpoint {
   const hasAuth = operation.security && operation.security.length > 0;
@@ -261,6 +305,7 @@ function transformOperation(
   return {
     method: normalizedMethod,
     path: path,
+    fullPath: joinEndpointPath(basePath, path),
     description,
     auth: hasAuth ?? false,
     requiredPermission,
