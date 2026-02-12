@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -59,129 +59,8 @@ interface StaticDocItem {
   responseExample?: string;
 }
 
-function getTypeExample(type: string): unknown {
-  const enumMatch = type.match(/"([^"]+)"/);
-  if (enumMatch?.[1]) {
-    return enumMatch[1];
-  }
-
-  if (type.includes("[]")) {
-    return [];
-  }
-
-  if (type.includes("number") || type.includes("integer")) {
-    return 0;
-  }
-
-  if (type.includes("boolean")) {
-    return false;
-  }
-
-  return "string";
-}
-
-function buildRequestBodyExample(endpoint: ApiEndpoint): unknown {
-  if (!endpoint.requestBody) {
-    return {};
-  }
-
-  if (endpoint.requestBody.example !== undefined) {
-    return endpoint.requestBody.example;
-  }
-
-  return endpoint.requestBody.properties.reduce<Record<string, unknown>>(
-    (acc, property) => {
-      acc[property.name] = getTypeExample(property.type);
-      return acc;
-    },
-    {},
-  );
-}
-
 function getEndpointDisplayPath(endpoint: ApiEndpoint): string {
   return endpoint.fullPath || endpoint.path;
-}
-
-function buildCurlCommand(endpoint: ApiEndpoint): string {
-  const samplePath = getEndpointDisplayPath(endpoint).replace(
-    /\{([^}]+)\}/g,
-    "sample-$1",
-  );
-  const queryParams =
-    endpoint.parameters?.filter((parameter) => parameter.location === "query") ??
-    [];
-
-  const queryString = queryParams
-    .map((parameter) => `${parameter.name}=<${parameter.type}>`)
-    .join("&");
-
-  const fullPath = queryString ? `${samplePath}?${queryString}` : samplePath;
-
-  const lines: string[] = [
-    `curl -X ${endpoint.method} \\`,
-    `  "https://api.leemage.com${fullPath}" \\`,
-  ];
-
-  if (endpoint.auth) {
-    lines.push(`  -H "Authorization: Bearer <YOUR_API_KEY>" \\`);
-  }
-
-  if (endpoint.requestBody) {
-    lines.push(`  -H "Content-Type: application/json" \\`);
-    lines.push(`  -d '${JSON.stringify(buildRequestBodyExample(endpoint), null, 2)}'`);
-  } else {
-    lines[lines.length - 1] = lines[lines.length - 1].replace(/ \\$/, "");
-  }
-
-  return lines.join("\n");
-}
-
-function detectCodeLanguage(code: string): string {
-  const trimmed = code.trim();
-  if (!trimmed) {
-    return "text";
-  }
-
-  if (trimmed.startsWith("curl ")) {
-    return "bash";
-  }
-
-  if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
-    return "json";
-  }
-
-  if (
-    trimmed.startsWith("npm ") ||
-    trimmed.startsWith("pnpm ") ||
-    trimmed.startsWith("yarn ")
-  ) {
-    return "bash";
-  }
-
-  return "text";
-}
-
-function getCodeFilename(
-  language: string,
-  type: "request" | "response",
-): string {
-  if (language === "bash") {
-    return `${type}.sh`;
-  }
-
-  if (language === "json") {
-    return `${type}.json`;
-  }
-
-  if (language === "typescript") {
-    return `${type}.ts`;
-  }
-
-  if (language === "javascript") {
-    return `${type}.js`;
-  }
-
-  return `${type}.txt`;
 }
 
 export function ApiDocsView({ apiDocs, activeItemKey }: ApiDocsViewProps) {
@@ -195,8 +74,6 @@ export function ApiDocsView({ apiDocs, activeItemKey }: ApiDocsViewProps) {
   };
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [exampleLanguage, setExampleLanguage] = useState("curl");
-  const [activeResponseStatus, setActiveResponseStatus] = useState("");
   const [activeSdkTab, setActiveSdkTab] = useState<SdkTabId>("install");
 
   const sdkCodeExamples = useMemo(() => getSdkCodeExamples(locale), [locale]);
@@ -343,77 +220,6 @@ export function ApiDocsView({ apiDocs, activeItemKey }: ApiDocsViewProps) {
         locale,
       )
     : null;
-
-  useEffect(() => {
-    if (exampleLanguage === "sdk" && !sdkExampleForEndpoint) {
-      setExampleLanguage("curl");
-    }
-  }, [exampleLanguage, sdkExampleForEndpoint]);
-
-  useEffect(() => {
-    if (!selectedEndpoint) {
-      setActiveResponseStatus("");
-      return;
-    }
-
-    const firstStatus = selectedEndpoint.endpoint.responses[0]?.status.toString() ?? "";
-    setActiveResponseStatus(firstStatus);
-  }, [selectedEndpoint]);
-
-  const activeResponse = selectedEndpoint?.endpoint.responses.find(
-    (response) => response.status.toString() === activeResponseStatus,
-  );
-
-  const endpointRequestExample = selectedEndpoint
-    ? exampleLanguage === "sdk" && sdkExampleForEndpoint
-      ? sdkExampleForEndpoint.code
-      : buildCurlCommand(selectedEndpoint.endpoint)
-    : "";
-
-  const endpointResponseExample = JSON.stringify(activeResponse?.example ?? {}, null, 2);
-
-  const staticRequestExample =
-    selectedStaticDoc?.key === "doc:sdk"
-      ? activeSdkExample?.code
-      : selectedStaticDoc?.requestExample ?? "";
-
-  const staticResponseExample =
-    selectedStaticDoc?.key === "doc:sdk"
-      ? tRaw("docs.sdk.responseExample")
-      : selectedStaticDoc?.responseExample ?? "";
-
-  const requestExampleCode = selectedEndpoint
-    ? endpointRequestExample
-    : staticRequestExample;
-  const responseExampleCode = selectedEndpoint
-    ? endpointResponseExample
-    : staticResponseExample;
-
-  const requestExampleLanguage = selectedEndpoint
-    ? exampleLanguage === "sdk" && sdkExampleForEndpoint
-      ? sdkExampleForEndpoint.language ?? "typescript"
-      : "bash"
-    : selectedStaticDoc?.key === "doc:sdk"
-      ? activeSdkExample?.language ?? "typescript"
-      : detectCodeLanguage(staticRequestExample);
-
-  const responseExampleLanguage = selectedEndpoint
-    ? "json"
-    : detectCodeLanguage(staticResponseExample);
-
-  const requestExampleFilename = selectedEndpoint
-    ? exampleLanguage === "sdk" && sdkExampleForEndpoint
-      ? "sdk-example.ts"
-      : "request.sh"
-    : selectedStaticDoc?.key === "doc:sdk"
-      ? activeSdkExample?.filename ?? "sdk-example.ts"
-      : getCodeFilename(requestExampleLanguage, "request");
-
-  const responseExampleFilename = selectedEndpoint
-    ? activeResponseStatus
-      ? `response-${activeResponseStatus}.json`
-      : "response.json"
-    : getCodeFilename(responseExampleLanguage, "response");
 
   const rateLimitRows = [
     {
@@ -583,9 +389,8 @@ export function ApiDocsView({ apiDocs, activeItemKey }: ApiDocsViewProps) {
           </div>
         </aside>
 
-        <div className="flex min-w-0 flex-1">
-          <main className="min-w-0 flex-1 overflow-y-auto">
-            <div className="w-full px-4 py-8 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
+        <main className="min-w-0 flex-1 overflow-y-auto">
+          <div className="w-full px-4 py-8 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
               <header className="mb-6 space-y-4">
                 <div>
                   <div className="mb-4 flex items-center justify-between lg:hidden">
@@ -889,70 +694,8 @@ export function ApiDocsView({ apiDocs, activeItemKey }: ApiDocsViewProps) {
                   </p>
                 </div>
               )}
-            </div>
-          </main>
-
-          <aside className="hidden w-[440px] shrink-0 border-l border-slate-200 bg-slate-900 text-slate-100 xl:flex xl:flex-col dark:border-slate-800">
-            <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                {selectedEndpoint ? t("exampleRequest") : t("referenceNotes")}
-              </p>
-              <div className="flex items-center gap-2">
-                {selectedEndpoint ? (
-                  <AppSelect
-                    value={exampleLanguage}
-                    onChange={setExampleLanguage}
-                    options={[
-                      { value: "curl", label: t("languages.curl") },
-                      ...(sdkExampleForEndpoint
-                        ? [{ value: "sdk", label: t("languages.sdk") }]
-                        : []),
-                    ]}
-                    aria-label={t("languageSelectAria")}
-                    triggerClassName="h-8 min-w-[7rem] border-slate-700 bg-slate-800 text-xs text-slate-200 hover:bg-slate-700"
-                    contentClassName="border-slate-700 bg-slate-800 text-slate-200"
-                  />
-                ) : null}
-              </div>
-            </div>
-            <div className="flex-1 overflow-y-auto">
-              <div className="min-h-[58%] bg-slate-900 p-3">
-                <CodeBlock
-                  language={requestExampleLanguage}
-                  filename={requestExampleFilename}
-                  code={requestExampleCode || t("noCodeAvailable")}
-                />
-              </div>
-              <div className="flex items-center justify-between border-y border-slate-800 bg-slate-900 px-4 py-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                  {t("exampleResponse")}
-                </p>
-                {selectedEndpoint ? (
-                  <div className="flex items-center gap-2">
-                    <AppSelect
-                      value={activeResponseStatus}
-                      onChange={setActiveResponseStatus}
-                      options={selectedEndpoint.endpoint.responses.map((response) => ({
-                        value: response.status.toString(),
-                        label: response.status.toString(),
-                      }))}
-                      aria-label={t("responseStatusSelectAria")}
-                      triggerClassName="h-8 min-w-[5rem] border-slate-700 bg-slate-800 text-xs text-slate-200 hover:bg-slate-700"
-                      contentClassName="border-slate-700 bg-slate-800 text-slate-200"
-                    />
-                  </div>
-                ) : null}
-              </div>
-              <div className="min-h-[42%] bg-slate-900 p-3">
-                <CodeBlock
-                  language={responseExampleLanguage}
-                  filename={responseExampleFilename}
-                  code={responseExampleCode || t("noCodeAvailable")}
-                />
-              </div>
-            </div>
-          </aside>
-        </div>
+          </div>
+        </main>
       </div>
 
     </div>
