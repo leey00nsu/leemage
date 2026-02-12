@@ -23,11 +23,17 @@ export interface VariantOption {
   format: string;
 }
 
+export interface ImageDimensions {
+  width: number;
+  height: number;
+}
+
 // Presigned Upload 옵션
 export interface PresignedUploadOptions {
   projectId: string;
   file: File;
   variants?: VariantOption[];
+  imageDimensions?: ImageDimensions | null;
   onProgress?: (progress: number) => void;
   signal?: AbortSignal;
 }
@@ -39,18 +45,27 @@ export async function requestPresignedUrl(
   projectId: string,
   fileName: string,
   contentType: string,
-  fileSize: number
+  fileSize: number,
+  width?: number,
+  height?: number,
 ): Promise<PresignResponse> {
+  const payload: Record<string, unknown> = {
+    fileName,
+    contentType,
+    fileSize,
+  };
+
+  if (width !== undefined && height !== undefined) {
+    payload.width = width;
+    payload.height = height;
+  }
+
   const response = await fetch(`/api/projects/${projectId}/files/presign`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      fileName,
-      contentType,
-      fileSize,
-    }),
+    body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
@@ -156,14 +171,17 @@ export async function confirmUpload(
 export async function uploadFileWithPresignedUrl(
   options: PresignedUploadOptions
 ): Promise<ConfirmResponse> {
-  const { projectId, file, variants, onProgress, signal } = options;
+  const { projectId, file, variants, imageDimensions, onProgress, signal } =
+    options;
 
   // 1. Presigned URL 요청
   const presignResponse = await requestPresignedUrl(
     projectId,
     file.name,
     file.type,
-    file.size
+    file.size,
+    imageDimensions?.width,
+    imageDimensions?.height,
   );
 
   // 2. OCI에 직접 업로드

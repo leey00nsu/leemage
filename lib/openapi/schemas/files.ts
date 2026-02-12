@@ -91,7 +91,26 @@ export const presignRequestSchema = z
       description: "File size (bytes)",
       example: 102400,
     }),
+    width: z.number().int().min(1).optional().openapi({
+      description:
+        "(Image only) Original image width in pixels. Provide with height to use deterministic source object naming.",
+      example: 421,
+    }),
+    height: z.number().int().min(1).optional().openapi({
+      description:
+        "(Image only) Original image height in pixels. Provide with width to use deterministic source object naming.",
+      example: 524,
+    }),
   })
+  .refine(
+    (data) =>
+      (data.width === undefined && data.height === undefined) ||
+      (data.width !== undefined && data.height !== undefined),
+    {
+      message: "width and height must be provided together.",
+      path: ["height"],
+    },
+  )
   .openapi("PresignRequest");
 
 // Presign 응답 스키마

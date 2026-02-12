@@ -114,10 +114,11 @@ export function FileUploadDialog({
 
   // 폼 유효성 검사 (프리셋 사이즈 또는 커스텀 해상도 중 하나 이상 선택)
   const hasValidSizes = selectedSizes.length > 0 || customResolutions.length > 0;
+  const hasImageDimensions = !isImage || imageDimensions !== null;
   const isFormValid =
     Object.keys(errors).length === 0 &&
     fileState &&
-    (!isImage || (selectedFormats.length > 0 && hasValidSizes)) &&
+    (!isImage || (selectedFormats.length > 0 && hasValidSizes && hasImageDimensions)) &&
     !isUploading;
 
   // 포맷 변경 핸들러
@@ -197,7 +198,7 @@ export function FileUploadDialog({
       );
     }
 
-    upload(file, variants);
+    upload(file, variants, isImage ? imageDimensions : undefined);
   };
 
   // 다이얼로그 상태 변경 핸들러

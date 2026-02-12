@@ -636,6 +636,16 @@ export interface components {
              * @example 102400
              */
             fileSize: number;
+            /**
+             * @description (Image only) Original image width in pixels. Provide with height to use deterministic source object naming.
+             * @example 421
+             */
+            width?: number;
+            /**
+             * @description (Image only) Original image height in pixels. Provide with width to use deterministic source object naming.
+             * @example 524
+             */
+            height?: number;
         };
         PresignResponse: {
             /**

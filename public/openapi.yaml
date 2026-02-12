@@ -185,6 +185,16 @@ components:
           minimum: 1
           description: File size (bytes)
           example: 102400
+        width:
+          type: integer
+          minimum: 1
+          description: (Image only) Original image width in pixels. Provide with height to use deterministic source object naming.
+          example: 421
+        height:
+          type: integer
+          minimum: 1
+          description: (Image only) Original image height in pixels. Provide with width to use deterministic source object naming.
+          example: 524
       required:
         - fileName
         - contentType

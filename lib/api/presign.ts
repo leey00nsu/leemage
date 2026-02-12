@@ -84,7 +84,7 @@ export async function presignHandler(
       );
     }
 
-    const { fileName, contentType, fileSize } = parseResult.data;
+    const { fileName, contentType, fileSize, width, height } = parseResult.data;
 
     // 파일명 검증 (Requirement 4.2, 4.3)
     const fileNameValidation = validateFileName(fileName);
@@ -132,9 +132,24 @@ export async function presignHandler(
 
     // 파일 ID 및 객체 이름 생성
     const fileId = cuid();
-    const extension = getFileExtension(fileName) || "bin";
-    const objectName = `${projectId}/${fileId}.${extension}`;
     const isImage = isImageMimeType(contentType);
+    const extension = getFileExtension(fileName) || "bin";
+
+    if (
+      isImage &&
+      ((width !== undefined && height === undefined) ||
+        (width === undefined && height !== undefined))
+    ) {
+      return NextResponse.json(
+        { message: "이미지 업로드 시 width와 height는 함께 전달되어야 합니다." },
+        { status: 400 },
+      );
+    }
+
+    const objectName =
+      isImage && width !== undefined && height !== undefined
+        ? `${projectId}/${fileId}-${width}x${height}-${extension}.${extension}`
+        : `${projectId}/${fileId}.${extension}`;
 
     // 프로젝트의 스토리지 프로바이더에 맞는 어댑터 가져오기
     const storageProvider = fromPrismaStorageProvider(project.storageProvider);

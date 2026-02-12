@@ -4,6 +4,7 @@ import { useState, useCallback, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   uploadFileWithPresignedUrl,
+  ImageDimensions,
   VariantOption,
   ConfirmResponse,
 } from "../api/presigned-upload";
@@ -68,9 +69,11 @@ export function usePresignedUpload(options: UsePresignedUploadOptions) {
     mutationFn: async ({
       file,
       variants,
+      imageDimensions,
     }: {
       file: File;
       variants?: VariantOption[];
+      imageDimensions?: ImageDimensions | null;
     }) => {
       // AbortController 생성
       abortControllerRef.current = new AbortController();
@@ -84,6 +87,7 @@ export function usePresignedUpload(options: UsePresignedUploadOptions) {
           projectId,
           file,
           variants,
+          imageDimensions,
           onProgress: (progress) => {
             updateState({ status: "uploading", progress });
           },
@@ -130,8 +134,12 @@ export function usePresignedUpload(options: UsePresignedUploadOptions) {
 
   // 업로드 시작
   const upload = useCallback(
-    (file: File, variants?: VariantOption[]) => {
-      mutation.mutate({ file, variants });
+    (
+      file: File,
+      variants?: VariantOption[],
+      imageDimensions?: ImageDimensions | null,
+    ) => {
+      mutation.mutate({ file, variants, imageDimensions });
     },
     [mutation]
   );
