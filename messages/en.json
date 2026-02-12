@@ -727,7 +727,19 @@
     "feature3Title": "RESTful API",
     "feature3Description": "External integration with API key support",
     "feature4Title": "Project Management",
-    "feature4Description": "Systematic file management by project"
+    "feature4Description": "Systematic file management by project",
+    "projectAnimation": {
+      "project1Name": "Website Assets",
+      "project1Description": "Landing page images",
+      "project2Name": "Marketing Creatives",
+      "project2Description": "Social media campaign assets",
+      "project3Name": "Product Photos",
+      "project3Description": "Product detail images",
+      "project4Name": "Blog Media",
+      "project4Description": "Post thumbnails",
+      "project5Name": "App Icons",
+      "project5Description": "iOS/Android icon packs"
+    }
   },
   "IntegrationsSection": {
     "title": "Tech stacks"

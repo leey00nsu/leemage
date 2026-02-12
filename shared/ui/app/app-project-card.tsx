@@ -21,18 +21,28 @@ interface AppProjectCardProps {
 function formatUpdatedAt(
   value: string | Date | undefined,
   locale: string,
+  layout: "grid" | "list",
 ): string | null {
   if (!value) return null;
   const parsed = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(parsed.getTime())) return null;
 
-  const formatter = new Intl.DateTimeFormat(locale === "ko" ? "ko-KR" : "en-US", {
-    year: "numeric",
-    month: "short",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const formatter = new Intl.DateTimeFormat(
+    locale === "ko" ? "ko-KR" : "en-US",
+    layout === "list"
+      ? {
+          year: "numeric",
+          month: "short",
+          day: "2-digit",
+        }
+      : {
+          year: "numeric",
+          month: "short",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        },
+  );
 
   return formatter.format(parsed);
 }
@@ -48,7 +58,7 @@ export function AppProjectCard({
 }: AppProjectCardProps) {
   const t = useTranslations("ProjectCard");
   const locale = useLocale();
-  const formattedUpdatedAt = formatUpdatedAt(updatedAt, locale);
+  const formattedUpdatedAt = formatUpdatedAt(updatedAt, locale, layout);
 
   if (layout === "list") {
     return (
@@ -70,8 +80,10 @@ export function AppProjectCard({
             {description || t("noDescription")}
           </p>
           <div className="mt-2 flex items-center justify-between gap-3 text-[11px] text-slate-500 dark:text-slate-400 font-mono">
-            <span>{t("filesCount", { count: fileCount })}</span>
-            <span className="truncate">
+            <span className="shrink-0 whitespace-nowrap">
+              {t("filesCount", { count: fileCount })}
+            </span>
+            <span className="text-right">
               {t("lastUpdated", {
                 date: formattedUpdatedAt || t("unknownUpdatedAt"),
               })}
@@ -109,4 +121,3 @@ export function AppProjectCard({
     </AppAssetCard>
   );
 }
-

@@ -727,7 +727,19 @@
     "feature3Title": "RESTful API",
     "feature3Description": "API 키 기반 외부 연동 지원",
     "feature4Title": "프로젝트 관리",
-    "feature4Description": "프로젝트별 파일 체계적 관리"
+    "feature4Description": "프로젝트별 파일 체계적 관리",
+    "projectAnimation": {
+      "project1Name": "웹사이트 에셋",
+      "project1Description": "랜딩페이지 이미지",
+      "project2Name": "마케팅 이미지",
+      "project2Description": "SNS 광고 소재",
+      "project3Name": "제품 사진",
+      "project3Description": "상품 상세 이미지",
+      "project4Name": "블로그 미디어",
+      "project4Description": "포스트 썸네일",
+      "project5Name": "앱 아이콘",
+      "project5Description": "iOS/Android 아이콘"
+    }
   },
   "IntegrationsSection": {
     "title": "기술 스택"
