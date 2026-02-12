@@ -468,6 +468,11 @@
     "responseCopied": "Response example copied.",
     "sdkCopied": "SDK example copied.",
     "copyError": "Failed to copy to clipboard.",
+    "specNotice": {
+      "title": "OpenAPI Source",
+      "description": "This documentation is generated from the OpenAPI spec",
+      "viewSpec": "Open openapi.yaml"
+    },
     "languageSelectAria": "Select request code language",
     "responseStatusSelectAria": "Select response status code",
     "quickCopyAria": "Quick copy request example",

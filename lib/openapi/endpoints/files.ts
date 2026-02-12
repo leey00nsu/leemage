@@ -15,14 +15,14 @@ import {
   messageResponseSchema,
 } from "../schemas/common";
 
-// POST /projects/{projectId}/files/presign - Presigned URL 생성
+// POST /projects/{projectId}/files/presign - Generate presigned URL
 registry.registerPath({
   method: "post",
   path: "/projects/{projectId}/files/presign",
   tags: ["Files"],
-  summary: "Presigned URL 생성",
+  summary: "Generate presigned URL",
   description:
-    "파일 업로드를 위한 Presigned URL을 생성합니다. 클라이언트는 이 URL을 사용하여 OCI에 직접 파일을 업로드할 수 있습니다.",
+    "Generate a presigned URL for file upload. Clients can use this URL to upload files directly to OCI.",
   security: [{ bearerAuth: [] }],
   request: {
     params: projectIdParamSchema,
@@ -36,7 +36,7 @@ registry.registerPath({
   },
   responses: {
     200: {
-      description: "Presigned URL이 성공적으로 생성되었습니다.",
+      description: "Presigned URL generated successfully.",
       content: {
         "application/json": {
           schema: presignResponseSchema,
@@ -44,7 +44,7 @@ registry.registerPath({
       },
     },
     400: {
-      description: "잘못된 요청",
+      description: "Invalid request",
       content: {
         "application/json": {
           schema: badRequestErrorSchema,
@@ -52,7 +52,7 @@ registry.registerPath({
       },
     },
     401: {
-      description: "인증 실패",
+      description: "Authentication failed",
       content: {
         "application/json": {
           schema: unauthorizedErrorSchema,
@@ -60,7 +60,7 @@ registry.registerPath({
       },
     },
     413: {
-      description: "파일 크기 초과 또는 스토리지 한도 초과",
+      description: "File size exceeded or storage quota exceeded",
       content: {
         "application/json": {
           schema: badRequestErrorSchema,
@@ -70,14 +70,14 @@ registry.registerPath({
   },
 });
 
-// POST /projects/{projectId}/files/confirm - 업로드 완료 확인
+// POST /projects/{projectId}/files/confirm - Confirm upload
 registry.registerPath({
   method: "post",
   path: "/projects/{projectId}/files/confirm",
   tags: ["Files"],
-  summary: "업로드 완료 확인",
+  summary: "Confirm upload",
   description:
-    "OCI에 직접 업로드 완료 후 호출하여 DB에 파일 레코드를 생성합니다. 이미지 파일의 경우 variants 옵션으로 변환 처리를 요청할 수 있습니다.",
+    "Call this after direct upload to OCI to create a file record in the database. For image files, variants can be provided to request transformation.",
   security: [{ bearerAuth: [] }],
   request: {
     params: projectIdParamSchema,
@@ -91,7 +91,7 @@ registry.registerPath({
   },
   responses: {
     201: {
-      description: "파일 레코드가 성공적으로 생성되었습니다.",
+      description: "File record created successfully.",
       content: {
         "application/json": {
           schema: confirmResponseSchema,
@@ -99,7 +99,7 @@ registry.registerPath({
       },
     },
     400: {
-      description: "잘못된 요청",
+      description: "Invalid request",
       content: {
         "application/json": {
           schema: badRequestErrorSchema,
@@ -107,7 +107,7 @@ registry.registerPath({
       },
     },
     401: {
-      description: "인증 실패",
+      description: "Authentication failed",
       content: {
         "application/json": {
           schema: unauthorizedErrorSchema,
@@ -115,7 +115,7 @@ registry.registerPath({
       },
     },
     404: {
-      description: "파일을 찾을 수 없음",
+      description: "File not found",
       content: {
         "application/json": {
           schema: fileNotFoundErrorSchema,
@@ -125,21 +125,21 @@ registry.registerPath({
   },
 });
 
-// DELETE /projects/{projectId}/files/{fileId} - 파일 삭제
+// DELETE /projects/{projectId}/files/{fileId} - Delete file
 registry.registerPath({
   method: "delete",
   path: "/projects/{projectId}/files/{fileId}",
   tags: ["Files"],
-  summary: "파일 삭제",
+  summary: "Delete file",
   description:
-    "특정 ID를 가진 파일 및 관련된 모든 버전을 삭제합니다. (OCI 스토리지 포함)",
+    "Delete a file with the specified ID and all related versions (including OCI storage).",
   security: [{ bearerAuth: [] }],
   request: {
     params: fileIdParamSchema,
   },
   responses: {
     200: {
-      description: "파일 삭제 성공",
+      description: "File deleted successfully",
       content: {
         "application/json": {
           schema: messageResponseSchema,
@@ -147,7 +147,7 @@ registry.registerPath({
       },
     },
     400: {
-      description: "잘못된 요청",
+      description: "Invalid request",
       content: {
         "application/json": {
           schema: badRequestErrorSchema,
@@ -155,7 +155,7 @@ registry.registerPath({
       },
     },
     401: {
-      description: "인증 실패",
+      description: "Authentication failed",
       content: {
         "application/json": {
           schema: unauthorizedErrorSchema,
@@ -163,7 +163,7 @@ registry.registerPath({
       },
     },
     404: {
-      description: "파일을 찾을 수 없음",
+      description: "File not found",
       content: {
         "application/json": {
           schema: fileNotFoundErrorSchema,
@@ -171,7 +171,7 @@ registry.registerPath({
       },
     },
     500: {
-      description: "서버 오류",
+      description: "Server error",
       content: {
         "application/json": {
           schema: serverErrorSchema,

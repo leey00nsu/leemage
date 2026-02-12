@@ -6,15 +6,15 @@ import { registry } from "../registry";
 export const errorResponseSchema = z
   .object({
     message: z.string().openapi({
-      description: "에러 메시지",
-      example: "요청 처리 중 오류가 발생했습니다.",
+      description: "Error message",
+      example: "An error occurred while processing the request.",
     }),
     errors: z
       .record(z.array(z.string()))
       .optional()
       .openapi({
-        description: "필드별 유효성 검사 에러",
-        example: { name: ["필수 항목입니다."] },
+        description: "Field-level validation errors",
+        example: { name: ["This field is required."] },
       }),
   })
   .openapi("ErrorResponse");
@@ -23,8 +23,8 @@ export const errorResponseSchema = z
 export const unauthorizedErrorSchema = z
   .object({
     message: z.string().openapi({
-      description: "에러 메시지",
-      example: "인증 실패: 유효하지 않은 API 키",
+      description: "Error message",
+      example: "Authentication failed: invalid API key",
     }),
   })
   .openapi("UnauthorizedError");
@@ -33,8 +33,8 @@ export const unauthorizedErrorSchema = z
 export const projectNotFoundErrorSchema = z
   .object({
     message: z.string().openapi({
-      description: "에러 메시지",
-      example: "프로젝트를 찾을 수 없습니다.",
+      description: "Error message",
+      example: "Project not found.",
     }),
   })
   .openapi("ProjectNotFoundError");
@@ -43,8 +43,8 @@ export const projectNotFoundErrorSchema = z
 export const fileNotFoundErrorSchema = z
   .object({
     message: z.string().openapi({
-      description: "에러 메시지",
-      example: "파일을 찾을 수 없습니다.",
+      description: "Error message",
+      example: "File not found.",
     }),
   })
   .openapi("FileNotFoundError");
@@ -53,8 +53,8 @@ export const fileNotFoundErrorSchema = z
 export const serverErrorSchema = z
   .object({
     message: z.string().openapi({
-      description: "에러 메시지",
-      example: "서버 오류가 발생했습니다.",
+      description: "Error message",
+      example: "A server error occurred.",
     }),
   })
   .openapi("ServerError");
@@ -63,15 +63,15 @@ export const serverErrorSchema = z
 export const badRequestErrorSchema = z
   .object({
     message: z.string().openapi({
-      description: "에러 메시지",
-      example: "잘못된 요청 형식입니다.",
+      description: "Error message",
+      example: "Invalid request format.",
     }),
     errors: z
       .record(z.array(z.string()))
       .optional()
       .openapi({
-        description: "필드별 유효성 검사 에러",
-        example: { name: ["필수 항목입니다."] },
+        description: "Field-level validation errors",
+        example: { name: ["This field is required."] },
       }),
   })
   .openapi("BadRequestError");
@@ -80,8 +80,8 @@ export const badRequestErrorSchema = z
 export const messageResponseSchema = z
   .object({
     message: z.string().openapi({
-      description: "성공 메시지",
-      example: "작업이 완료되었습니다.",
+      description: "Success message",
+      example: "Operation completed successfully.",
     }),
   })
   .openapi("MessageResponse");
@@ -92,14 +92,14 @@ export const paginationQuerySchema = z.object({
     .string()
     .optional()
     .openapi({
-      description: "페이지 번호 (1부터 시작)",
+      description: "Page number (starting from 1)",
       example: "1",
     }),
   limit: z
     .string()
     .optional()
     .openapi({
-      description: "페이지당 항목 수",
+      description: "Number of items per page",
       example: "20",
     }),
 });

@@ -9,11 +9,11 @@ import {
 // 파일 ID 파라미터 스키마
 export const fileIdParamSchema = z.object({
   projectId: z.string().openapi({
-    description: "프로젝트 ID",
+    description: "Project ID",
     example: "clq1234abcd",
   }),
   fileId: z.string().openapi({
-    description: "파일 ID",
+    description: "File ID",
     example: "file5678efgh",
   }),
 });
@@ -21,9 +21,12 @@ export const fileIdParamSchema = z.object({
 // 사이즈 레이블 스키마 (프리셋 또는 커스텀 해상도 "WIDTHxHEIGHT" 형식)
 const sizeLabelSchema = z.union([
   z.enum(AVAILABLE_SIZES),
-  z.string().regex(/^\d+x\d+$/, "커스텀 해상도는 'WIDTHxHEIGHT' 형식이어야 합니다 (예: 1200x800)"),
+  z
+    .string()
+    .regex(/^\d+x\d+$/, "Custom resolution must use WIDTHxHEIGHT format (e.g. 1200x800)"),
 ]).openapi({
-  description: "이미지 크기 레이블. 프리셋(original, 300x300, 800x800, 1920x1080) 또는 커스텀 해상도(WIDTHxHEIGHT 형식)",
+  description:
+    "Image size label. Preset (original, 300x300, 800x800, 1920x1080) or custom resolution (WIDTHxHEIGHT format)",
   example: "original",
 });
 
@@ -32,7 +35,7 @@ export const variantOptionSchema = z
   .object({
     sizeLabel: sizeLabelSchema,
     format: z.enum(AVAILABLE_FORMATS).openapi({
-      description: "이미지 포맷",
+      description: "Image format",
       example: "webp",
     }),
   })
@@ -42,27 +45,27 @@ export const variantOptionSchema = z
 export const imageVariantDataSchema = z
   .object({
     url: z.string().openapi({
-      description: "이미지 URL",
+      description: "Image URL",
       example: "https://objectstorage.ap-seoul-1.oraclecloud.com/...",
     }),
     width: z.number().openapi({
-      description: "이미지 너비 (px)",
+      description: "Image width (px)",
       example: 1920,
     }),
     height: z.number().openapi({
-      description: "이미지 높이 (px)",
+      description: "Image height (px)",
       example: 1080,
     }),
     size: z.number().openapi({
-      description: "파일 크기 (bytes)",
+      description: "File size (bytes)",
       example: 102400,
     }),
     format: z.string().openapi({
-      description: "이미지 포맷",
+      description: "Image format",
       example: "webp",
     }),
     label: z.string().openapi({
-      description: "크기 레이블",
+      description: "Size label",
       example: "original",
     }),
   })
@@ -72,15 +75,15 @@ export const imageVariantDataSchema = z
 export const presignRequestSchema = z
   .object({
     fileName: z.string().min(1).openapi({
-      description: "업로드할 파일의 이름",
+      description: "Name of the file to upload",
       example: "image.jpg",
     }),
     contentType: z.string().min(1).openapi({
-      description: "파일의 MIME 타입",
+      description: "MIME type of the file",
       example: "image/jpeg",
     }),
     fileSize: z.number().positive().openapi({
-      description: "파일 크기 (bytes)",
+      description: "File size (bytes)",
       example: 102400,
     }),
   })
@@ -90,23 +93,23 @@ export const presignRequestSchema = z
 export const presignResponseSchema = z
   .object({
     presignedUrl: z.string().openapi({
-      description: "OCI에 직접 업로드할 수 있는 Presigned URL",
+      description: "Presigned URL for direct upload to OCI",
       example: "https://objectstorage.ap-seoul-1.oraclecloud.com/p/...",
     }),
     objectName: z.string().openapi({
-      description: "OCI 객체 경로",
+      description: "OCI object path",
       example: "clq1234abcd/file5678efgh.jpg",
     }),
     objectUrl: z.string().openapi({
-      description: "업로드 완료 후 객체 URL",
+      description: "Object URL after upload completion",
       example: "https://objectstorage.ap-seoul-1.oraclecloud.com/n/.../o/...",
     }),
     fileId: z.string().openapi({
-      description: "생성된 파일 ID",
+      description: "Generated file ID",
       example: "file5678efgh",
     }),
     expiresAt: z.string().openapi({
-      description: "Presigned URL 만료 시간 (ISO 8601)",
+      description: "Presigned URL expiration time (ISO 8601)",
       example: "2023-01-01T00:15:00.000Z",
     }),
   })
@@ -116,30 +119,30 @@ export const presignResponseSchema = z
 export const confirmRequestSchema = z
   .object({
     fileId: z.string().min(1).openapi({
-      description: "presign 응답에서 받은 파일 ID",
+      description: "File ID from presign response",
       example: "file5678efgh",
     }),
     objectName: z.string().min(1).openapi({
-      description: "presign 응답에서 받은 객체 이름",
+      description: "Object name from presign response",
       example: "clq1234abcd/file5678efgh.jpg",
     }),
     fileName: z.string().min(1).openapi({
-      description: "원본 파일 이름",
+      description: "Original file name",
       example: "image.jpg",
     }),
     contentType: z.string().min(1).openapi({
-      description: "파일의 MIME 타입",
+      description: "MIME type of the file",
       example: "image/jpeg",
     }),
     fileSize: z.number().positive().openapi({
-      description: "파일 크기 (bytes)",
+      description: "File size (bytes)",
       example: 102400,
     }),
     variants: z
       .array(variantOptionSchema)
       .optional()
       .openapi({
-        description: "(이미지 전용) 생성할 이미지 버전 옵션 배열",
+        description: "(Image only) Array of image variant options to generate",
       }),
   })
   .openapi("ConfirmRequest");
@@ -148,45 +151,45 @@ export const confirmRequestSchema = z
 export const fileResponseSchema = z
   .object({
     id: z.string().openapi({
-      description: "파일 ID",
+      description: "File ID",
       example: "file5678efgh",
     }),
     name: z.string().openapi({
-      description: "파일 이름",
+      description: "File name",
       example: "image.jpg",
     }),
     mimeType: z.string().openapi({
-      description: "MIME 타입",
+      description: "MIME type",
       example: "image/jpeg",
     }),
     isImage: z.boolean().openapi({
-      description: "이미지 파일 여부",
+      description: "Whether it is an image file",
       example: true,
     }),
     size: z.number().openapi({
-      description: "파일 크기 (bytes)",
+      description: "File size (bytes)",
       example: 102400,
     }),
     url: z
       .string()
       .nullable()
       .openapi({
-        description: "비이미지 파일의 URL",
+        description: "URL for non-image files",
         example: null,
       }),
     variants: z.array(imageVariantDataSchema).openapi({
-      description: "이미지 버전 목록 (이미지 파일만 해당)",
+      description: "Image variants list (image files only)",
     }),
     createdAt: z.string().openapi({
-      description: "생성 일시 (ISO 8601)",
+      description: "Created at (ISO 8601)",
       example: "2023-01-01T00:00:00.000Z",
     }),
     updatedAt: z.string().openapi({
-      description: "수정 일시 (ISO 8601)",
+      description: "Updated at (ISO 8601)",
       example: "2023-01-01T00:00:00.000Z",
     }),
     projectId: z.string().openapi({
-      description: "프로젝트 ID",
+      description: "Project ID",
       example: "clq1234abcd",
     }),
   })
@@ -196,15 +199,15 @@ export const fileResponseSchema = z
 export const confirmResponseSchema = z
   .object({
     message: z.string().openapi({
-      description: "성공 메시지",
-      example: "파일 업로드 완료",
+      description: "Success message",
+      example: "File upload complete",
     }),
     file: fileResponseSchema,
     variants: z
       .array(imageVariantDataSchema)
       .optional()
       .openapi({
-        description: "생성된 이미지 버전 목록",
+        description: "Generated image variants",
       }),
   })
   .openapi("ConfirmResponse");

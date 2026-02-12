@@ -468,6 +468,11 @@
     "responseCopied": "응답 예시를 복사했습니다.",
     "sdkCopied": "SDK 예시를 복사했습니다.",
     "copyError": "클립보드 복사에 실패했습니다.",
+    "specNotice": {
+      "title": "OpenAPI 원문",
+      "description": "이 문서는 OpenAPI 스펙 기준으로 생성되었습니다.",
+      "viewSpec": "openapi.yaml 열기"
+    },
     "languageSelectAria": "예제 코드 언어 선택",
     "responseStatusSelectAria": "응답 상태 코드 선택",
     "quickCopyAria": "요청 예시 빠르게 복사",

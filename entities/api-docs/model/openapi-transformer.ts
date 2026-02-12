@@ -23,6 +23,52 @@ const OPERATION_ID_MAP: Record<string, string> = {
   "DELETE /api/v1/projects/{projectId}/files/{fileId}": "files.delete",
 };
 
+const RESPONSE_TRANSLATION_KEY_MAP: Record<string, string> = {
+  "GET /api/v1/projects 200": "apiDocs.responses.projectListSuccess",
+  "POST /api/v1/projects 201": "apiDocs.responses.projectCreated",
+  "GET /api/v1/projects/{projectId} 200": "apiDocs.responses.projectGetSuccess",
+  "DELETE /api/v1/projects/{projectId} 200": "apiDocs.responses.projectDeleted",
+  "POST /api/v1/projects/{projectId}/files/presign 200":
+    "apiDocs.responses.presignSuccess",
+  "POST /api/v1/projects/{projectId}/files/confirm 201":
+    "apiDocs.responses.confirmSuccess",
+  "DELETE /api/v1/projects/{projectId}/files/{fileId} 200":
+    "apiDocs.responses.fileDeleted",
+};
+
+function getResponseTranslationKey(
+  method: OpenAPIMethod,
+  path: string,
+  status: number
+): string {
+  const specificKey = RESPONSE_TRANSLATION_KEY_MAP[
+    `${method.toUpperCase()} ${path} ${status}`
+  ];
+  if (specificKey) {
+    return specificKey;
+  }
+
+  if (status === 400) {
+    return "apiDocs.errors.badRequest";
+  }
+
+  if (status === 401) {
+    return "apiDocs.errors.unauthorized";
+  }
+
+  if (status === 404) {
+    return path.includes("/files/")
+      ? "apiDocs.errors.notFound.file"
+      : "apiDocs.errors.notFound.project";
+  }
+
+  if (status === 500) {
+    return "apiDocs.errors.serverError";
+  }
+
+  return "";
+}
+
 /**
  * 엔드포인트의 번역 키를 생성합니다.
  */
@@ -202,7 +248,6 @@ function transformOperation(
 
   // 엔드포인트 설명 번역
   const summaryKey = getEndpointTranslationKey(method, path, "summary");
-  const descriptionKey = getEndpointTranslationKey(method, path, "description");
 
   let description = operation.summary || operation.description || "";
   if (t && summaryKey) {
@@ -222,7 +267,7 @@ function transformOperation(
     deprecated: operation.deprecated,
     parameters: transformParameters(operation.parameters),
     requestBody: transformRequestBody(spec, operation.requestBody, t),
-    responses: transformResponses(spec, operation.responses, t),
+    responses: transformResponses(spec, path, method, operation.responses, t),
   };
 }
 
@@ -306,12 +351,15 @@ function transformRequestBody(
  */
 function transformResponses(
   spec: OpenAPISpec,
+  path: string,
+  method: OpenAPIMethod,
   responses?: OpenAPIOperation["responses"],
   t?: TranslationGetter
 ): ApiEndpoint["responses"] {
   if (!responses) return [];
 
   return Object.entries(responses).map(([statusCode, response]) => {
+    const status = parseInt(statusCode, 10);
     const jsonContent = response.content?.["application/json"];
     const schema = jsonContent?.schema
       ? resolveSchema(spec, jsonContent.schema)
@@ -320,31 +368,7 @@ function transformResponses(
     // 응답 설명 번역
     let description = response.description || "";
     if (t) {
-      // 응답 설명 번역 매핑 (한글 원본 -> 번역 키)
-      const responseDescriptionMap: Record<string, string> = {
-        // 에러 응답
-        "인증 실패": "apiDocs.errors.unauthorized",
-        "프로젝트를 찾을 수 없음": "apiDocs.errors.notFound.project",
-        "파일을 찾을 수 없음": "apiDocs.errors.notFound.file",
-        "잘못된 요청": "apiDocs.errors.badRequest",
-        "서버 오류": "apiDocs.errors.serverError",
-        // 성공 응답
-        "프로젝트 목록이 성공적으로 반환됩니다.":
-          "apiDocs.responses.projectListSuccess",
-        "프로젝트가 성공적으로 생성되었습니다.":
-          "apiDocs.responses.projectCreated",
-        "프로젝트가 성공적으로 반환됩니다.":
-          "apiDocs.responses.projectGetSuccess",
-        "프로젝트가 성공적으로 삭제되었습니다.":
-          "apiDocs.responses.projectDeleted",
-        "Presigned URL이 성공적으로 생성되었습니다.":
-          "apiDocs.responses.presignSuccess",
-        "파일 레코드가 성공적으로 생성되었습니다.":
-          "apiDocs.responses.confirmSuccess",
-        "파일 삭제 성공": "apiDocs.responses.fileDeleted",
-      };
-
-      const translationKey = responseDescriptionMap[description];
+      const translationKey = getResponseTranslationKey(method, path, status);
       if (translationKey) {
         const translated = t(translationKey);
         if (translated !== translationKey) {
@@ -354,7 +378,7 @@ function transformResponses(
     }
 
     return {
-      status: parseInt(statusCode, 10),
+      status,
       description,
       example: generateExample(spec, schema, t),
     };
@@ -447,16 +471,25 @@ function getPropertyType(prop: OpenAPISchemaProperty): string {
 
 const EXAMPLE_TEXT_TRANSLATIONS: Record<string, string> = {
   "인증 실패: 유효하지 않은 API 키": "apiDocs.errors.unauthorized",
+  "Authentication failed: invalid API key": "apiDocs.errors.unauthorized",
   "프로젝트를 찾을 수 없습니다.": "apiDocs.errors.notFound.project",
   "프로젝트를 찾을 수 없음": "apiDocs.errors.notFound.project",
+  "Project not found.": "apiDocs.errors.notFound.project",
   "파일을 찾을 수 없습니다.": "apiDocs.errors.notFound.file",
   "파일을 찾을 수 없음": "apiDocs.errors.notFound.file",
+  "File not found.": "apiDocs.errors.notFound.file",
   "잘못된 요청 형식입니다.": "apiDocs.errors.badRequest",
   "요청 처리 중 오류가 발생했습니다.": "apiDocs.errors.badRequest",
+  "Invalid request format.": "apiDocs.errors.badRequest",
+  "An error occurred while processing the request.": "apiDocs.errors.badRequest",
   "서버 오류가 발생했습니다.": "apiDocs.errors.serverError",
+  "A server error occurred.": "apiDocs.errors.serverError",
   "필수 항목입니다.": "apiDocs.errors.validationError",
+  "This field is required.": "apiDocs.errors.validationError",
   "작업이 완료되었습니다.": "apiDocs.responses.success",
+  "Operation completed successfully.": "apiDocs.responses.success",
   "파일 업로드 완료": "apiDocs.responses.fileUploadComplete",
+  "File upload complete": "apiDocs.responses.fileUploadComplete",
 };
 
 function translateExampleString(

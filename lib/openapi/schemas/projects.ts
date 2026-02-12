@@ -8,14 +8,15 @@ import { fileResponseSchema } from "./files";
 export const storageProviderSchema = z
   .enum(["OCI", "R2"])
   .openapi({
-    description: "스토리지 프로바이더 타입. 허용 값: OCI (Oracle Cloud Infrastructure Object Storage), R2 (Cloudflare R2)",
+    description:
+      "Storage provider type. Allowed values: OCI (Oracle Cloud Infrastructure Object Storage), R2 (Cloudflare R2)",
     example: "OCI",
   });
 
 // 프로젝트 ID 파라미터 스키마
 export const projectIdParamSchema = z.object({
   projectId: z.string().openapi({
-    description: "프로젝트 ID",
+    description: "Project ID",
     example: "clq1234abcd",
   }),
 });
@@ -25,24 +26,24 @@ export const createProjectRequestSchema = z
   .object({
     name: z
       .string()
-      .min(3, { message: "프로젝트 이름은 3자 이상이어야 합니다." })
-      .max(50, { message: "프로젝트 이름은 50자를 초과할 수 없습니다." })
+      .min(3, { message: "Project name must be at least 3 characters." })
+      .max(50, { message: "Project name must not exceed 50 characters." })
       .openapi({
-        description: "프로젝트 이름 (3-50자)",
+        description: "Project name (3-50 characters)",
         example: "Website Assets",
       }),
     description: z
       .string()
-      .max(200, { message: "설명은 200자를 초과할 수 없습니다." })
+      .max(200, { message: "Description must not exceed 200 characters." })
       .optional()
       .openapi({
-        description: "프로젝트 설명 (최대 200자)",
+        description: "Project description (max 200 characters)",
         example: "File collection used for the website",
       }),
     storageProvider: storageProviderSchema
       .default("OCI")
       .openapi({
-        description: "스토리지 프로바이더 (기본값: OCI). 허용 값: OCI, R2",
+        description: "Storage provider (default: OCI). Allowed values: OCI, R2",
         example: "OCI",
       }),
   })
@@ -52,30 +53,30 @@ export const createProjectRequestSchema = z
 export const projectResponseSchema = z
   .object({
     id: z.string().openapi({
-      description: "프로젝트 ID",
+      description: "Project ID",
       example: "clq1234abcd",
     }),
     name: z.string().openapi({
-      description: "프로젝트 이름",
+      description: "Project name",
       example: "Website Assets",
     }),
     description: z
       .string()
       .nullable()
       .openapi({
-        description: "프로젝트 설명",
+        description: "Project description",
         example: "File collection used for the website",
       }),
     storageProvider: storageProviderSchema.openapi({
-      description: "스토리지 프로바이더",
+      description: "Storage provider",
       example: "OCI",
     }),
     createdAt: z.string().openapi({
-      description: "생성 일시 (ISO 8601)",
+      description: "Created at (ISO 8601)",
       example: "2023-01-01T00:00:00.000Z",
     }),
     updatedAt: z.string().openapi({
-      description: "수정 일시 (ISO 8601)",
+      description: "Updated at (ISO 8601)",
       example: "2023-01-01T00:00:00.000Z",
     }),
   })
@@ -85,7 +86,7 @@ export const projectResponseSchema = z
 export const projectListItemResponseSchema = projectResponseSchema
   .extend({
     fileCount: z.number().int().nonnegative().openapi({
-      description: "프로젝트에 포함된 파일 개수",
+      description: "Number of files in the project",
       example: 12,
     }),
   })
@@ -95,7 +96,7 @@ export const projectListItemResponseSchema = projectResponseSchema
 export const projectDetailsResponseSchema = projectResponseSchema
   .extend({
     files: z.array(fileResponseSchema).openapi({
-      description: "프로젝트에 속한 파일 목록",
+      description: "List of files in the project",
     }),
   })
   .openapi("ProjectDetailsResponse");
@@ -110,19 +111,19 @@ export const updateProjectRequestSchema = z
   .object({
     name: z
       .string()
-      .min(1, { message: "프로젝트 이름은 필수입니다." })
-      .max(50, { message: "프로젝트 이름은 50자를 초과할 수 없습니다." })
+      .min(1, { message: "Project name is required." })
+      .max(50, { message: "Project name must not exceed 50 characters." })
       .optional()
       .openapi({
-        description: "프로젝트 이름 (1-50자)",
+        description: "Project name (1-50 characters)",
         example: "Updated Project Name",
       }),
     description: z
       .string()
-      .max(200, { message: "설명은 200자를 초과할 수 없습니다." })
+      .max(200, { message: "Description must not exceed 200 characters." })
       .optional()
       .openapi({
-        description: "프로젝트 설명 (최대 200자)",
+        description: "Project description (max 200 characters)",
         example: "Updated project description",
       }),
   })

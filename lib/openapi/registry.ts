@@ -8,5 +8,6 @@ registry.registerComponent("securitySchemes", "bearerAuth", {
   type: "http",
   scheme: "bearer",
   bearerFormat: "API Key",
-  description: "API 키를 사용한 인증. 'Authorization: Bearer <API_KEY>' 형식으로 전달",
+  description:
+    "API key authentication. Send as 'Authorization: Bearer <API_KEY>'.",
 });

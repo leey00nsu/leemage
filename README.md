@@ -159,6 +159,19 @@ Authorization: Bearer <YOUR_API_KEY>
 
 - **웹 UI**: `/api-docs` 페이지
 - **YAML**: `/api/v1/openapi`
+- **빌드 산출물**: `public/openapi.yaml` (`npm run openapi:generate`로 갱신)
+
+### Agent 빠른 확인 가이드
+
+LLM/에이전트가 API를 먼저 파악할 때는 OpenAPI 스펙을 직접 읽는 것이 가장 빠릅니다.
+
+```bash
+# 로컬 서버 기준 스펙 다운로드
+curl -sS http://localhost:3000/api/v1/openapi -o openapi.yaml
+```
+
+- 우선순위: `http://localhost:3000/api/v1/openapi` → 실패 시 `public/openapi.yaml` 확인
+- 엔드포인트/요청 스키마/응답 스키마는 OpenAPI를 단일 소스로 사용
 
 ### TypeScript SDK
 

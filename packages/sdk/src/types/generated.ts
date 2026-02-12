@@ -12,8 +12,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * 프로젝트 목록 조회
-         * @description 모든 프로젝트 목록을 조회합니다.
+         * List projects
+         * @description Retrieve all projects.
          */
         get: {
             parameters: {
@@ -24,7 +24,7 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description 프로젝트 목록이 성공적으로 반환됩니다. */
+                /** @description Project list returned successfully. */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -33,7 +33,7 @@ export interface paths {
                         "application/json": components["schemas"]["ProjectListResponse"];
                     };
                 };
-                /** @description 인증 실패 */
+                /** @description Authentication failed */
                 401: {
                     headers: {
                         [name: string]: unknown;
@@ -42,7 +42,7 @@ export interface paths {
                         "application/json": components["schemas"]["UnauthorizedError"];
                     };
                 };
-                /** @description 서버 오류 */
+                /** @description Server error */
                 500: {
                     headers: {
                         [name: string]: unknown;
@@ -55,8 +55,8 @@ export interface paths {
         };
         put?: never;
         /**
-         * 프로젝트 생성
-         * @description 새로운 프로젝트를 생성합니다.
+         * Create project
+         * @description Create a new project.
          */
         post: {
             parameters: {
@@ -71,7 +71,7 @@ export interface paths {
                 };
             };
             responses: {
-                /** @description 프로젝트가 성공적으로 생성되었습니다. */
+                /** @description Project created successfully. */
                 201: {
                     headers: {
                         [name: string]: unknown;
@@ -80,7 +80,7 @@ export interface paths {
                         "application/json": components["schemas"]["ProjectResponse"];
                     };
                 };
-                /** @description 잘못된 요청 */
+                /** @description Invalid request */
                 400: {
                     headers: {
                         [name: string]: unknown;
@@ -89,7 +89,7 @@ export interface paths {
                         "application/json": components["schemas"]["BadRequestError"];
                     };
                 };
-                /** @description 인증 실패 */
+                /** @description Authentication failed */
                 401: {
                     headers: {
                         [name: string]: unknown;
@@ -98,7 +98,7 @@ export interface paths {
                         "application/json": components["schemas"]["UnauthorizedError"];
                     };
                 };
-                /** @description 서버 오류 */
+                /** @description Server error */
                 500: {
                     headers: {
                         [name: string]: unknown;
@@ -123,8 +123,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * 프로젝트 상세 조회
-         * @description 프로젝트 ID로 특정 프로젝트와 파일 목록을 조회합니다.
+         * Get project details
+         * @description Retrieve a specific project and its file list by project ID.
          */
         get: {
             parameters: {
@@ -137,7 +137,7 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description 프로젝트가 성공적으로 반환됩니다. */
+                /** @description Project returned successfully. */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -146,7 +146,7 @@ export interface paths {
                         "application/json": components["schemas"]["ProjectDetailsResponse"];
                     };
                 };
-                /** @description 인증 실패 */
+                /** @description Authentication failed */
                 401: {
                     headers: {
                         [name: string]: unknown;
@@ -155,7 +155,7 @@ export interface paths {
                         "application/json": components["schemas"]["UnauthorizedError"];
                     };
                 };
-                /** @description 프로젝트를 찾을 수 없음 */
+                /** @description Project not found */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -164,7 +164,7 @@ export interface paths {
                         "application/json": components["schemas"]["ProjectNotFoundError"];
                     };
                 };
-                /** @description 서버 오류 */
+                /** @description Server error */
                 500: {
                     headers: {
                         [name: string]: unknown;
@@ -178,8 +178,8 @@ export interface paths {
         put?: never;
         post?: never;
         /**
-         * 프로젝트 삭제
-         * @description 프로젝트 ID로 특정 프로젝트를 삭제합니다. 프로젝트에 속한 모든 파일도 함께 삭제됩니다.
+         * Delete project
+         * @description Delete a specific project by project ID. All files in the project are deleted as well.
          */
         delete: {
             parameters: {
@@ -192,7 +192,7 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description 프로젝트가 성공적으로 삭제되었습니다. */
+                /** @description Project deleted successfully. */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -201,7 +201,7 @@ export interface paths {
                         "application/json": components["schemas"]["MessageResponse"];
                     };
                 };
-                /** @description 인증 실패 */
+                /** @description Authentication failed */
                 401: {
                     headers: {
                         [name: string]: unknown;
@@ -210,7 +210,7 @@ export interface paths {
                         "application/json": components["schemas"]["UnauthorizedError"];
                     };
                 };
-                /** @description 프로젝트를 찾을 수 없음 */
+                /** @description Project not found */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -219,7 +219,7 @@ export interface paths {
                         "application/json": components["schemas"]["ProjectNotFoundError"];
                     };
                 };
-                /** @description 서버 오류 */
+                /** @description Server error */
                 500: {
                     headers: {
                         [name: string]: unknown;
@@ -245,8 +245,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Presigned URL 생성
-         * @description 파일 업로드를 위한 Presigned URL을 생성합니다. 클라이언트는 이 URL을 사용하여 OCI에 직접 파일을 업로드할 수 있습니다.
+         * Generate presigned URL
+         * @description Generate a presigned URL for file upload. Clients can use this URL to upload files directly to OCI.
          */
         post: {
             parameters: {
@@ -263,7 +263,7 @@ export interface paths {
                 };
             };
             responses: {
-                /** @description Presigned URL이 성공적으로 생성되었습니다. */
+                /** @description Presigned URL generated successfully. */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -272,7 +272,7 @@ export interface paths {
                         "application/json": components["schemas"]["PresignResponse"];
                     };
                 };
-                /** @description 잘못된 요청 */
+                /** @description Invalid request */
                 400: {
                     headers: {
                         [name: string]: unknown;
@@ -281,7 +281,7 @@ export interface paths {
                         "application/json": components["schemas"]["BadRequestError"];
                     };
                 };
-                /** @description 인증 실패 */
+                /** @description Authentication failed */
                 401: {
                     headers: {
                         [name: string]: unknown;
@@ -290,7 +290,7 @@ export interface paths {
                         "application/json": components["schemas"]["UnauthorizedError"];
                     };
                 };
-                /** @description 파일 크기 초과 또는 스토리지 한도 초과 */
+                /** @description File size exceeded or storage quota exceeded */
                 413: {
                     headers: {
                         [name: string]: unknown;
@@ -317,8 +317,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * 업로드 완료 확인
-         * @description OCI에 직접 업로드 완료 후 호출하여 DB에 파일 레코드를 생성합니다. 이미지 파일의 경우 variants 옵션으로 변환 처리를 요청할 수 있습니다.
+         * Confirm upload
+         * @description Call this after direct upload to OCI to create a file record in the database. For image files, variants can be provided to request transformation.
          */
         post: {
             parameters: {
@@ -335,7 +335,7 @@ export interface paths {
                 };
             };
             responses: {
-                /** @description 파일 레코드가 성공적으로 생성되었습니다. */
+                /** @description File record created successfully. */
                 201: {
                     headers: {
                         [name: string]: unknown;
@@ -344,7 +344,7 @@ export interface paths {
                         "application/json": components["schemas"]["ConfirmResponse"];
                     };
                 };
-                /** @description 잘못된 요청 */
+                /** @description Invalid request */
                 400: {
                     headers: {
                         [name: string]: unknown;
@@ -353,7 +353,7 @@ export interface paths {
                         "application/json": components["schemas"]["BadRequestError"];
                     };
                 };
-                /** @description 인증 실패 */
+                /** @description Authentication failed */
                 401: {
                     headers: {
                         [name: string]: unknown;
@@ -362,7 +362,7 @@ export interface paths {
                         "application/json": components["schemas"]["UnauthorizedError"];
                     };
                 };
-                /** @description 파일을 찾을 수 없음 */
+                /** @description File not found */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -390,8 +390,8 @@ export interface paths {
         put?: never;
         post?: never;
         /**
-         * 파일 삭제
-         * @description 특정 ID를 가진 파일 및 관련된 모든 버전을 삭제합니다. (OCI 스토리지 포함)
+         * Delete file
+         * @description Delete a file with the specified ID and all related versions (including OCI storage).
          */
         delete: {
             parameters: {
@@ -405,7 +405,7 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description 파일 삭제 성공 */
+                /** @description File deleted successfully */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -414,7 +414,7 @@ export interface paths {
                         "application/json": components["schemas"]["MessageResponse"];
                     };
                 };
-                /** @description 잘못된 요청 */
+                /** @description Invalid request */
                 400: {
                     headers: {
                         [name: string]: unknown;
@@ -423,7 +423,7 @@ export interface paths {
                         "application/json": components["schemas"]["BadRequestError"];
                     };
                 };
-                /** @description 인증 실패 */
+                /** @description Authentication failed */
                 401: {
                     headers: {
                         [name: string]: unknown;
@@ -432,7 +432,7 @@ export interface paths {
                         "application/json": components["schemas"]["UnauthorizedError"];
                     };
                 };
-                /** @description 파일을 찾을 수 없음 */
+                /** @description File not found */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -441,7 +441,7 @@ export interface paths {
                         "application/json": components["schemas"]["FileNotFoundError"];
                     };
                 };
-                /** @description 서버 오류 */
+                /** @description Server error */
                 500: {
                     headers: {
                         [name: string]: unknown;
@@ -463,15 +463,15 @@ export interface components {
     schemas: {
         ErrorResponse: {
             /**
-             * @description 에러 메시지
-             * @example 요청 처리 중 오류가 발생했습니다.
+             * @description Error message
+             * @example An error occurred while processing the request.
              */
             message: string;
             /**
-             * @description 필드별 유효성 검사 에러
+             * @description Field-level validation errors
              * @example {
              *       "name": [
-             *         "필수 항목입니다."
+             *         "This field is required."
              *       ]
              *     }
              */
@@ -481,43 +481,43 @@ export interface components {
         };
         UnauthorizedError: {
             /**
-             * @description 에러 메시지
-             * @example 인증 실패: 유효하지 않은 API 키
+             * @description Error message
+             * @example Authentication failed: invalid API key
              */
             message: string;
         };
         ProjectNotFoundError: {
             /**
-             * @description 에러 메시지
-             * @example 프로젝트를 찾을 수 없습니다.
+             * @description Error message
+             * @example Project not found.
              */
             message: string;
         };
         FileNotFoundError: {
             /**
-             * @description 에러 메시지
-             * @example 파일을 찾을 수 없습니다.
+             * @description Error message
+             * @example File not found.
              */
             message: string;
         };
         ServerError: {
             /**
-             * @description 에러 메시지
-             * @example 서버 오류가 발생했습니다.
+             * @description Error message
+             * @example A server error occurred.
              */
             message: string;
         };
         BadRequestError: {
             /**
-             * @description 에러 메시지
-             * @example 잘못된 요청 형식입니다.
+             * @description Error message
+             * @example Invalid request format.
              */
             message: string;
             /**
-             * @description 필드별 유효성 검사 에러
+             * @description Field-level validation errors
              * @example {
              *       "name": [
-             *         "필수 항목입니다."
+             *         "This field is required."
              *       ]
              *     }
              */
@@ -527,19 +527,19 @@ export interface components {
         };
         MessageResponse: {
             /**
-             * @description 성공 메시지
-             * @example 작업이 완료되었습니다.
+             * @description Success message
+             * @example Operation completed successfully.
              */
             message: string;
         };
         VariantOption: {
             /**
-             * @description 이미지 크기 레이블. 프리셋(original, 300x300, 800x800, 1920x1080) 또는 커스텀 해상도(WIDTHxHEIGHT 형식)
+             * @description Image size label. Preset (original, 300x300, 800x800, 1920x1080) or custom resolution (WIDTHxHEIGHT format)
              * @example original
              */
             sizeLabel: ("source" | "max300" | "max800" | "max1920") | string;
             /**
-             * @description 이미지 포맷
+             * @description Image format
              * @example webp
              * @enum {string}
              */
@@ -547,181 +547,181 @@ export interface components {
         };
         ImageVariantData: {
             /**
-             * @description 이미지 URL
+             * @description Image URL
              * @example https://objectstorage.ap-seoul-1.oraclecloud.com/...
              */
             url: string;
             /**
-             * @description 이미지 너비 (px)
+             * @description Image width (px)
              * @example 1920
              */
             width: number;
             /**
-             * @description 이미지 높이 (px)
+             * @description Image height (px)
              * @example 1080
              */
             height: number;
             /**
-             * @description 파일 크기 (bytes)
+             * @description File size (bytes)
              * @example 102400
              */
             size: number;
             /**
-             * @description 이미지 포맷
+             * @description Image format
              * @example webp
              */
             format: string;
             /**
-             * @description 크기 레이블
+             * @description Size label
              * @example original
              */
             label: string;
         };
         PresignRequest: {
             /**
-             * @description 업로드할 파일의 이름
+             * @description Name of the file to upload
              * @example image.jpg
              */
             fileName: string;
             /**
-             * @description 파일의 MIME 타입
+             * @description MIME type of the file
              * @example image/jpeg
              */
             contentType: string;
             /**
-             * @description 파일 크기 (bytes)
+             * @description File size (bytes)
              * @example 102400
              */
             fileSize: number;
         };
         PresignResponse: {
             /**
-             * @description OCI에 직접 업로드할 수 있는 Presigned URL
+             * @description Presigned URL for direct upload to OCI
              * @example https://objectstorage.ap-seoul-1.oraclecloud.com/p/...
              */
             presignedUrl: string;
             /**
-             * @description OCI 객체 경로
+             * @description OCI object path
              * @example clq1234abcd/file5678efgh.jpg
              */
             objectName: string;
             /**
-             * @description 업로드 완료 후 객체 URL
+             * @description Object URL after upload completion
              * @example https://objectstorage.ap-seoul-1.oraclecloud.com/n/.../o/...
              */
             objectUrl: string;
             /**
-             * @description 생성된 파일 ID
+             * @description Generated file ID
              * @example file5678efgh
              */
             fileId: string;
             /**
-             * @description Presigned URL 만료 시간 (ISO 8601)
+             * @description Presigned URL expiration time (ISO 8601)
              * @example 2023-01-01T00:15:00.000Z
              */
             expiresAt: string;
         };
         ConfirmRequest: {
             /**
-             * @description presign 응답에서 받은 파일 ID
+             * @description File ID from presign response
              * @example file5678efgh
              */
             fileId: string;
             /**
-             * @description presign 응답에서 받은 객체 이름
+             * @description Object name from presign response
              * @example clq1234abcd/file5678efgh.jpg
              */
             objectName: string;
             /**
-             * @description 원본 파일 이름
+             * @description Original file name
              * @example image.jpg
              */
             fileName: string;
             /**
-             * @description 파일의 MIME 타입
+             * @description MIME type of the file
              * @example image/jpeg
              */
             contentType: string;
             /**
-             * @description 파일 크기 (bytes)
+             * @description File size (bytes)
              * @example 102400
              */
             fileSize: number;
-            /** @description (이미지 전용) 생성할 이미지 버전 옵션 배열 */
+            /** @description (Image only) Array of image variant options to generate */
             variants?: components["schemas"]["VariantOption"][];
         };
         FileResponse: {
             /**
-             * @description 파일 ID
+             * @description File ID
              * @example file5678efgh
              */
             id: string;
             /**
-             * @description 파일 이름
+             * @description File name
              * @example image.jpg
              */
             name: string;
             /**
-             * @description MIME 타입
+             * @description MIME type
              * @example image/jpeg
              */
             mimeType: string;
             /**
-             * @description 이미지 파일 여부
+             * @description Whether it is an image file
              * @example true
              */
             isImage: boolean;
             /**
-             * @description 파일 크기 (bytes)
+             * @description File size (bytes)
              * @example 102400
              */
             size: number;
             /**
-             * @description 비이미지 파일의 URL
+             * @description URL for non-image files
              * @example null
              */
             url: string | null;
-            /** @description 이미지 버전 목록 (이미지 파일만 해당) */
+            /** @description Image variants list (image files only) */
             variants: components["schemas"]["ImageVariantData"][];
             /**
-             * @description 생성 일시 (ISO 8601)
+             * @description Created at (ISO 8601)
              * @example 2023-01-01T00:00:00.000Z
              */
             createdAt: string;
             /**
-             * @description 수정 일시 (ISO 8601)
+             * @description Updated at (ISO 8601)
              * @example 2023-01-01T00:00:00.000Z
              */
             updatedAt: string;
             /**
-             * @description 프로젝트 ID
+             * @description Project ID
              * @example clq1234abcd
              */
             projectId: string;
         };
         ConfirmResponse: {
             /**
-             * @description 성공 메시지
-             * @example 파일 업로드 완료
+             * @description Success message
+             * @example File upload complete
              */
             message: string;
             file: components["schemas"]["FileResponse"];
-            /** @description 생성된 이미지 버전 목록 */
+            /** @description Generated image variants */
             variants?: components["schemas"]["ImageVariantData"][];
         };
         CreateProjectRequest: {
             /**
-             * @description 프로젝트 이름 (3-50자)
+             * @description Project name (3-50 characters)
              * @example Website Assets
              */
             name: string;
             /**
-             * @description 프로젝트 설명 (최대 200자)
+             * @description Project description (max 200 characters)
              * @example File collection used for the website
              */
             description?: string;
             /**
-             * @description 스토리지 프로바이더 (기본값: OCI). 허용 값: OCI, R2
+             * @description Storage provider (default: OCI). Allowed values: OCI, R2
              * @default OCI
              * @example OCI
              * @enum {string}
@@ -730,58 +730,58 @@ export interface components {
         };
         UpdateProjectRequest: {
             /**
-             * @description 프로젝트 이름 (1-50자)
+             * @description Project name (1-50 characters)
              * @example Updated Project Name
              */
             name?: string;
             /**
-             * @description 프로젝트 설명 (최대 200자)
+             * @description Project description (max 200 characters)
              * @example Updated project description
              */
             description?: string;
         };
         ProjectResponse: {
             /**
-             * @description 프로젝트 ID
+             * @description Project ID
              * @example clq1234abcd
              */
             id: string;
             /**
-             * @description 프로젝트 이름
+             * @description Project name
              * @example Website Assets
              */
             name: string;
             /**
-             * @description 프로젝트 설명
+             * @description Project description
              * @example File collection used for the website
              */
             description: string | null;
             /**
-             * @description 스토리지 프로바이더
+             * @description Storage provider
              * @example OCI
              * @enum {string}
              */
             storageProvider: "OCI" | "R2";
             /**
-             * @description 생성 일시 (ISO 8601)
+             * @description Created at (ISO 8601)
              * @example 2023-01-01T00:00:00.000Z
              */
             createdAt: string;
             /**
-             * @description 수정 일시 (ISO 8601)
+             * @description Updated at (ISO 8601)
              * @example 2023-01-01T00:00:00.000Z
              */
             updatedAt: string;
         };
         ProjectListItemResponse: components["schemas"]["ProjectResponse"] & {
             /**
-             * @description 프로젝트에 포함된 파일 개수
+             * @description Number of files in the project
              * @example 12
              */
             fileCount: number;
         };
         ProjectDetailsResponse: components["schemas"]["ProjectResponse"] & {
-            /** @description 프로젝트에 속한 파일 목록 */
+            /** @description List of files in the project */
             files: components["schemas"]["FileResponse"][];
         };
         ProjectListResponse: components["schemas"]["ProjectListItemResponse"][];

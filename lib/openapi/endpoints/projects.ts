@@ -14,17 +14,17 @@ import {
   messageResponseSchema,
 } from "../schemas/common";
 
-// GET /projects - 프로젝트 목록 조회
+// GET /projects - List projects
 registry.registerPath({
   method: "get",
   path: "/projects",
   tags: ["Projects"],
-  summary: "프로젝트 목록 조회",
-  description: "모든 프로젝트 목록을 조회합니다.",
+  summary: "List projects",
+  description: "Retrieve all projects.",
   security: [{ bearerAuth: [] }],
   responses: {
     200: {
-      description: "프로젝트 목록이 성공적으로 반환됩니다.",
+      description: "Project list returned successfully.",
       content: {
         "application/json": {
           schema: projectListResponseSchema,
@@ -32,7 +32,7 @@ registry.registerPath({
       },
     },
     401: {
-      description: "인증 실패",
+      description: "Authentication failed",
       content: {
         "application/json": {
           schema: unauthorizedErrorSchema,
@@ -40,7 +40,7 @@ registry.registerPath({
       },
     },
     500: {
-      description: "서버 오류",
+      description: "Server error",
       content: {
         "application/json": {
           schema: serverErrorSchema,
@@ -50,13 +50,13 @@ registry.registerPath({
   },
 });
 
-// POST /projects - 프로젝트 생성
+// POST /projects - Create project
 registry.registerPath({
   method: "post",
   path: "/projects",
   tags: ["Projects"],
-  summary: "프로젝트 생성",
-  description: "새로운 프로젝트를 생성합니다.",
+  summary: "Create project",
+  description: "Create a new project.",
   security: [{ bearerAuth: [] }],
   request: {
     body: {
@@ -69,7 +69,7 @@ registry.registerPath({
   },
   responses: {
     201: {
-      description: "프로젝트가 성공적으로 생성되었습니다.",
+      description: "Project created successfully.",
       content: {
         "application/json": {
           schema: projectResponseSchema,
@@ -77,7 +77,7 @@ registry.registerPath({
       },
     },
     400: {
-      description: "잘못된 요청",
+      description: "Invalid request",
       content: {
         "application/json": {
           schema: badRequestErrorSchema,
@@ -85,7 +85,7 @@ registry.registerPath({
       },
     },
     401: {
-      description: "인증 실패",
+      description: "Authentication failed",
       content: {
         "application/json": {
           schema: unauthorizedErrorSchema,
@@ -93,7 +93,7 @@ registry.registerPath({
       },
     },
     500: {
-      description: "서버 오류",
+      description: "Server error",
       content: {
         "application/json": {
           schema: serverErrorSchema,
@@ -103,20 +103,20 @@ registry.registerPath({
   },
 });
 
-// GET /projects/{projectId} - 프로젝트 상세 조회
+// GET /projects/{projectId} - Get project details
 registry.registerPath({
   method: "get",
   path: "/projects/{projectId}",
   tags: ["Projects"],
-  summary: "프로젝트 상세 조회",
-  description: "프로젝트 ID로 특정 프로젝트와 파일 목록을 조회합니다.",
+  summary: "Get project details",
+  description: "Retrieve a specific project and its file list by project ID.",
   security: [{ bearerAuth: [] }],
   request: {
     params: projectIdParamSchema,
   },
   responses: {
     200: {
-      description: "프로젝트가 성공적으로 반환됩니다.",
+      description: "Project returned successfully.",
       content: {
         "application/json": {
           schema: projectDetailsResponseSchema,
@@ -124,7 +124,7 @@ registry.registerPath({
       },
     },
     401: {
-      description: "인증 실패",
+      description: "Authentication failed",
       content: {
         "application/json": {
           schema: unauthorizedErrorSchema,
@@ -132,7 +132,7 @@ registry.registerPath({
       },
     },
     404: {
-      description: "프로젝트를 찾을 수 없음",
+      description: "Project not found",
       content: {
         "application/json": {
           schema: projectNotFoundErrorSchema,
@@ -140,7 +140,7 @@ registry.registerPath({
       },
     },
     500: {
-      description: "서버 오류",
+      description: "Server error",
       content: {
         "application/json": {
           schema: serverErrorSchema,
@@ -150,21 +150,21 @@ registry.registerPath({
   },
 });
 
-// DELETE /projects/{projectId} - 프로젝트 삭제
+// DELETE /projects/{projectId} - Delete project
 registry.registerPath({
   method: "delete",
   path: "/projects/{projectId}",
   tags: ["Projects"],
-  summary: "프로젝트 삭제",
+  summary: "Delete project",
   description:
-    "프로젝트 ID로 특정 프로젝트를 삭제합니다. 프로젝트에 속한 모든 파일도 함께 삭제됩니다.",
+    "Delete a specific project by project ID. All files in the project are deleted as well.",
   security: [{ bearerAuth: [] }],
   request: {
     params: projectIdParamSchema,
   },
   responses: {
     200: {
-      description: "프로젝트가 성공적으로 삭제되었습니다.",
+      description: "Project deleted successfully.",
       content: {
         "application/json": {
           schema: messageResponseSchema,
@@ -172,7 +172,7 @@ registry.registerPath({
       },
     },
     401: {
-      description: "인증 실패",
+      description: "Authentication failed",
       content: {
         "application/json": {
           schema: unauthorizedErrorSchema,
@@ -180,7 +180,7 @@ registry.registerPath({
       },
     },
     404: {
-      description: "프로젝트를 찾을 수 없음",
+      description: "Project not found",
       content: {
         "application/json": {
           schema: projectNotFoundErrorSchema,
@@ -188,7 +188,7 @@ registry.registerPath({
       },
     },
     500: {
-      description: "서버 오류",
+      description: "Server error",
       content: {
         "application/json": {
           schema: serverErrorSchema,

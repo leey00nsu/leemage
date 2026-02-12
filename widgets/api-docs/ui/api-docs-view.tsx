@@ -581,6 +581,27 @@ export function ApiDocsView({ apiDocs, activeItemKey }: ApiDocsViewProps) {
                     ) : null}
                   </section>
 
+                  {selectedStaticDoc.key === "doc:introduction" ? (
+                    <section className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900/40">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="space-y-1">
+                          <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                            {t("specNotice.title")}
+                          </p>
+                          <p className="text-xs text-slate-600 dark:text-slate-400">
+                            {t("specNotice.description")}
+                          </p>
+                        </div>
+                        <AppButton variant="outline" size="sm" asChild>
+                          <a href="/api/v1/openapi" target="_blank" rel="noopener noreferrer">
+                            {t("specNotice.viewSpec")}
+                            <ExternalLink className="h-3.5 w-3.5" />
+                          </a>
+                        </AppButton>
+                      </div>
+                    </section>
+                  ) : null}
+
                   {selectedStaticDoc.key === "doc:rate-limits" ? (
                     <section className="space-y-3">
                       <h3 className="text-base font-semibold text-slate-900 dark:text-white">

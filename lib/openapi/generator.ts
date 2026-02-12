@@ -19,22 +19,22 @@ export function generateOpenAPISpec(): OpenAPISpec {
       title: "Leemage API",
       version: "1.0.0",
       description:
-        "Leemage 파일 관리 플랫폼 API. 프로젝트 단위로 파일을 관리하고 이미지 변환 기능을 제공합니다.",
+        "Leemage file management platform API. Manage files by project and process image transformations.",
     },
     servers: [
       {
         url: "/api/v1",
-        description: "API v1 (API Key 인증)",
+        description: "API v1 (API Key authentication)",
       },
     ],
     tags: [
       {
         name: "Projects",
-        description: "프로젝트 관리 API",
+        description: "Project management API",
       },
       {
         name: "Files",
-        description: "파일 업로드 및 관리 API",
+        description: "File upload and management API",
       },
     ],
   });

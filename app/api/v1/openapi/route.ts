@@ -21,8 +21,8 @@ export async function GET() {
   return new NextResponse(yamlContent, {
     status: 200,
     headers: {
-      "Content-Type": "application/x-yaml",
-      "Content-Disposition": "inline; filename=openapi.yaml",
+      // Keep raw YAML easily viewable in a new browser tab instead of forced download.
+      "Content-Type": "text/plain; charset=utf-8",
     },
   });
 }
