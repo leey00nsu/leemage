@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/api/v1/projects": {
+    "/projects": {
         parameters: {
             query?: never;
             header?: never;
@@ -65,7 +65,7 @@ export interface paths {
                 path?: never;
                 cookie?: never;
             };
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["CreateProjectRequest"];
                 };
@@ -115,7 +115,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/projects/{projectId}": {
+    "/projects/{projectId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -131,6 +131,10 @@ export interface paths {
                 query?: never;
                 header?: never;
                 path: {
+                    /**
+                     * @description Project ID
+                     * @example clq1234abcd
+                     */
                     projectId: string;
                 };
                 cookie?: never;
@@ -186,6 +190,10 @@ export interface paths {
                 query?: never;
                 header?: never;
                 path: {
+                    /**
+                     * @description Project ID
+                     * @example clq1234abcd
+                     */
                     projectId: string;
                 };
                 cookie?: never;
@@ -235,7 +243,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/projects/{projectId}/files/presign": {
+    "/projects/{projectId}/files/presign": {
         parameters: {
             query?: never;
             header?: never;
@@ -253,11 +261,15 @@ export interface paths {
                 query?: never;
                 header?: never;
                 path: {
+                    /**
+                     * @description Project ID
+                     * @example clq1234abcd
+                     */
                     projectId: string;
                 };
                 cookie?: never;
             };
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["PresignRequest"];
                 };
@@ -296,7 +308,16 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["BadRequestError"];
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Server error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ServerError"];
                     };
                 };
             };
@@ -307,7 +328,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/projects/{projectId}/files/confirm": {
+    "/projects/{projectId}/files/confirm": {
         parameters: {
             query?: never;
             header?: never;
@@ -325,11 +346,15 @@ export interface paths {
                 query?: never;
                 header?: never;
                 path: {
+                    /**
+                     * @description Project ID
+                     * @example clq1234abcd
+                     */
                     projectId: string;
                 };
                 cookie?: never;
             };
-            requestBody?: {
+            requestBody: {
                 content: {
                     "application/json": components["schemas"]["ConfirmRequest"];
                 };
@@ -371,6 +396,15 @@ export interface paths {
                         "application/json": components["schemas"]["FileNotFoundError"];
                     };
                 };
+                /** @description Server error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ServerError"];
+                    };
+                };
             };
         };
         delete?: never;
@@ -379,7 +413,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/projects/{projectId}/files/{fileId}": {
+    "/projects/{projectId}/files/{fileId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -398,7 +432,15 @@ export interface paths {
                 query?: never;
                 header?: never;
                 path: {
+                    /**
+                     * @description Project ID
+                     * @example clq1234abcd
+                     */
                     projectId: string;
+                    /**
+                     * @description File ID
+                     * @example file5678efgh
+                     */
                     fileId: string;
                 };
                 cookie?: never;
@@ -534,8 +576,8 @@ export interface components {
         };
         VariantOption: {
             /**
-             * @description Image size label. Preset (original, 300x300, 800x800, 1920x1080) or custom resolution (WIDTHxHEIGHT format)
-             * @example original
+             * @description Image size label. Presets: source (original), max300 (longest side 300px), max800 (longest side 800px), max1920 (longest side 1920px), or custom resolution (WIDTHxHEIGHT format).
+             * @example source
              */
             sizeLabel: ("source" | "max300" | "max800" | "max1920") | string;
             /**
@@ -547,6 +589,7 @@ export interface components {
         };
         ImageVariantData: {
             /**
+             * Format: uri
              * @description Image URL
              * @example https://objectstorage.ap-seoul-1.oraclecloud.com/...
              */
@@ -596,6 +639,7 @@ export interface components {
         };
         PresignResponse: {
             /**
+             * Format: uri
              * @description Presigned URL for direct upload to OCI
              * @example https://objectstorage.ap-seoul-1.oraclecloud.com/p/...
              */
@@ -606,6 +650,7 @@ export interface components {
              */
             objectName: string;
             /**
+             * Format: uri
              * @description Object URL after upload completion
              * @example https://objectstorage.ap-seoul-1.oraclecloud.com/n/.../o/...
              */
@@ -616,6 +661,7 @@ export interface components {
              */
             fileId: string;
             /**
+             * Format: date-time
              * @description Presigned URL expiration time (ISO 8601)
              * @example 2023-01-01T00:15:00.000Z
              */
@@ -677,6 +723,7 @@ export interface components {
              */
             size: number;
             /**
+             * Format: uri
              * @description URL for non-image files
              * @example null
              */
@@ -684,11 +731,13 @@ export interface components {
             /** @description Image variants list (image files only) */
             variants: components["schemas"]["ImageVariantData"][];
             /**
+             * Format: date-time
              * @description Created at (ISO 8601)
              * @example 2023-01-01T00:00:00.000Z
              */
             createdAt: string;
             /**
+             * Format: date-time
              * @description Updated at (ISO 8601)
              * @example 2023-01-01T00:00:00.000Z
              */
@@ -763,11 +812,13 @@ export interface components {
              */
             storageProvider: "OCI" | "R2";
             /**
+             * Format: date-time
              * @description Created at (ISO 8601)
              * @example 2023-01-01T00:00:00.000Z
              */
             createdAt: string;
             /**
+             * Format: date-time
              * @description Updated at (ISO 8601)
              * @example 2023-01-01T00:00:00.000Z
              */

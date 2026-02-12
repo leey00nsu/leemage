@@ -9,12 +9,16 @@ import {
 // 파일 ID 파라미터 스키마
 export const fileIdParamSchema = z.object({
   projectId: z.string().openapi({
-    description: "Project ID",
-    example: "clq1234abcd",
+    param: {
+      description: "Project ID",
+      example: "clq1234abcd",
+    },
   }),
   fileId: z.string().openapi({
-    description: "File ID",
-    example: "file5678efgh",
+    param: {
+      description: "File ID",
+      example: "file5678efgh",
+    },
   }),
 });
 
@@ -26,8 +30,8 @@ const sizeLabelSchema = z.union([
     .regex(/^\d+x\d+$/, "Custom resolution must use WIDTHxHEIGHT format (e.g. 1200x800)"),
 ]).openapi({
   description:
-    "Image size label. Preset (original, 300x300, 800x800, 1920x1080) or custom resolution (WIDTHxHEIGHT format)",
-  example: "original",
+    "Image size label. Presets: source (original), max300 (longest side 300px), max800 (longest side 800px), max1920 (longest side 1920px), or custom resolution (WIDTHxHEIGHT format).",
+  example: "source",
 });
 
 // Variant 옵션 스키마
@@ -46,17 +50,18 @@ export const imageVariantDataSchema = z
   .object({
     url: z.string().openapi({
       description: "Image URL",
+      format: "uri",
       example: "https://objectstorage.ap-seoul-1.oraclecloud.com/...",
     }),
-    width: z.number().openapi({
+    width: z.number().int().min(1).openapi({
       description: "Image width (px)",
       example: 1920,
     }),
-    height: z.number().openapi({
+    height: z.number().int().min(1).openapi({
       description: "Image height (px)",
       example: 1080,
     }),
-    size: z.number().openapi({
+    size: z.number().int().nonnegative().openapi({
       description: "File size (bytes)",
       example: 102400,
     }),
@@ -82,7 +87,7 @@ export const presignRequestSchema = z
       description: "MIME type of the file",
       example: "image/jpeg",
     }),
-    fileSize: z.number().positive().openapi({
+    fileSize: z.number().int().min(1).openapi({
       description: "File size (bytes)",
       example: 102400,
     }),
@@ -94,6 +99,7 @@ export const presignResponseSchema = z
   .object({
     presignedUrl: z.string().openapi({
       description: "Presigned URL for direct upload to OCI",
+      format: "uri",
       example: "https://objectstorage.ap-seoul-1.oraclecloud.com/p/...",
     }),
     objectName: z.string().openapi({
@@ -102,6 +108,7 @@ export const presignResponseSchema = z
     }),
     objectUrl: z.string().openapi({
       description: "Object URL after upload completion",
+      format: "uri",
       example: "https://objectstorage.ap-seoul-1.oraclecloud.com/n/.../o/...",
     }),
     fileId: z.string().openapi({
@@ -110,6 +117,7 @@ export const presignResponseSchema = z
     }),
     expiresAt: z.string().openapi({
       description: "Presigned URL expiration time (ISO 8601)",
+      format: "date-time",
       example: "2023-01-01T00:15:00.000Z",
     }),
   })
@@ -134,7 +142,7 @@ export const confirmRequestSchema = z
       description: "MIME type of the file",
       example: "image/jpeg",
     }),
-    fileSize: z.number().positive().openapi({
+    fileSize: z.number().int().min(1).openapi({
       description: "File size (bytes)",
       example: 102400,
     }),
@@ -166,7 +174,7 @@ export const fileResponseSchema = z
       description: "Whether it is an image file",
       example: true,
     }),
-    size: z.number().openapi({
+    size: z.number().int().nonnegative().openapi({
       description: "File size (bytes)",
       example: 102400,
     }),
@@ -175,6 +183,7 @@ export const fileResponseSchema = z
       .nullable()
       .openapi({
         description: "URL for non-image files",
+        format: "uri",
         example: null,
       }),
     variants: z.array(imageVariantDataSchema).openapi({
@@ -182,10 +191,12 @@ export const fileResponseSchema = z
     }),
     createdAt: z.string().openapi({
       description: "Created at (ISO 8601)",
+      format: "date-time",
       example: "2023-01-01T00:00:00.000Z",
     }),
     updatedAt: z.string().openapi({
       description: "Updated at (ISO 8601)",
+      format: "date-time",
       example: "2023-01-01T00:00:00.000Z",
     }),
     projectId: z.string().openapi({

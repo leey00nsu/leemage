@@ -8,6 +8,7 @@ import {
 } from "../schemas/files";
 import { projectIdParamSchema } from "../schemas/projects";
 import {
+  errorResponseSchema,
   unauthorizedErrorSchema,
   fileNotFoundErrorSchema,
   serverErrorSchema,
@@ -27,6 +28,7 @@ registry.registerPath({
   request: {
     params: projectIdParamSchema,
     body: {
+      required: true,
       content: {
         "application/json": {
           schema: presignRequestSchema,
@@ -63,7 +65,15 @@ registry.registerPath({
       description: "File size exceeded or storage quota exceeded",
       content: {
         "application/json": {
-          schema: badRequestErrorSchema,
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: "Server error",
+      content: {
+        "application/json": {
+          schema: serverErrorSchema,
         },
       },
     },
@@ -82,6 +92,7 @@ registry.registerPath({
   request: {
     params: projectIdParamSchema,
     body: {
+      required: true,
       content: {
         "application/json": {
           schema: confirmRequestSchema,
@@ -119,6 +130,14 @@ registry.registerPath({
       content: {
         "application/json": {
           schema: fileNotFoundErrorSchema,
+        },
+      },
+    },
+    500: {
+      description: "Server error",
+      content: {
+        "application/json": {
+          schema: serverErrorSchema,
         },
       },
     },

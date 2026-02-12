@@ -60,6 +60,7 @@ registry.registerPath({
   security: [{ bearerAuth: [] }],
   request: {
     body: {
+      required: true,
       content: {
         "application/json": {
           schema: createProjectRequestSchema,

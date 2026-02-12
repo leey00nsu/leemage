@@ -27,7 +27,7 @@ export const getApiDocsData = async (
   const yamlContent = readFileSync(yamlPath, "utf-8");
   const spec = parse(yamlContent) as OpenAPISpec;
 
-  // UI 형식으로 변환 (YAML에는 이미 /api/v1 prefix가 포함됨)
+  // UI 형식으로 변환 (base path는 OpenAPI servers.url을 따름)
   const categories = transformOpenAPIToCategories(spec, locale, t);
 
   return categories;

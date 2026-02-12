@@ -115,8 +115,8 @@ components:
                 - max1920
             - type: string
               pattern: ^\d+x\d+$
-          description: Image size label. Preset (original, 300x300, 800x800, 1920x1080) or custom resolution (WIDTHxHEIGHT format)
-          example: original
+          description: "Image size label. Presets: source (original), max300 (longest side 300px), max800 (longest side 800px), max1920 (longest side 1920px), or custom resolution (WIDTHxHEIGHT format)."
+          example: source
         format:
           type: string
           enum:
@@ -134,18 +134,22 @@ components:
       properties:
         url:
           type: string
+          format: uri
           description: Image URL
           example: https://objectstorage.ap-seoul-1.oraclecloud.com/...
         width:
-          type: number
+          type: integer
+          minimum: 1
           description: Image width (px)
           example: 1920
         height:
-          type: number
+          type: integer
+          minimum: 1
           description: Image height (px)
           example: 1080
         size:
-          type: number
+          type: integer
+          minimum: 0
           description: File size (bytes)
           example: 102400
         format:
@@ -177,9 +181,8 @@ components:
           description: MIME type of the file
           example: image/jpeg
         fileSize:
-          type: number
-          minimum: 0
-          exclusiveMinimum: true
+          type: integer
+          minimum: 1
           description: File size (bytes)
           example: 102400
       required:
@@ -191,6 +194,7 @@ components:
       properties:
         presignedUrl:
           type: string
+          format: uri
           description: Presigned URL for direct upload to OCI
           example: https://objectstorage.ap-seoul-1.oraclecloud.com/p/...
         objectName:
@@ -199,6 +203,7 @@ components:
           example: clq1234abcd/file5678efgh.jpg
         objectUrl:
           type: string
+          format: uri
           description: Object URL after upload completion
           example: https://objectstorage.ap-seoul-1.oraclecloud.com/n/.../o/...
         fileId:
@@ -207,6 +212,7 @@ components:
           example: file5678efgh
         expiresAt:
           type: string
+          format: date-time
           description: Presigned URL expiration time (ISO 8601)
           example: 2023-01-01T00:15:00.000Z
       required:
@@ -239,9 +245,8 @@ components:
           description: MIME type of the file
           example: image/jpeg
         fileSize:
-          type: number
-          minimum: 0
-          exclusiveMinimum: true
+          type: integer
+          minimum: 1
           description: File size (bytes)
           example: 102400
         variants:
@@ -275,12 +280,14 @@ components:
           description: Whether it is an image file
           example: true
         size:
-          type: number
+          type: integer
+          minimum: 0
           description: File size (bytes)
           example: 102400
         url:
           type: string
           nullable: true
+          format: uri
           description: URL for non-image files
           example: null
         variants:
@@ -290,10 +297,12 @@ components:
           description: Image variants list (image files only)
         createdAt:
           type: string
+          format: date-time
           description: Created at (ISO 8601)
           example: 2023-01-01T00:00:00.000Z
         updatedAt:
           type: string
+          format: date-time
           description: Updated at (ISO 8601)
           example: 2023-01-01T00:00:00.000Z
         projectId:
@@ -389,10 +398,12 @@ components:
           example: OCI
         createdAt:
           type: string
+          format: date-time
           description: Created at (ISO 8601)
           example: 2023-01-01T00:00:00.000Z
         updatedAt:
           type: string
+          format: date-time
           description: Updated at (ISO 8601)
           example: 2023-01-01T00:00:00.000Z
       required:
@@ -432,7 +443,7 @@ components:
         $ref: "#/components/schemas/ProjectListItemResponse"
   parameters: {}
 paths:
-  /api/v1/projects:
+  /projects:
     get:
       tags:
         - Projects
@@ -467,6 +478,7 @@ paths:
       security:
         - bearerAuth: []
       requestBody:
+        required: true
         content:
           application/json:
             schema:
@@ -496,7 +508,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ServerError"
-  /api/v1/projects/{projectId}:
+  /projects/{projectId}:
     get:
       tags:
         - Projects
@@ -507,9 +519,9 @@ paths:
       parameters:
         - schema:
             type: string
-            description: Project ID
-            example: clq1234abcd
           required: true
+          description: Project ID
+          example: clq1234abcd
           name: projectId
           in: path
       responses:
@@ -547,9 +559,9 @@ paths:
       parameters:
         - schema:
             type: string
-            description: Project ID
-            example: clq1234abcd
           required: true
+          description: Project ID
+          example: clq1234abcd
           name: projectId
           in: path
       responses:
@@ -577,7 +589,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ServerError"
-  /api/v1/projects/{projectId}/files/presign:
+  /projects/{projectId}/files/presign:
     post:
       tags:
         - Files
@@ -588,12 +600,13 @@ paths:
       parameters:
         - schema:
             type: string
-            description: Project ID
-            example: clq1234abcd
           required: true
+          description: Project ID
+          example: clq1234abcd
           name: projectId
           in: path
       requestBody:
+        required: true
         content:
           application/json:
             schema:
@@ -622,8 +635,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/BadRequestError"
-  /api/v1/projects/{projectId}/files/confirm:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServerError"
+  /projects/{projectId}/files/confirm:
     post:
       tags:
         - Files
@@ -634,12 +653,13 @@ paths:
       parameters:
         - schema:
             type: string
-            description: Project ID
-            example: clq1234abcd
           required: true
+          description: Project ID
+          example: clq1234abcd
           name: projectId
           in: path
       requestBody:
+        required: true
         content:
           application/json:
             schema:
@@ -669,7 +689,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/FileNotFoundError"
-  /api/v1/projects/{projectId}/files/{fileId}:
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServerError"
+  /projects/{projectId}/files/{fileId}:
     delete:
       tags:
         - Files
@@ -680,16 +706,16 @@ paths:
       parameters:
         - schema:
             type: string
-            description: Project ID
-            example: clq1234abcd
           required: true
+          description: Project ID
+          example: clq1234abcd
           name: projectId
           in: path
         - schema:
             type: string
-            description: File ID
-            example: file5678efgh
           required: true
+          description: File ID
+          example: file5678efgh
           name: fileId
           in: path
       responses:

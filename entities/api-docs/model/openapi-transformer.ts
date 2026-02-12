@@ -14,25 +14,25 @@ export type TranslationGetter = (key: string) => string;
  * Operation ID 매핑 - HTTP 메서드와 경로를 번역 키로 변환
  */
 const OPERATION_ID_MAP: Record<string, string> = {
-  "GET /api/v1/projects": "projects.list",
-  "POST /api/v1/projects": "projects.create",
-  "GET /api/v1/projects/{projectId}": "projects.get",
-  "DELETE /api/v1/projects/{projectId}": "projects.delete",
-  "POST /api/v1/projects/{projectId}/files/presign": "files.presign",
-  "POST /api/v1/projects/{projectId}/files/confirm": "files.confirm",
-  "DELETE /api/v1/projects/{projectId}/files/{fileId}": "files.delete",
+  "GET /projects": "projects.list",
+  "POST /projects": "projects.create",
+  "GET /projects/{projectId}": "projects.get",
+  "DELETE /projects/{projectId}": "projects.delete",
+  "POST /projects/{projectId}/files/presign": "files.presign",
+  "POST /projects/{projectId}/files/confirm": "files.confirm",
+  "DELETE /projects/{projectId}/files/{fileId}": "files.delete",
 };
 
 const RESPONSE_TRANSLATION_KEY_MAP: Record<string, string> = {
-  "GET /api/v1/projects 200": "apiDocs.responses.projectListSuccess",
-  "POST /api/v1/projects 201": "apiDocs.responses.projectCreated",
-  "GET /api/v1/projects/{projectId} 200": "apiDocs.responses.projectGetSuccess",
-  "DELETE /api/v1/projects/{projectId} 200": "apiDocs.responses.projectDeleted",
-  "POST /api/v1/projects/{projectId}/files/presign 200":
+  "GET /projects 200": "apiDocs.responses.projectListSuccess",
+  "POST /projects 201": "apiDocs.responses.projectCreated",
+  "GET /projects/{projectId} 200": "apiDocs.responses.projectGetSuccess",
+  "DELETE /projects/{projectId} 200": "apiDocs.responses.projectDeleted",
+  "POST /projects/{projectId}/files/presign 200":
     "apiDocs.responses.presignSuccess",
-  "POST /api/v1/projects/{projectId}/files/confirm 201":
+  "POST /projects/{projectId}/files/confirm 201":
     "apiDocs.responses.confirmSuccess",
-  "DELETE /api/v1/projects/{projectId}/files/{fileId} 200":
+  "DELETE /projects/{projectId}/files/{fileId} 200":
     "apiDocs.responses.fileDeleted",
 };
 

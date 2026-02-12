@@ -20,19 +20,8 @@ async function main() {
   // OpenAPI 스펙 생성
   const spec = generateOpenAPISpec();
 
-  // 경로를 /api/v1 prefix로 변환
-  const specWithPrefix = {
-    ...spec,
-    paths: Object.fromEntries(
-      Object.entries(spec.paths).map(([path, pathItem]) => [
-        `/api/v1${path}`,
-        pathItem,
-      ])
-    ),
-  };
-
   // YAML로 변환
-  const yamlContent = stringify(specWithPrefix, {
+  const yamlContent = stringify(spec, {
     indent: 2,
     lineWidth: 0, // 줄바꿈 없이
   });
@@ -42,7 +31,7 @@ async function main() {
 
   console.log(`OpenAPI spec generated: ${OUTPUT_PATH}`);
   console.log(
-    `Endpoints: ${Object.keys(specWithPrefix.paths).length} paths registered`
+    `Endpoints: ${Object.keys(spec.paths).length} paths registered`
   );
 }
 

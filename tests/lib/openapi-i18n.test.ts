@@ -48,7 +48,7 @@ describe("OpenAPI i18n - 태그 설명", () => {
 
     registry.registerPath({
       method: "get",
-      path: "/api/v1/projects",
+      path: "/projects",
       tags: ["Projects"],
       responses: { 200: { description: "Success" } },
     });
@@ -72,7 +72,7 @@ describe("OpenAPI i18n - 태그 설명", () => {
 
     registry.registerPath({
       method: "get",
-      path: "/api/v1/projects",
+      path: "/projects",
       tags: ["Projects"],
       responses: { 200: { description: "Success" } },
     });
@@ -104,7 +104,7 @@ describe("OpenAPI i18n - 태그 설명", () => {
 
         registry.registerPath({
           method: "get",
-          path: `/api/v1/${tagName.toLowerCase()}`,
+          path: `/${tagName.toLowerCase()}`,
           tags: [tagName],
           responses: { 200: { description: "Success" } },
         });
@@ -143,7 +143,7 @@ describe("OpenAPI i18n - 엔드포인트 설명", () => {
 
     registry.registerPath({
       method: "get",
-      path: "/api/v1/projects",
+      path: "/projects",
       tags: ["Projects"],
       summary: "Original summary",
       responses: { 200: { description: "Success" } },
@@ -159,7 +159,7 @@ describe("OpenAPI i18n - 엔드포인트 설명", () => {
     const categories = transformOpenAPIToCategories(spec, "ko", t);
 
     const endpoint = categories[0]?.endpoints.find(
-      (e) => e.path === "/api/v1/projects" && e.method === "GET",
+      (e) => e.path === "/projects" && e.method === "GET",
     );
     expect(endpoint?.description).toBe("프로젝트 목록 조회");
   });
@@ -169,7 +169,7 @@ describe("OpenAPI i18n - 엔드포인트 설명", () => {
 
     registry.registerPath({
       method: "get",
-      path: "/api/v1/projects",
+      path: "/projects",
       tags: ["Projects"],
       summary: "Original summary",
       responses: { 200: { description: "Success" } },
@@ -185,7 +185,7 @@ describe("OpenAPI i18n - 엔드포인트 설명", () => {
     const categories = transformOpenAPIToCategories(spec, "en", t);
 
     const endpoint = categories[0]?.endpoints.find(
-      (e) => e.path === "/api/v1/projects" && e.method === "GET",
+      (e) => e.path === "/projects" && e.method === "GET",
     );
     expect(endpoint?.description).toBe("List Projects");
   });
@@ -197,22 +197,22 @@ describe("OpenAPI i18n - 엔드포인트 설명", () => {
     const endpoints = [
       {
         method: "get" as const,
-        path: "/api/v1/projects",
+        path: "/projects",
         key: "projects.list",
       },
       {
         method: "post" as const,
-        path: "/api/v1/projects",
+        path: "/projects",
         key: "projects.create",
       },
       {
         method: "get" as const,
-        path: "/api/v1/projects/{projectId}",
+        path: "/projects/{projectId}",
         key: "projects.get",
       },
       {
         method: "delete" as const,
-        path: "/api/v1/projects/{projectId}",
+        path: "/projects/{projectId}",
         key: "projects.delete",
       },
     ];
@@ -266,7 +266,7 @@ describe("OpenAPI i18n - 폴백 동작", () => {
 
     registry.registerPath({
       method: "get",
-      path: "/api/v1/unknown",
+      path: "/unknown",
       tags: ["Unknown"],
       summary: "Original summary for unknown endpoint",
       responses: { 200: { description: "Success" } },
@@ -297,7 +297,7 @@ describe("OpenAPI i18n - 폴백 동작", () => {
 
     registry.registerPath({
       method: "get",
-      path: "/api/v1/projects",
+      path: "/projects",
       tags: ["Projects"],
       summary: "Original summary",
       responses: { 200: { description: "Success" } },
@@ -325,22 +325,22 @@ describe("번역 키 유틸리티", () => {
   describe("getEndpointTranslationKey", () => {
     it("알려진 엔드포인트에 대해 올바른 번역 키를 생성해야 한다", () => {
       expect(
-        getEndpointTranslationKey("GET", "/api/v1/projects", "summary"),
+        getEndpointTranslationKey("GET", "/projects", "summary"),
       ).toBe("apiDocs.endpoints.projects.list.summary");
       expect(
-        getEndpointTranslationKey("POST", "/api/v1/projects", "summary"),
+        getEndpointTranslationKey("POST", "/projects", "summary"),
       ).toBe("apiDocs.endpoints.projects.create.summary");
       expect(
         getEndpointTranslationKey(
           "GET",
-          "/api/v1/projects/{projectId}",
+          "/projects/{projectId}",
           "description",
         ),
       ).toBe("apiDocs.endpoints.projects.get.description");
       expect(
         getEndpointTranslationKey(
           "DELETE",
-          "/api/v1/projects/{projectId}",
+          "/projects/{projectId}",
           "summary",
         ),
       ).toBe("apiDocs.endpoints.projects.delete.summary");
@@ -348,7 +348,7 @@ describe("번역 키 유틸리티", () => {
 
     it("알 수 없는 엔드포인트에 대해 빈 문자열을 반환해야 한다", () => {
       expect(
-        getEndpointTranslationKey("GET", "/api/v1/unknown", "summary"),
+        getEndpointTranslationKey("GET", "/unknown", "summary"),
       ).toBe("");
       expect(
         getEndpointTranslationKey("POST", "/unknown/path", "description"),

@@ -3,7 +3,6 @@ import { z } from "zod";
 import { registry } from "../registry";
 import { fileResponseSchema } from "./files";
 
-
 // 스토리지 프로바이더 스키마
 export const storageProviderSchema = z
   .enum(["OCI", "R2"])
@@ -16,8 +15,10 @@ export const storageProviderSchema = z
 // 프로젝트 ID 파라미터 스키마
 export const projectIdParamSchema = z.object({
   projectId: z.string().openapi({
-    description: "Project ID",
-    example: "clq1234abcd",
+    param: {
+      description: "Project ID",
+      example: "clq1234abcd",
+    },
   }),
 });
 
@@ -73,10 +74,12 @@ export const projectResponseSchema = z
     }),
     createdAt: z.string().openapi({
       description: "Created at (ISO 8601)",
+      format: "date-time",
       example: "2023-01-01T00:00:00.000Z",
     }),
     updatedAt: z.string().openapi({
       description: "Updated at (ISO 8601)",
+      format: "date-time",
       example: "2023-01-01T00:00:00.000Z",
     }),
   })
