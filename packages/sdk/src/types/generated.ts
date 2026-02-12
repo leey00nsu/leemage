@@ -692,12 +692,12 @@ export interface components {
              */
             fileSize: number;
             /**
-             * @description (Image only) Original image width in pixels. Provide with height to use deterministic source object naming.
+             * @description (Image only) Original image width in pixels. Provide with height to include exact resolution in objectName; when omitted, source placeholder naming is used.
              * @example 421
              */
             width?: number;
             /**
-             * @description (Image only) Original image height in pixels. Provide with width to use deterministic source object naming.
+             * @description (Image only) Original image height in pixels. Provide with width to include exact resolution in objectName; when omitted, source placeholder naming is used.
              * @example 524
              */
             height?: number;
@@ -710,8 +710,8 @@ export interface components {
              */
             presignedUrl: string;
             /**
-             * @description OCI object path
-             * @example clq1234abcd/file5678efgh.jpg
+             * @description OCI object path. Image objects use either {fileId}-{width}x{height}-{ext}.{ext} (when width/height are provided) or {fileId}-source-{ext}.{ext} (when omitted).
+             * @example clq1234abcd/file5678efgh-source-jpg.jpg
              */
             objectName: string;
             /**
@@ -735,7 +735,7 @@ export interface components {
         /**
          * @example {
          *       "fileId": "file5678efgh",
-         *       "objectName": "clq1234abcd/file5678efgh.jpg",
+         *       "objectName": "clq1234abcd/file5678efgh-source-jpg.jpg",
          *       "fileName": "image.jpg",
          *       "contentType": "image/jpeg",
          *       "fileSize": 102400,
@@ -759,7 +759,7 @@ export interface components {
             fileId: string;
             /**
              * @description Object name from presign response
-             * @example clq1234abcd/file5678efgh.jpg
+             * @example clq1234abcd/file5678efgh-source-jpg.jpg
              */
             objectName: string;
             /**

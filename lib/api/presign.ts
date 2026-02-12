@@ -146,10 +146,11 @@ export async function presignHandler(
       );
     }
 
-    const objectName =
-      isImage && width !== undefined && height !== undefined
+    const objectName = isImage
+      ? width !== undefined && height !== undefined
         ? `${projectId}/${fileId}-${width}x${height}-${extension}.${extension}`
-        : `${projectId}/${fileId}.${extension}`;
+        : `${projectId}/${fileId}-source-${extension}.${extension}`
+      : `${projectId}/${fileId}.${extension}`;
 
     // 프로젝트의 스토리지 프로바이더에 맞는 어댑터 가져오기
     const storageProvider = fromPrismaStorageProvider(project.storageProvider);
