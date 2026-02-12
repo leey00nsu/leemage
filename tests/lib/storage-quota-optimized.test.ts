@@ -207,7 +207,7 @@ describe("스토리지 쿼터 최적화", () => {
       ); // 1MB upload
 
       expect(result.allowed).toBe(false);
-      expect(result.message).toContain("스토리지 한도를 초과합니다");
+      expect(result.message).toContain("Storage quota exceeded.");
       expect(result.remaining).toBe(500000);
     });
   });

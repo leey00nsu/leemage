@@ -58,7 +58,7 @@ export async function getProjectsHandler(
   } catch (error) {
     console.error("Fetch projects API error:", error);
     return NextResponse.json(
-      { message: "프로젝트 목록 조회 중 오류가 발생했습니다." },
+      { message: "An error occurred while fetching projects." },
       { status: 500 }
     );
   }
@@ -75,7 +75,7 @@ export async function createProjectHandler(
     if (!validationResult.success) {
       return NextResponse.json(
         {
-          message: "잘못된 요청 형식입니다.",
+          message: "Invalid request format.",
           errors: validationResult.error.flatten().fieldErrors,
         },
         { status: 400 }
@@ -90,7 +90,7 @@ export async function createProjectHandler(
     
     if (!isAvailable) {
       return NextResponse.json(
-        { message: `선택한 스토리지 프로바이더(${provider})가 설정되지 않았습니다.` },
+        { message: `Selected storage provider (${provider}) is not configured.` },
         { status: 400 }
       );
     }
@@ -116,7 +116,7 @@ export async function createProjectHandler(
   } catch (error) {
     console.error("Project creation API error:", error);
     return NextResponse.json(
-      { message: "프로젝트 생성 중 오류가 발생했습니다." },
+      { message: "An error occurred while creating the project." },
       { status: 500 }
     );
   }
@@ -133,7 +133,7 @@ export async function updateProjectHandler(
     const ownershipResult = await verifyProjectOwnership(userId, projectId);
     if (!ownershipResult.authorized) {
       return NextResponse.json(
-        { message: "리소스를 찾을 수 없습니다." },
+        { message: "Resource not found." },
         { status: ownershipResult.reason === OWNERSHIP_ERROR_CODES.NOT_FOUND ? 404 : 403 }
       );
     }
@@ -144,7 +144,7 @@ export async function updateProjectHandler(
     if (!validationResult.success) {
       return NextResponse.json(
         {
-          message: "잘못된 요청 형식입니다.",
+          message: "Invalid request format.",
           errors: validationResult.error.flatten().fieldErrors,
         },
         { status: 400 }
@@ -156,7 +156,7 @@ export async function updateProjectHandler(
     // 이름이 제공되었지만 공백만 있는 경우 거부
     if (name !== undefined && name.trim().length === 0) {
       return NextResponse.json(
-        { message: "프로젝트 이름은 필수입니다." },
+        { message: "Project name is required." },
         { status: 400 }
       );
     }
@@ -178,7 +178,7 @@ export async function updateProjectHandler(
       
       if (!existingProject) {
         return NextResponse.json(
-          { message: "프로젝트를 찾을 수 없습니다." },
+          { message: "Project not found." },
           { status: 404 }
         );
       }
@@ -208,7 +208,7 @@ export async function updateProjectHandler(
   } catch (error) {
     console.error("Project update API error:", error);
     return NextResponse.json(
-      { message: "프로젝트 수정 중 오류가 발생했습니다." },
+      { message: "An error occurred while updating the project." },
       { status: 500 }
     );
   }

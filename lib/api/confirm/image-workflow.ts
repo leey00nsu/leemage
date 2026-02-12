@@ -23,7 +23,7 @@ async function processImageVariants(
     !originalMetadata.height ||
     !originalMetadata.size
   ) {
-    throw new Error("이미지 메타데이터를 가져올 수 없습니다.");
+    throw new Error("Failed to read image metadata.");
   }
 
   const allVariantData: ImageVariantData[] = [];
@@ -189,7 +189,7 @@ export async function handleImageConfirm({
     await storageAdapter.deleteObject(objectName).catch(() => {});
 
     return NextResponse.json(
-      { message: "파일 내용이 선언된 형식과 일치하지 않습니다." },
+      { message: "File content does not match the declared content type." },
       { status: 400 },
     );
   }
@@ -238,7 +238,7 @@ export async function handleImageConfirm({
 
   const response = NextResponse.json(
     {
-      message: "이미지 업로드 및 처리 완료",
+      message: "Image upload and processing complete",
       file: savedFile,
       variants: allVariants,
     },

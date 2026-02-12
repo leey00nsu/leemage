@@ -111,7 +111,15 @@ export const presignRequestSchema = z
       path: ["height"],
     },
   )
-  .openapi("PresignRequest");
+  .openapi("PresignRequest", {
+    example: {
+      fileName: "image.jpg",
+      contentType: "image/jpeg",
+      fileSize: 102400,
+      width: 421,
+      height: 524,
+    },
+  });
 
 // Presign 응답 스키마
 export const presignResponseSchema = z
@@ -172,7 +180,19 @@ export const confirmRequestSchema = z
         description: "(Image only) Array of image variant options to generate",
       }),
   })
-  .openapi("ConfirmRequest");
+  .openapi("ConfirmRequest", {
+    example: {
+      fileId: "file5678efgh",
+      objectName: "clq1234abcd/file5678efgh.jpg",
+      fileName: "image.jpg",
+      contentType: "image/jpeg",
+      fileSize: 102400,
+      variants: [
+        { sizeLabel: "source", format: "webp" },
+        { sizeLabel: "max800", format: "jpeg" },
+      ],
+    },
+  });
 
 // 파일 응답 스키마
 export const fileResponseSchema = z

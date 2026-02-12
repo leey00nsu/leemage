@@ -7,10 +7,10 @@ import { useTranslations } from "next-intl";
 
 import { ApiEndpoint } from "../model/types";
 import { AppButton } from "@/shared/ui/app/app-button";
-import { AppCodeBlock } from "@/shared/ui/app/app-code-block";
 import { AppMethodBadge } from "@/shared/ui/app/app-method-badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { getRateLimitConfigForPath } from "@/shared/config/rate-limit";
+import { CodeBlock } from "@/shared/ui/code-block";
 import {
   AppTable,
   AppTableBody,
@@ -177,6 +177,20 @@ export function EndpointCard({ endpoint }: EndpointCardProps) {
           <h3 className="border-b border-slate-200 pb-2 text-sm font-semibold text-slate-900 dark:border-slate-800 dark:text-white">
             {t("requestBody")} ({endpoint.requestBody.type})
           </h3>
+          {endpoint.requestBody.example !== undefined ? (
+            <div className="space-y-2">
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                {t("requestExample")}
+              </p>
+              <div className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800">
+                <CodeBlock
+                  language="json"
+                  filename="request-body.json"
+                  code={JSON.stringify(endpoint.requestBody.example, null, 2)}
+                />
+              </div>
+            </div>
+          ) : null}
           <div className="rounded-lg border border-slate-200 dark:border-slate-800">
             <AppTable className="min-w-[680px]">
               <AppTableHeader>
@@ -233,28 +247,15 @@ export function EndpointCard({ endpoint }: EndpointCardProps) {
                 value={response.status.toString()}
                 className="space-y-2"
               >
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm text-slate-600 dark:text-slate-400">
-                    {response.description || "-"}
-                  </p>
-                  <AppButton
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      copyToClipboard(
-                        JSON.stringify(response.example, null, 2),
-                        t("responseCopied"),
-                      )
-                    }
-                  >
-                    <Copy className="h-3.5 w-3.5" />
-                    {t("copy")}
-                  </AppButton>
-                </div>
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  {response.description || "-"}
+                </p>
                 <div className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800">
-                  <AppCodeBlock className="bg-slate-50 text-xs text-slate-700 dark:bg-slate-950 dark:text-slate-300">
-                    <code>{JSON.stringify(response.example, null, 2)}</code>
-                  </AppCodeBlock>
+                  <CodeBlock
+                    language="json"
+                    filename={`response-${response.status}.json`}
+                    code={JSON.stringify(response.example, null, 2)}
+                  />
                 </div>
               </TabsContent>
             ))}

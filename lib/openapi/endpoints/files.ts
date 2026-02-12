@@ -106,6 +106,40 @@ registry.registerPath({
       content: {
         "application/json": {
           schema: confirmResponseSchema,
+          example: {
+            message: "Image upload and processing complete",
+            file: {
+              id: "file5678efgh",
+              name: "image.jpg",
+              mimeType: "image/jpeg",
+              isImage: true,
+              size: 102400,
+              url: null,
+              variants: [
+                {
+                  url: "https://objectstorage.ap-seoul-1.oraclecloud.com/...",
+                  width: 1920,
+                  height: 1080,
+                  size: 102400,
+                  format: "jpeg",
+                  label: "1920x1080",
+                },
+              ],
+              createdAt: "2023-01-01T00:00:00.000Z",
+              updatedAt: "2023-01-01T00:00:00.000Z",
+              projectId: "clq1234abcd",
+            },
+            variants: [
+              {
+                url: "https://objectstorage.ap-seoul-1.oraclecloud.com/...",
+                width: 1920,
+                height: 1080,
+                size: 102400,
+                format: "jpeg",
+                label: "1920x1080",
+              },
+            ],
+          },
         },
       },
     },
@@ -162,6 +196,9 @@ registry.registerPath({
       content: {
         "application/json": {
           schema: messageResponseSchema,
+          example: {
+            message: "File deleted successfully.",
+          },
         },
       },
     },

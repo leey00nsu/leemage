@@ -206,6 +206,11 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
+                        /**
+                         * @example {
+                         *       "message": "Project and all related files (all versions) deleted successfully."
+                         *     }
+                         */
                         "application/json": components["schemas"]["MessageResponse"];
                     };
                 };
@@ -366,6 +371,42 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
+                        /**
+                         * @example {
+                         *       "message": "Image upload and processing complete",
+                         *       "file": {
+                         *         "id": "file5678efgh",
+                         *         "name": "image.jpg",
+                         *         "mimeType": "image/jpeg",
+                         *         "isImage": true,
+                         *         "size": 102400,
+                         *         "url": null,
+                         *         "variants": [
+                         *           {
+                         *             "url": "https://objectstorage.ap-seoul-1.oraclecloud.com/...",
+                         *             "width": 1920,
+                         *             "height": 1080,
+                         *             "size": 102400,
+                         *             "format": "jpeg",
+                         *             "label": "1920x1080"
+                         *           }
+                         *         ],
+                         *         "createdAt": "2023-01-01T00:00:00.000Z",
+                         *         "updatedAt": "2023-01-01T00:00:00.000Z",
+                         *         "projectId": "clq1234abcd"
+                         *       },
+                         *       "variants": [
+                         *         {
+                         *           "url": "https://objectstorage.ap-seoul-1.oraclecloud.com/...",
+                         *           "width": 1920,
+                         *           "height": 1080,
+                         *           "size": 102400,
+                         *           "format": "jpeg",
+                         *           "label": "1920x1080"
+                         *         }
+                         *       ]
+                         *     }
+                         */
                         "application/json": components["schemas"]["ConfirmResponse"];
                     };
                 };
@@ -453,6 +494,11 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
+                        /**
+                         * @example {
+                         *       "message": "File deleted successfully."
+                         *     }
+                         */
                         "application/json": components["schemas"]["MessageResponse"];
                     };
                 };
@@ -531,14 +577,14 @@ export interface components {
         ProjectNotFoundError: {
             /**
              * @description Error message
-             * @example Project not found.
+             * @example Resource not found.
              */
             message: string;
         };
         FileNotFoundError: {
             /**
              * @description Error message
-             * @example File not found.
+             * @example Resource not found.
              */
             message: string;
         };
@@ -620,6 +666,15 @@ export interface components {
              */
             label: string;
         };
+        /**
+         * @example {
+         *       "fileName": "image.jpg",
+         *       "contentType": "image/jpeg",
+         *       "fileSize": 102400,
+         *       "width": 421,
+         *       "height": 524
+         *     }
+         */
         PresignRequest: {
             /**
              * @description Name of the file to upload
@@ -677,6 +732,25 @@ export interface components {
              */
             expiresAt: string;
         };
+        /**
+         * @example {
+         *       "fileId": "file5678efgh",
+         *       "objectName": "clq1234abcd/file5678efgh.jpg",
+         *       "fileName": "image.jpg",
+         *       "contentType": "image/jpeg",
+         *       "fileSize": 102400,
+         *       "variants": [
+         *         {
+         *           "sizeLabel": "source",
+         *           "format": "webp"
+         *         },
+         *         {
+         *           "sizeLabel": "max800",
+         *           "format": "jpeg"
+         *         }
+         *       ]
+         *     }
+         */
         ConfirmRequest: {
             /**
              * @description File ID from presign response
@@ -768,6 +842,13 @@ export interface components {
             /** @description Generated image variants */
             variants?: components["schemas"]["ImageVariantData"][];
         };
+        /**
+         * @example {
+         *       "name": "Website Assets",
+         *       "description": "File collection used for the website",
+         *       "storageProvider": "OCI"
+         *     }
+         */
         CreateProjectRequest: {
             /**
              * @description Project name (3-50 characters)
@@ -787,6 +868,12 @@ export interface components {
              */
             storageProvider: "OCI" | "R2";
         };
+        /**
+         * @example {
+         *       "name": "Updated Project Name",
+         *       "description": "Updated project description"
+         *     }
+         */
         UpdateProjectRequest: {
             /**
              * @description Project name (1-50 characters)

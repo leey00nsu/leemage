@@ -3,6 +3,8 @@ import * as fc from "fast-check";
 import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
 import { OpenApiGeneratorV3 } from "@asteasolutions/zod-to-openapi";
 import { transformOpenAPIToCategories } from "@/entities/api-docs/model/openapi-transformer";
+import "@/lib/openapi/setup";
+import { z } from "zod";
 
 describe("OpenAPI UI 변환기", () => {
   // 상태 코드 생성기
@@ -131,5 +133,133 @@ describe("OpenAPI UI 변환기", () => {
 
     expect(secureEndpoint?.auth).toBe(true);
     expect(publicEndpoint?.auth).toBe(false);
+  });
+
+  it("request body 예시는 스키마 example을 우선 사용해야 한다", () => {
+    const registry = new OpenAPIRegistry();
+    const requestSchema = z
+      .object({
+        name: z.string().openapi({ example: "fallback" }),
+      })
+      .openapi("CreateThingRequest", {
+        example: {
+          name: "from-schema-example",
+        },
+      });
+
+    registry.registerPath({
+      method: "post",
+      path: "/things",
+      tags: ["Test"],
+      request: {
+        body: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: requestSchema,
+            },
+          },
+        },
+      },
+      responses: {
+        200: { description: "Success" },
+      },
+    });
+
+    const generator = new OpenApiGeneratorV3(registry.definitions);
+    const spec = generator.generateDocument({
+      openapi: "3.0.0",
+      info: { title: "Test API", version: "1.0.0" },
+    });
+
+    const categories = transformOpenAPIToCategories(spec, "ko");
+    const endpoint = categories[0].endpoints.find((e) => e.path === "/things");
+
+    expect(endpoint?.requestBody?.example).toEqual({
+      name: "from-schema-example",
+    });
+  });
+
+  it("response 예시는 content example을 우선 사용해야 한다", () => {
+    const registry = new OpenAPIRegistry();
+    const responseSchema = z
+      .object({
+        message: z.string().openapi({ example: "schema-example" }),
+      })
+      .openapi("ExampleResponse");
+
+    registry.registerPath({
+      method: "get",
+      path: "/content-example",
+      tags: ["Test"],
+      responses: {
+        200: {
+          description: "Success",
+          content: {
+            "application/json": {
+              schema: responseSchema,
+              example: {
+                message: "content-example",
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const generator = new OpenApiGeneratorV3(registry.definitions);
+    const spec = generator.generateDocument({
+      openapi: "3.0.0",
+      info: { title: "Test API", version: "1.0.0" },
+    });
+
+    const categories = transformOpenAPIToCategories(spec, "ko");
+    const endpoint = categories[0].endpoints.find(
+      (e) => e.path === "/content-example",
+    );
+
+    expect(endpoint?.responses[0]?.example).toEqual({
+      message: "content-example",
+    });
+  });
+
+  it("response 예시는 locale 번역으로 변경되지 않아야 한다", () => {
+    const registry = new OpenAPIRegistry();
+    const responseSchema = z
+      .object({
+        message: z.string().openapi({ example: "Invalid request format." }),
+      })
+      .openapi("LocalizedResponse");
+
+    registry.registerPath({
+      method: "get",
+      path: "/raw-example",
+      tags: ["Test"],
+      responses: {
+        200: {
+          description: "Success",
+          content: {
+            "application/json": {
+              schema: responseSchema,
+            },
+          },
+        },
+      },
+    });
+
+    const generator = new OpenApiGeneratorV3(registry.definitions);
+    const spec = generator.generateDocument({
+      openapi: "3.0.0",
+      info: { title: "Test API", version: "1.0.0" },
+    });
+
+    const t = (key: string) =>
+      key === "apiDocs.errors.badRequest" ? "잘못된 요청 형식입니다." : key;
+    const categories = transformOpenAPIToCategories(spec, "ko", t);
+    const endpoint = categories[0].endpoints.find((e) => e.path === "/raw-example");
+
+    expect(endpoint?.responses[0]?.example).toEqual({
+      message: "Invalid request format.",
+    });
   });
 });

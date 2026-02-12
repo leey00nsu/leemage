@@ -124,7 +124,7 @@ export async function handleVideoConfirm({
 
   const response = NextResponse.json(
     {
-      message: thumbnail ? "비디오 업로드 및 썸네일 생성 완료" : "비디오 업로드 완료",
+      message: thumbnail ? "Video upload and thumbnail generation complete" : "Video upload complete",
       file: savedFile,
       variants: videoVariants,
     },

@@ -50,6 +50,8 @@
     "no": "No",
     "noParameters": "No parameters.",
     "requestBody": "Request Body",
+    "requestExample": "Request example",
+    "requestCopied": "Request example copied.",
     "response": "Response",
     "copy": "Copy",
     "noResponse": "No response example available.",
@@ -487,7 +489,7 @@
     },
     "endpointSdk": {
       "title": "Endpoint SDK Example",
-      "description": "SDK call example corresponding to the selected API endpoint. For file uploads, prefer client.files.upload(); use presign/confirm only when you need step-by-step control.",
+      "description": "SDK call example corresponding to the selected API endpoint.",
       "empty": "No SDK example is available for this endpoint yet."
     },
     "categoryTitle": "Categories",
@@ -845,6 +847,8 @@
         "fileName": "Name of the file to upload",
         "contentType": "MIME type of the file",
         "fileSize": "File size (bytes)",
+        "width": "(Image only) Original image width (px)",
+        "height": "(Image only) Original image height (px)",
         "presignedUrl": "Presigned URL for direct upload to OCI",
         "objectName": "OCI object path",
         "objectUrl": "Object URL after upload completion",

@@ -35,7 +35,7 @@ export async function logApiCall(data: ApiLogData): Promise<void> {
     });
   } catch (error) {
     // 로깅 실패는 조용히 처리 (API 응답에 영향 X)
-    console.error("API 로그 저장 실패:", error);
+    console.error("Failed to persist API log:", error);
   }
 }
 

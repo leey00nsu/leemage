@@ -110,7 +110,7 @@ export function validateFileName(fileName: string): FileValidationResult {
   if (!fileName || fileName.trim().length === 0) {
     return {
       valid: false,
-      errors: ["파일명이 비어있습니다."],
+      errors: ["File name is empty."],
     };
   }
 
@@ -118,14 +118,14 @@ export function validateFileName(fileName: string): FileValidationResult {
   if (containsPathTraversal(fileName)) {
     return {
       valid: false,
-      errors: ["유효하지 않은 파일명입니다."], // Don't reveal specific reason
+      errors: ["Invalid file name."], // Don't reveal specific reason
     };
   }
 
   // Check for dangerous patterns
   for (const pattern of DANGEROUS_PATTERNS) {
     if (pattern.test(fileName)) {
-      errors.push("유효하지 않은 파일명입니다.");
+      errors.push("Invalid file name.");
       break;
     }
   }
@@ -348,12 +348,12 @@ export function validateFile(
 
   // Validate Content-Type matches extension
   if (!validateContentTypeExtension(contentType, fileName)) {
-    errors.push("파일 형식이 확장자와 일치하지 않습니다.");
+    errors.push("File type does not match the extension.");
   }
 
   // Validate magic bytes if buffer provided
   if (buffer && !validateMagicBytes(buffer, contentType)) {
-    errors.push("파일 내용이 선언된 형식과 일치하지 않습니다.");
+    errors.push("File content does not match the declared content type.");
   }
 
   if (errors.length > 0) {

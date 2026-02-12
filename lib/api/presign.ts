@@ -42,7 +42,7 @@ export async function presignHandler(
 > {
   if (!projectId) {
     return NextResponse.json(
-      { message: "Project ID가 필요합니다." },
+      { message: "Project ID is required." },
       { status: 400 },
     );
   }
@@ -51,7 +51,7 @@ export async function presignHandler(
   const ownershipResult = await verifyProjectOwnership(userId, projectId);
   if (!ownershipResult.authorized) {
     return NextResponse.json(
-      { message: "리소스를 찾을 수 없습니다." },
+      { message: "Resource not found." },
       { status: 404 },
     );
   }
@@ -65,7 +65,7 @@ export async function presignHandler(
 
     if (!project) {
       return NextResponse.json(
-        { message: "프로젝트를 찾을 수 없습니다." },
+        { message: "Project not found." },
         { status: 404 },
       );
     }
@@ -77,7 +77,7 @@ export async function presignHandler(
     if (!parseResult.success) {
       return NextResponse.json(
         {
-          message: "잘못된 요청 형식입니다.",
+          message: "Invalid request format.",
           errors: parseResult.error.flatten(),
         },
         { status: 400 },
@@ -92,7 +92,7 @@ export async function presignHandler(
       return NextResponse.json(
         {
           message:
-            fileNameValidation.errors[0] || "유효하지 않은 파일명입니다.",
+            fileNameValidation.errors[0] || "Invalid file name.",
         },
         { status: 400 },
       );
@@ -101,7 +101,7 @@ export async function presignHandler(
     // Content-Type과 확장자 일치 검증 (Requirement 4.1)
     if (!validateContentTypeExtension(contentType, fileName)) {
       return NextResponse.json(
-        { message: "파일 형식이 확장자와 일치하지 않습니다." },
+        { message: "File type does not match the extension." },
         { status: 400 },
       );
     }
@@ -109,7 +109,7 @@ export async function presignHandler(
     // 파일 크기 검증
     if (fileSize > DEFAULT_MAX_FILE_SIZE) {
       return NextResponse.json(
-        { message: "파일 크기가 제한(50MB)을 초과했습니다." },
+        { message: "File size exceeds the limit (50MB)." },
         { status: 413 },
       );
     }
@@ -141,7 +141,7 @@ export async function presignHandler(
         (width === undefined && height !== undefined))
     ) {
       return NextResponse.json(
-        { message: "이미지 업로드 시 width와 height는 함께 전달되어야 합니다." },
+        { message: "For image uploads, width and height must be provided together." },
         { status: 400 },
       );
     }
@@ -196,7 +196,7 @@ export async function presignHandler(
   } catch (error) {
     console.error("Presign API error:", error);
     return NextResponse.json(
-      { message: "업로드 URL 생성에 실패했습니다." },
+      { message: "Failed to generate upload URL." },
       { status: 500 },
     );
   }

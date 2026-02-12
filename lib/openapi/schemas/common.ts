@@ -34,7 +34,7 @@ export const projectNotFoundErrorSchema = z
   .object({
     message: z.string().openapi({
       description: "Error message",
-      example: "Project not found.",
+      example: "Resource not found.",
     }),
   })
   .openapi("ProjectNotFoundError");
@@ -44,7 +44,7 @@ export const fileNotFoundErrorSchema = z
   .object({
     message: z.string().openapi({
       description: "Error message",
-      example: "File not found.",
+      example: "Resource not found.",
     }),
   })
   .openapi("FileNotFoundError");

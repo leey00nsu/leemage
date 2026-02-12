@@ -30,7 +30,7 @@ export async function GET(
 
     if (!file) {
       return NextResponse.json(
-        { message: "파일을 찾을 수 없습니다." },
+        { message: "File not found." },
         { status: 404 }
       );
     }
@@ -44,7 +44,7 @@ export async function GET(
 
       if (variants.length === 0) {
         return NextResponse.json(
-          { message: "다운로드 가능한 이미지 variant가 없습니다." },
+          { message: "No downloadable image variant available." },
           { status: 404 }
         );
       }
@@ -56,7 +56,7 @@ export async function GET(
 
       if (!selectedVariant) {
         return NextResponse.json(
-          { message: `variant '${variantLabel}'를 찾을 수 없습니다.` },
+          { message: `Variant '${variantLabel}' not found.` },
           { status: 404 }
         );
       }
@@ -70,7 +70,7 @@ export async function GET(
       // 비이미지 파일: 원본 URL 사용
       if (!file.url) {
         return NextResponse.json(
-          { message: "다운로드 URL이 없습니다." },
+          { message: "No download URL available." },
           { status: 404 }
         );
       }
@@ -82,7 +82,7 @@ export async function GET(
 
     if (!response.ok) {
       return NextResponse.json(
-        { message: "파일을 가져오는데 실패했습니다." },
+        { message: "Failed to fetch the file." },
         { status: 500 }
       );
     }
@@ -100,7 +100,7 @@ export async function GET(
   } catch (error) {
     console.error("Download error:", error);
     return NextResponse.json(
-      { message: "다운로드 중 오류가 발생했습니다." },
+      { message: "An error occurred during download." },
       { status: 500 }
     );
   }

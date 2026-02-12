@@ -17,6 +17,7 @@ export type ApiEndpoint = {
   }[];
   requestBody?: {
     type: string;
+    example?: unknown;
     properties: {
       name: string;
       type: string;

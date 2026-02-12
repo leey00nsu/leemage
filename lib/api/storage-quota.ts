@@ -158,7 +158,7 @@ export async function checkStorageQuotaOptimized(
   if (usage.totalBytes + fileSize > quotaBytes) {
     return {
       allowed: false,
-      message: `스토리지 한도를 초과합니다. 남은 용량: ${formatBytes(remaining)}`,
+      message: `Storage quota exceeded. Remaining: ${formatBytes(remaining)}`,
       remaining,
       currentUsage: usage.totalBytes,
       quota: quotaBytes,

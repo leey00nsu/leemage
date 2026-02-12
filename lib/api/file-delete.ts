@@ -13,14 +13,14 @@ export async function deleteFileHandler(
   try {
     if (!fileId) {
       return NextResponse.json(
-        { message: "File ID가 필요합니다." },
+        { message: "File ID is required." },
         { status: 400 }
       );
     }
 
     if (!projectId) {
       return NextResponse.json(
-        { message: "Project ID가 필요합니다." },
+        { message: "Project ID is required." },
         { status: 400 }
       );
     }
@@ -29,7 +29,7 @@ export async function deleteFileHandler(
     const ownershipResult = await verifyFileOwnershipWithProject(userId, fileId, projectId);
     if (!ownershipResult.authorized) {
       return NextResponse.json(
-        { message: "리소스를 찾을 수 없습니다." },
+        { message: "Resource not found." },
         { status: 404 }
       );
     }
@@ -52,7 +52,7 @@ export async function deleteFileHandler(
 
     if (!file) {
       return NextResponse.json(
-        { message: "파일을 찾을 수 없습니다." },
+        { message: "File not found." },
         { status: 404 }
       );
     }
@@ -128,13 +128,13 @@ export async function deleteFileHandler(
     );
 
     return NextResponse.json(
-      { message: "파일이 삭제되었습니다." },
+      { message: "File deleted successfully." },
       { status: 200 }
     );
   } catch (error) {
     console.error("Error deleting file:", error);
     return NextResponse.json(
-      { message: "파일 삭제 중 오류가 발생했습니다." },
+      { message: "An error occurred while deleting the file." },
       { status: 500 }
     );
   }

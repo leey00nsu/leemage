@@ -171,6 +171,7 @@ interface OpenAPIOperation {
     content?: {
       [mediaType: string]: {
         schema?: OpenAPISchema;
+        example?: unknown;
       };
     };
   };
@@ -180,6 +181,7 @@ interface OpenAPIOperation {
       content?: {
         [mediaType: string]: {
           schema?: OpenAPISchema;
+          example?: unknown;
         };
       };
     };
@@ -387,8 +389,47 @@ function transformRequestBody(
 
   return {
     type: "object",
+    example: getRequestBodyExample(spec, jsonContent.example, schema),
     properties,
   };
+}
+
+function isEmptyObject(value: unknown): boolean {
+  return (
+    value !== null &&
+    typeof value === "object" &&
+    !Array.isArray(value) &&
+    Object.keys(value as Record<string, unknown>).length === 0
+  );
+}
+
+function getRequestBodyExample(
+  spec: OpenAPISpec,
+  contentExample: unknown,
+  schema: OpenAPISchema
+): unknown {
+  if (contentExample !== undefined) {
+    return contentExample;
+  }
+
+  if (schema.example !== undefined) {
+    return schema.example;
+  }
+
+  const generated = generateExample(spec, schema);
+  return isEmptyObject(generated) ? undefined : generated;
+}
+
+function getResponseExample(
+  spec: OpenAPISpec,
+  contentExample: unknown,
+  schema?: OpenAPISchema
+): unknown {
+  if (contentExample !== undefined) {
+    return contentExample;
+  }
+
+  return generateExample(spec, schema);
 }
 
 /**
@@ -425,7 +466,7 @@ function transformResponses(
     return {
       status,
       description,
-      example: generateExample(spec, schema, t),
+      example: getResponseExample(spec, jsonContent?.example, schema),
     };
   });
 }
@@ -514,79 +555,18 @@ function getPropertyType(prop: OpenAPISchemaProperty): string {
   return prop.type || "any";
 }
 
-const EXAMPLE_TEXT_TRANSLATIONS: Record<string, string> = {
-  "인증 실패: 유효하지 않은 API 키": "apiDocs.errors.unauthorized",
-  "Authentication failed: invalid API key": "apiDocs.errors.unauthorized",
-  "프로젝트를 찾을 수 없습니다.": "apiDocs.errors.notFound.project",
-  "프로젝트를 찾을 수 없음": "apiDocs.errors.notFound.project",
-  "Project not found.": "apiDocs.errors.notFound.project",
-  "파일을 찾을 수 없습니다.": "apiDocs.errors.notFound.file",
-  "파일을 찾을 수 없음": "apiDocs.errors.notFound.file",
-  "File not found.": "apiDocs.errors.notFound.file",
-  "잘못된 요청 형식입니다.": "apiDocs.errors.badRequest",
-  "요청 처리 중 오류가 발생했습니다.": "apiDocs.errors.badRequest",
-  "Invalid request format.": "apiDocs.errors.badRequest",
-  "An error occurred while processing the request.": "apiDocs.errors.badRequest",
-  "서버 오류가 발생했습니다.": "apiDocs.errors.serverError",
-  "A server error occurred.": "apiDocs.errors.serverError",
-  "필수 항목입니다.": "apiDocs.errors.validationError",
-  "This field is required.": "apiDocs.errors.validationError",
-  "작업이 완료되었습니다.": "apiDocs.responses.success",
-  "Operation completed successfully.": "apiDocs.responses.success",
-  "파일 업로드 완료": "apiDocs.responses.fileUploadComplete",
-  "File upload complete": "apiDocs.responses.fileUploadComplete",
-};
-
-function translateExampleString(
-  value: string,
-  t?: TranslationGetter
-): string {
-  if (!t) return value;
-
-  const translationKey = EXAMPLE_TEXT_TRANSLATIONS[value];
-  if (!translationKey) return value;
-
-  const translated = t(translationKey);
-  return translated !== translationKey ? translated : value;
-}
-
-function localizeExampleValue(
-  value: unknown,
-  t?: TranslationGetter
-): unknown {
-  if (typeof value === "string") {
-    return translateExampleString(value, t);
-  }
-
-  if (Array.isArray(value)) {
-    return value.map((item) => localizeExampleValue(item, t));
-  }
-
-  if (value && typeof value === "object") {
-    return Object.fromEntries(
-      Object.entries(value as Record<string, unknown>).map(([key, item]) => [
-        key,
-        localizeExampleValue(item, t),
-      ])
-    );
-  }
-
-  return value;
-}
-
 /**
- * 스키마에서 예제 생성 (번역 적용)
+ * 스키마에서 예제 생성
  */
 function generateExample(
   spec: OpenAPISpec,
-  schema?: OpenAPISchema,
-  t?: TranslationGetter
+  schema?: OpenAPISchema
 ): unknown {
   if (!schema) return {};
 
-  // 스키마에 example이 있으면 사용 (에러 메시지 번역 적용)
+  // 스키마에 example이 있으면 사용
   if (schema.example !== undefined) {
-    return localizeExampleValue(schema.example, t);
+    return schema.example;
   }
 
   // 배열 타입 처리
@@ -594,7 +574,7 @@ function generateExample(
     const itemSchema = schema.items.$ref
       ? resolveSchema(spec, { $ref: schema.items.$ref })
       : (schema.items as OpenAPISchema);
-    const itemExample = generateExample(spec, itemSchema, t);
+    const itemExample = generateExample(spec, itemSchema);
     return [itemExample];
   }
 
@@ -603,10 +583,10 @@ function generateExample(
     const example: Record<string, unknown> = {};
     for (const [name, prop] of Object.entries(schema.properties)) {
       if (prop.example !== undefined) {
-        example[name] = localizeExampleValue(prop.example, t);
+        example[name] = prop.example;
       } else if (prop.$ref) {
         const refSchema = resolveSchema(spec, { $ref: prop.$ref });
-        example[name] = generateExample(spec, refSchema, t);
+        example[name] = generateExample(spec, refSchema);
       } else if (prop.type === "string") {
         example[name] = "";
       } else if (prop.type === "number" || prop.type === "integer") {
@@ -617,7 +597,7 @@ function generateExample(
         // 배열 프로퍼티의 items 처리
         if (prop.items?.$ref) {
           const itemSchema = resolveSchema(spec, { $ref: prop.items.$ref });
-          example[name] = [generateExample(spec, itemSchema, t)];
+          example[name] = [generateExample(spec, itemSchema)];
         } else {
           example[name] = [];
         }
@@ -625,7 +605,7 @@ function generateExample(
         example[name] = null;
       }
     }
-    return localizeExampleValue(example, t);
+    return example;
   }
 
   return {};

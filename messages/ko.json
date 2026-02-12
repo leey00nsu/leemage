@@ -50,6 +50,8 @@
     "no": "아니오",
     "noParameters": "파라미터가 없습니다.",
     "requestBody": "Request Body",
+    "requestExample": "요청 예시",
+    "requestCopied": "요청 예시를 복사했습니다.",
     "response": "응답",
     "copy": "복사",
     "noResponse": "응답 예시가 없습니다.",
@@ -487,7 +489,7 @@
     },
     "endpointSdk": {
       "title": "Endpoint SDK Example",
-      "description": "선택한 API 엔드포인트에 대응하는 SDK 호출 예시입니다. 파일 업로드는 client.files.upload()를 우선 권장하며, presign/confirm은 단계별 제어가 필요할 때 사용합니다.",
+      "description": "선택한 API 엔드포인트에 대응하는 SDK 호출 예시입니다.",
       "empty": "이 엔드포인트에 대한 SDK 예시가 아직 준비되지 않았습니다."
     },
     "categoryTitle": "카테고리",
@@ -845,6 +847,8 @@
         "fileName": "업로드할 파일의 이름",
         "contentType": "파일의 MIME 타입",
         "fileSize": "파일 크기 (bytes)",
+        "width": "(이미지 전용) 원본 이미지 너비 (px)",
+        "height": "(이미지 전용) 원본 이미지 높이 (px)",
         "presignedUrl": "OCI에 직접 업로드할 수 있는 Presigned URL",
         "objectName": "OCI 객체 경로",
         "objectUrl": "업로드 완료 후 객체 URL",

@@ -169,6 +169,10 @@ registry.registerPath({
       content: {
         "application/json": {
           schema: messageResponseSchema,
+          example: {
+            message:
+              "Project and all related files (all versions) deleted successfully.",
+          },
         },
       },
     },

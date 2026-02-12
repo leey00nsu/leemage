@@ -52,7 +52,7 @@ describe("파일 유효성 검사기", () => {
     it("빈 파일명을 거부해야 한다", () => {
       const result = validateFileName("");
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain("파일명이 비어있습니다.");
+      expect(result.errors).toContain("File name is empty.");
     });
 
     it("Windows 예약어를 거부해야 한다", () => {
@@ -235,7 +235,7 @@ describe("파일 유효성 검사기", () => {
 
       expect(result.valid).toBe(false);
       expect(result.errors).toContain(
-        "파일 형식이 확장자와 일치하지 않습니다.",
+        "File type does not match the extension.",
       );
     });
 
@@ -247,7 +247,7 @@ describe("파일 유효성 검사기", () => {
 
       expect(result.valid).toBe(false);
       expect(result.errors).toContain(
-        "파일 내용이 선언된 형식과 일치하지 않습니다.",
+        "File content does not match the declared content type.",
       );
     });
   });

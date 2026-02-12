@@ -244,7 +244,7 @@ function createRateLimitResponse(result: RateLimitResult): NextResponse {
   const response = NextResponse.json(
     {
       code: "RATE_LIMIT_EXCEEDED",
-      message: "요청 한도를 초과했습니다. 잠시 후 다시 시도해주세요.",
+      message: "Rate limit exceeded. Please try again later.",
     },
     { status: 429 }
   );
@@ -318,7 +318,7 @@ export function withRateLimitAndAuth<T extends Record<string, string | string[]>
     
     if (!session) {
       return NextResponse.json(
-        { code: "AUTH_NO_SESSION", message: "인증이 필요합니다" },
+        { code: "AUTH_NO_SESSION", message: "Authentication is required." },
         { status: 401 }
       );
     }

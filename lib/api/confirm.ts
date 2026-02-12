@@ -26,7 +26,7 @@ async function authorizeProjectAccess(
   const ownershipResult = await verifyProjectOwnership(userId, projectId);
   if (!ownershipResult.authorized) {
     return NextResponse.json(
-      { message: "리소스를 찾을 수 없습니다." },
+      { message: "Resource not found." },
       { status: 404 },
     );
   }
@@ -57,7 +57,7 @@ async function validateConfirmPayload(request: NextRequest) {
     return {
       error: NextResponse.json(
         {
-          message: "잘못된 요청 형식입니다.",
+          message: "Invalid request format.",
           errors: parseResult.error.flatten(),
         },
         { status: 400 },
@@ -77,7 +77,7 @@ function validateFileInput(fileName: string, contentType: string): NextResponse 
   if (!fileNameValidation.valid) {
     return NextResponse.json(
       {
-        message: fileNameValidation.errors[0] || "유효하지 않은 파일명입니다.",
+        message: fileNameValidation.errors[0] || "Invalid file name.",
       },
       { status: 400 },
     );
@@ -85,7 +85,7 @@ function validateFileInput(fileName: string, contentType: string): NextResponse 
 
   if (!validateContentTypeExtension(contentType, fileName)) {
     return NextResponse.json(
-      { message: "파일 형식이 확장자와 일치하지 않습니다." },
+      { message: "File type does not match the extension." },
       { status: 400 },
     );
   }
@@ -105,7 +105,7 @@ async function ensurePendingFile(fileId: string, projectId: string) {
 
   if (!pendingFile) {
     return NextResponse.json(
-      { message: "유효하지 않은 파일 ID이거나 이미 처리된 파일입니다." },
+      { message: "Invalid file ID or file already processed." },
       { status: 400 },
     );
   }
@@ -124,7 +124,7 @@ export async function confirmHandler(
 ): Promise<NextResponse> {
   if (!projectId) {
     return NextResponse.json(
-      { message: "Project ID가 필요합니다." },
+      { message: "Project ID is required." },
       { status: 400 },
     );
   }
@@ -138,7 +138,7 @@ export async function confirmHandler(
     const project = await getProjectStorageProvider(projectId);
     if (!project) {
       return NextResponse.json(
-        { message: "프로젝트를 찾을 수 없습니다." },
+        { message: "Project not found." },
         { status: 404 },
       );
     }
@@ -198,15 +198,15 @@ export async function confirmHandler(
   } catch (error) {
     console.error("Confirm API error:", error);
 
-    if (error instanceof Error && error.message.includes("다운로드")) {
+    if (error instanceof Error && error.message.toLowerCase().includes("download")) {
       return NextResponse.json(
-        { message: "업로드된 파일을 찾을 수 없습니다." },
+        { message: "Uploaded file not found." },
         { status: 404 },
       );
     }
 
     return NextResponse.json(
-      { message: "파일 처리 중 오류가 발생했습니다." },
+      { message: "An error occurred while processing the file." },
       { status: 500 },
     );
   }

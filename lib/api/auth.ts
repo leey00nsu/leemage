@@ -29,11 +29,11 @@ export async function loginHandler(req: NextRequest) {
       authLogger.security({
         type: "VALIDATION_FAILURE",
         ip,
-        details: { reason: "잘못된 요청 형식" },
+        details: { reason: "Invalid request format" },
       });
       return NextResponse.json(
         {
-          message: "잘못된 요청 형식입니다.",
+          message: "Invalid request format.",
           errors: validationResult.error.flatten().fieldErrors,
         },
         { status: 400 }
@@ -57,7 +57,7 @@ export async function loginHandler(req: NextRequest) {
       authLogger.error(
         "ROOT_USER_EMAIL or ROOT_USER_PASSWORD_HASH_B64 environment variables not set"
       );
-      return NextResponse.json({ message: "서버 설정 오류" }, { status: 500 });
+      return NextResponse.json({ message: "Server configuration error." }, { status: 500 });
     }
 
     // 3. 입력된 정보와 환경 변수 정보 비교
@@ -83,7 +83,7 @@ export async function loginHandler(req: NextRequest) {
       });
 
       return NextResponse.json(
-        { message: "로그인 성공", user: { username: email } },
+        { message: "Login successful.", user: { username: email } },
         { status: 200 }
       );
     } else {
@@ -91,17 +91,17 @@ export async function loginHandler(req: NextRequest) {
       authLogger.security({
         type: "AUTH_FAILURE",
         ip,
-        details: { reason: "이메일 또는 비밀번호 불일치", email: maskEmail(email) },
+        details: { reason: "Email or password mismatch", email: maskEmail(email) },
       });
       return NextResponse.json(
-        { message: "이메일 또는 비밀번호가 일치하지 않습니다." },
+        { message: "Email or password does not match." },
         { status: 401 }
       );
     }
   } catch (error) {
     authLogger.error("Login API error", { error: String(error) });
     return NextResponse.json(
-      { message: "로그인 처리 중 오류가 발생했습니다." },
+      { message: "An error occurred during login." },
       { status: 500 }
     );
   }
@@ -122,13 +122,13 @@ export async function logoutHandler() {
 
     authLogger.info("User logged out", { userId: userId ? maskEmail(userId) : "unknown" });
 
-    return NextResponse.json({ ok: true, message: "로그아웃 성공" });
+    return NextResponse.json({ ok: true, message: "Logout successful." });
   } catch (error) {
     authLogger.error("Logout API error", { error: String(error) });
     const errorMessage =
       error instanceof Error
         ? error.message
-        : "로그아웃 처리 중 알 수 없는 오류가 발생했습니다.";
+        : "An unknown error occurred during logout.";
     return NextResponse.json(
       { ok: false, message: errorMessage },
       { status: 500 }

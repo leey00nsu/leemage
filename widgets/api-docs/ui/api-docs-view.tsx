@@ -4,13 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
-  Copy,
   ExternalLink,
-  FileCode2,
   Search,
 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { toast } from "sonner";
 
 import { Link, useRouter } from "@/i18n/navigation";
 import { ApiCategory, ApiEndpoint } from "@/entities/api-docs/model/types";
@@ -26,7 +23,6 @@ import { getSdkCodeExamples } from "@/entities/sdk/model/code-examples";
 import { EndpointCard } from "@/entities/api-docs/ui/endpoint-card";
 import { LanguageSelectorButton } from "@/features/language/ui/langauge-selector-button";
 import { AppButton } from "@/shared/ui/app/app-button";
-import { AppCodeBlock } from "@/shared/ui/app/app-code-block";
 import { AppInput } from "@/shared/ui/app/app-input";
 import { AppLogo } from "@/shared/ui/app/app-logo";
 import { AppMethodBadge } from "@/shared/ui/app/app-method-badge";
@@ -84,9 +80,13 @@ function getTypeExample(type: string): unknown {
   return "string";
 }
 
-function buildRequestBodyExample(endpoint: ApiEndpoint): Record<string, unknown> {
+function buildRequestBodyExample(endpoint: ApiEndpoint): unknown {
   if (!endpoint.requestBody) {
     return {};
+  }
+
+  if (endpoint.requestBody.example !== undefined) {
+    return endpoint.requestBody.example;
   }
 
   return endpoint.requestBody.properties.reduce<Record<string, unknown>>(
@@ -134,6 +134,54 @@ function buildCurlCommand(endpoint: ApiEndpoint): string {
   }
 
   return lines.join("\n");
+}
+
+function detectCodeLanguage(code: string): string {
+  const trimmed = code.trim();
+  if (!trimmed) {
+    return "text";
+  }
+
+  if (trimmed.startsWith("curl ")) {
+    return "bash";
+  }
+
+  if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+    return "json";
+  }
+
+  if (
+    trimmed.startsWith("npm ") ||
+    trimmed.startsWith("pnpm ") ||
+    trimmed.startsWith("yarn ")
+  ) {
+    return "bash";
+  }
+
+  return "text";
+}
+
+function getCodeFilename(
+  language: string,
+  type: "request" | "response",
+): string {
+  if (language === "bash") {
+    return `${type}.sh`;
+  }
+
+  if (language === "json") {
+    return `${type}.json`;
+  }
+
+  if (language === "typescript") {
+    return `${type}.ts`;
+  }
+
+  if (language === "javascript") {
+    return `${type}.js`;
+  }
+
+  return `${type}.txt`;
 }
 
 export function ApiDocsView({ apiDocs, activeItemKey }: ApiDocsViewProps) {
@@ -334,6 +382,39 @@ export function ApiDocsView({ apiDocs, activeItemKey }: ApiDocsViewProps) {
       ? tRaw("docs.sdk.responseExample")
       : selectedStaticDoc?.responseExample ?? "";
 
+  const requestExampleCode = selectedEndpoint
+    ? endpointRequestExample
+    : staticRequestExample;
+  const responseExampleCode = selectedEndpoint
+    ? endpointResponseExample
+    : staticResponseExample;
+
+  const requestExampleLanguage = selectedEndpoint
+    ? exampleLanguage === "sdk" && sdkExampleForEndpoint
+      ? sdkExampleForEndpoint.language ?? "typescript"
+      : "bash"
+    : selectedStaticDoc?.key === "doc:sdk"
+      ? activeSdkExample?.language ?? "typescript"
+      : detectCodeLanguage(staticRequestExample);
+
+  const responseExampleLanguage = selectedEndpoint
+    ? "json"
+    : detectCodeLanguage(staticResponseExample);
+
+  const requestExampleFilename = selectedEndpoint
+    ? exampleLanguage === "sdk" && sdkExampleForEndpoint
+      ? "sdk-example.ts"
+      : "request.sh"
+    : selectedStaticDoc?.key === "doc:sdk"
+      ? activeSdkExample?.filename ?? "sdk-example.ts"
+      : getCodeFilename(requestExampleLanguage, "request");
+
+  const responseExampleFilename = selectedEndpoint
+    ? activeResponseStatus
+      ? `response-${activeResponseStatus}.json`
+      : "response.json"
+    : getCodeFilename(responseExampleLanguage, "response");
+
   const rateLimitRows = [
     {
       scope: tRaw("docs.rateLimits.rows.api.scope"),
@@ -348,19 +429,6 @@ export function ApiDocsView({ apiDocs, activeItemKey }: ApiDocsViewProps) {
       ...RATE_LIMIT_CONFIG.login,
     },
   ];
-
-  const copyText = async (value: string, message: string) => {
-    if (!value) {
-      return;
-    }
-
-    try {
-      await navigator.clipboard.writeText(value);
-      toast.success(message);
-    } catch {
-      toast.error(t("copyError"));
-    }
-  };
 
   const mobileOptions = useMemo(() => {
     const staticOptions = staticDocs.map((doc) => ({
@@ -845,31 +913,16 @@ export function ApiDocsView({ apiDocs, activeItemKey }: ApiDocsViewProps) {
                     contentClassName="border-slate-700 bg-slate-800 text-slate-200"
                   />
                 ) : null}
-                <AppButton
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-slate-300 hover:text-white"
-                  onClick={() =>
-                    copyText(
-                      selectedEndpoint ? endpointRequestExample : staticRequestExample,
-                      t("requestCopied"),
-                    )
-                  }
-                  aria-label={t("copyRequest")}
-                  disabled={!selectedEndpoint && !staticRequestExample}
-                >
-                  <Copy className="h-4 w-4" />
-                </AppButton>
               </div>
             </div>
             <div className="flex-1 overflow-y-auto">
-              <AppCodeBlock className="min-h-[58%] bg-slate-900 text-slate-200">
-                <code>
-                  {selectedEndpoint
-                    ? endpointRequestExample
-                    : staticRequestExample || t("noCodeAvailable")}
-                </code>
-              </AppCodeBlock>
+              <div className="min-h-[58%] bg-slate-900 p-3">
+                <CodeBlock
+                  language={requestExampleLanguage}
+                  filename={requestExampleFilename}
+                  code={requestExampleCode || t("noCodeAvailable")}
+                />
+              </div>
               <div className="flex items-center justify-between border-y border-slate-800 bg-slate-900 px-4 py-2">
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
                   {t("exampleResponse")}
@@ -887,43 +940,21 @@ export function ApiDocsView({ apiDocs, activeItemKey }: ApiDocsViewProps) {
                       triggerClassName="h-8 min-w-[5rem] border-slate-700 bg-slate-800 text-xs text-slate-200 hover:bg-slate-700"
                       contentClassName="border-slate-700 bg-slate-800 text-slate-200"
                     />
-                    <AppButton
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-slate-300 hover:text-white"
-                      onClick={() => copyText(endpointResponseExample, t("responseCopied"))}
-                      aria-label={t("copyResponse")}
-                    >
-                      <Copy className="h-4 w-4" />
-                    </AppButton>
                   </div>
                 ) : null}
               </div>
-              <AppCodeBlock className="min-h-[42%] bg-slate-900 text-slate-200">
-                <code>
-                  {selectedEndpoint
-                    ? endpointResponseExample
-                    : staticResponseExample || t("noCodeAvailable")}
-                </code>
-              </AppCodeBlock>
+              <div className="min-h-[42%] bg-slate-900 p-3">
+                <CodeBlock
+                  language={responseExampleLanguage}
+                  filename={responseExampleFilename}
+                  code={responseExampleCode || t("noCodeAvailable")}
+                />
+              </div>
             </div>
           </aside>
         </div>
       </div>
 
-      <button
-        type="button"
-        className="fixed bottom-5 right-5 inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 xl:hidden dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
-        onClick={() =>
-          copyText(
-            selectedEndpoint ? endpointRequestExample : staticRequestExample,
-            t("requestCopied"),
-          )
-        }
-        aria-label={t("quickCopyAria")}
-      >
-        <FileCode2 className="h-4 w-4" />
-      </button>
     </div>
   );
 }

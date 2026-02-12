@@ -93,7 +93,7 @@ describe("세션 인증", () => {
 
       expect(response.status).toBe(401);
       expect(body.code).toBe(AUTH_ERROR_CODES.NO_SESSION);
-      expect(body.message).toBe("인증이 필요합니다");
+      expect(body.message).toBe("Authentication is required.");
       expect(handler).not.toHaveBeenCalled();
     });
 

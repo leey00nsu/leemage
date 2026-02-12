@@ -22,7 +22,7 @@ function extractBearerToken(request: NextRequest): string | null {
     authLogger.security({
       type: "AUTH_FAILURE",
       ip: getClientIp(request),
-      details: { reason: "Authorization 헤더 누락 또는 형식 오류" },
+      details: { reason: "Missing or invalid Authorization header format" },
     });
     return null;
   }
@@ -56,7 +56,7 @@ export async function validateApiKey(
       type: "AUTH_FAILURE",
       ip,
       details: {
-        reason: "키 누락 또는 접두사 오류",
+        reason: "Missing API key or invalid key prefix",
         prefix: maskApiKey(providedApiKey),
       },
     });
@@ -90,7 +90,7 @@ export async function validateApiKey(
       authLogger.security({
         type: "AUTH_FAILURE",
         ip,
-        details: { reason: "해당 접두사의 키를 찾을 수 없음" },
+        details: { reason: "No API key found for the provided prefix" },
       });
       return null;
     }
@@ -107,7 +107,7 @@ export async function validateApiKey(
           data: { lastUsedAt: new Date() },
         });
       } catch (updateError) {
-        authLogger.error("API Key lastUsedAt 업데이트 실패", {
+        authLogger.error("Failed to update API key lastUsedAt", {
           error: String(updateError),
         });
       }
@@ -130,11 +130,11 @@ export async function validateApiKey(
     authLogger.security({
       type: "AUTH_FAILURE",
       ip,
-      details: { reason: "키 검증 실패", key: maskApiKey(providedApiKey) },
+      details: { reason: "API key verification failed", key: maskApiKey(providedApiKey) },
     });
     return null;
   } catch (error) {
-    authLogger.error("API Key 검증 중 오류 발생", { error: String(error) });
+    authLogger.error("Error occurred during API key validation", { error: String(error) });
     return null;
   }
 }

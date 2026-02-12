@@ -48,7 +48,13 @@ export const createProjectRequestSchema = z
         example: "OCI",
       }),
   })
-  .openapi("CreateProjectRequest");
+  .openapi("CreateProjectRequest", {
+    example: {
+      name: "Website Assets",
+      description: "File collection used for the website",
+      storageProvider: "OCI",
+    },
+  });
 
 // 프로젝트 응답 스키마
 export const projectResponseSchema = z
@@ -130,7 +136,12 @@ export const updateProjectRequestSchema = z
         example: "Updated project description",
       }),
   })
-  .openapi("UpdateProjectRequest");
+  .openapi("UpdateProjectRequest", {
+    example: {
+      name: "Updated Project Name",
+      description: "Updated project description",
+    },
+  });
 
 // 스키마 등록
 registry.register("CreateProjectRequest", createProjectRequestSchema);

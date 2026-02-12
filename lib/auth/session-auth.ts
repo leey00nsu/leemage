@@ -56,8 +56,8 @@ function createUnauthorizedResponse(code: string): NextResponse {
       code,
       message:
         code === AUTH_ERROR_CODES.NO_SESSION
-          ? "인증이 필요합니다"
-          : "세션이 만료되었습니다",
+          ? "Authentication is required."
+          : "Session has expired.",
     },
     { status: 401 },
   );

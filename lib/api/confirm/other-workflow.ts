@@ -38,7 +38,7 @@ export async function handleOtherConfirm({
 
   const response = NextResponse.json(
     {
-      message: "파일 업로드 완료",
+      message: "File upload complete",
       file: savedFile,
     },
     { status: 201 },

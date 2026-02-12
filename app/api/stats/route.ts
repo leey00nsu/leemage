@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
   const session = await getSessionDefault();
 
   if (!session?.username) {
-    return NextResponse.json({ message: "인증이 필요합니다." }, { status: 401 });
+    return NextResponse.json({ message: "Authentication is required." }, { status: 401 });
   }
 
   const userId = session.username;
@@ -115,9 +115,9 @@ export async function GET(request: NextRequest) {
       logs: mapApiLogs(logs),
     });
   } catch (error) {
-    console.error("통계 조회 오류:", error);
+    console.error("Stats fetch error:", error);
     return NextResponse.json(
-      { message: "통계 조회 중 오류가 발생했습니다." },
+      { message: "An error occurred while retrieving statistics." },
       { status: 500 },
     );
   }

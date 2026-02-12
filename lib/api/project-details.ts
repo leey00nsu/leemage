@@ -22,7 +22,7 @@ export async function getProjectDetailsHandler(
 ): Promise<NextResponse<ProjectDetailsResponse | ErrorResponse>> {
   if (!projectId) {
     return NextResponse.json(
-      { message: "Project ID가 필요합니다." },
+      { message: "Project ID is required." },
       { status: 400 }
     );
   }
@@ -31,7 +31,7 @@ export async function getProjectDetailsHandler(
   const ownershipResult = await verifyProjectOwnership(userId, projectId);
   if (!ownershipResult.authorized) {
     return NextResponse.json(
-      { message: "리소스를 찾을 수 없습니다." },
+      { message: "Resource not found." },
       { status: 404 }
     );
   }
@@ -67,7 +67,7 @@ export async function getProjectDetailsHandler(
 
     if (!project) {
       return NextResponse.json(
-        { message: "프로젝트를 찾을 수 없습니다." },
+        { message: "Project not found." },
         { status: 404 }
       );
     }
@@ -91,7 +91,7 @@ export async function getProjectDetailsHandler(
   } catch (error) {
     console.error(`Fetch project ${projectId} API error:`, error);
     return NextResponse.json(
-      { message: "프로젝트 조회 중 오류가 발생했습니다." },
+      { message: "An error occurred while fetching the project." },
       { status: 500 }
     );
   }
@@ -103,7 +103,7 @@ export async function deleteProjectHandler(
 ): Promise<NextResponse<MessageResponse | ErrorResponse>> {
   if (!projectId) {
     return NextResponse.json(
-      { message: "Project ID가 필요합니다." },
+      { message: "Project ID is required." },
       { status: 400 }
     );
   }
@@ -112,7 +112,7 @@ export async function deleteProjectHandler(
   const ownershipResult = await verifyProjectOwnership(userId, projectId);
   if (!ownershipResult.authorized) {
     return NextResponse.json(
-      { message: "리소스를 찾을 수 없습니다." },
+      { message: "Resource not found." },
       { status: 404 }
     );
   }
@@ -129,7 +129,7 @@ export async function deleteProjectHandler(
 
     if (!projectToDelete) {
       return NextResponse.json(
-        { message: "삭제할 프로젝트를 찾을 수 없습니다." },
+        { message: "Project to delete not found." },
         { status: 404 }
       );
     }
@@ -186,13 +186,13 @@ export async function deleteProjectHandler(
     });
 
     return NextResponse.json(
-      { message: "프로젝트 및 관련 파일(모든 버전)이 삭제되었습니다." },
+      { message: "Project and all related files (all versions) deleted successfully." },
       { status: 200 }
     );
   } catch (error) {
     console.error(`Delete project ${projectId} API error:`, error);
     return NextResponse.json(
-      { message: "프로젝트 삭제 중 오류가 발생했습니다." },
+      { message: "An error occurred while deleting the project." },
       { status: 500 }
     );
   }

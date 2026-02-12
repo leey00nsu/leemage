@@ -12,8 +12,8 @@ export const createLoginSchema = (t: TranslationFunction) =>
 
 // 기본 스키마 (서버 사이드 또는 폴백용)
 export const loginSchema = z.object({
-  email: z.string().email({ message: "유효한 이메일 주소를 입력해주세요." }),
-  password: z.string().min(1, { message: "비밀번호를 입력해주세요." }),
+  email: z.string().email({ message: "Please enter a valid email address." }),
+  password: z.string().min(1, { message: "Please enter your password." }),
 });
 
 export type LoginFormValues = z.infer<typeof loginSchema>;

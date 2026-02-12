@@ -41,7 +41,7 @@ export function withApiKeyAuth<T extends Record<string, string | string[]>>(
       });
 
       return new NextResponse(
-        JSON.stringify({ message: "인증 실패: 유효하지 않은 API 키" }),
+        JSON.stringify({ message: "Authentication failed: invalid API key" }),
         {
           status: 401,
           headers: { "Content-Type": "application/json" },
@@ -66,7 +66,7 @@ export function withApiKeyAuth<T extends Record<string, string | string[]>>(
       });
 
       return new NextResponse(
-        JSON.stringify({ message: "권한 부족: 요청 메서드 권한이 없습니다." }),
+        JSON.stringify({ message: "Insufficient permissions: method access denied." }),
         {
           status: 403,
           headers: { "Content-Type": "application/json" },
