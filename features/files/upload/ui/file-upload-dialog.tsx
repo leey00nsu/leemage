@@ -284,6 +284,7 @@ export function FileUploadDialog({
                   disabled={isUploading}
                   originalWidth={imageDimensions?.width}
                   originalHeight={imageDimensions?.height}
+                  originalFileSize={fileState?.size}
                 />
                 {errors.formats && (
                   <p className="text-sm text-destructive">

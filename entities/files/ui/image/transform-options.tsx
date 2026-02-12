@@ -7,9 +7,11 @@ import { X } from "lucide-react";
 import {
   AVAILABLE_FORMATS,
   AVAILABLE_SIZES,
+  FORMAT_SIZE_REDUCTION_ESTIMATES,
   FormatType,
   isPresetSmallerThanOriginal,
 } from "@/shared/config/image-options";
+import { formatBytes } from "@/shared/lib/format-bytes";
 import { useTranslations } from "next-intl";
 import { CustomResolutionInput } from "./custom-resolution-input";
 
@@ -27,13 +29,41 @@ interface TransformOptionsProps {
   disabled?: boolean;
   originalWidth?: number;
   originalHeight?: number;
+  originalFileSize?: number;
 }
 
 // 프리셋 사이즈 표시 텍스트 생성
 function getSizeDisplayText(size: string, t: (key: string) => string): string {
   if (size === "source") return t("sourceSize");
-  // API 값과 일치하도록 그대로 표시 (max300, max800, max1920)
+  const maxWidthMatch = size.match(/^max(\d+)$/);
+  if (maxWidthMatch?.[1]) {
+    return `max-width ${maxWidthMatch[1]}px`;
+  }
   return size;
+}
+
+function getEstimatedSizeRange(
+  originalFileSize: number | undefined,
+  minReductionPercent: number,
+  maxReductionPercent: number,
+): { min: string; max: string } | null {
+  if (!originalFileSize || originalFileSize <= 0) {
+    return null;
+  }
+
+  const minSizeBytes = Math.max(
+    0,
+    Math.round(originalFileSize * (1 - maxReductionPercent / 100)),
+  );
+  const maxSizeBytes = Math.max(
+    0,
+    Math.round(originalFileSize * (1 - minReductionPercent / 100)),
+  );
+
+  return {
+    min: formatBytes(minSizeBytes),
+    max: formatBytes(maxSizeBytes),
+  };
 }
 
 export function TransformOptions({
@@ -47,6 +77,7 @@ export function TransformOptions({
   disabled = false,
   originalWidth,
   originalHeight,
+  originalFileSize,
 }: TransformOptionsProps) {
   const t = useTranslations("TransformOptions");
   const tFormat = useTranslations("FormatDescriptions");
@@ -145,29 +176,53 @@ export function TransformOptions({
       <div className="space-y-2">
         <Label>{t("formatLabel")}</Label>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {AVAILABLE_FORMATS.map((format) => (
-            <div key={format} className="flex items-start space-x-2">
-              <Checkbox
-                id={`format-${format}`}
-                checked={selectedFormats.has(format)}
-                onCheckedChange={(checked) => onFormatChange(format, checked)}
-                disabled={disabled}
-                className="mt-0.5"
-              />
-              <div className="flex flex-col">
-                <label
-                  htmlFor={`format-${format}`}
-                  className="text-sm font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  {format.toUpperCase()}
-                </label>
-                <span className="text-xs text-muted-foreground">
-                  {tFormat(format as FormatType)}
-                </span>
+          {AVAILABLE_FORMATS.map((format) => {
+            const typedFormat = format as FormatType;
+            const estimate = FORMAT_SIZE_REDUCTION_ESTIMATES[typedFormat];
+            const estimatedSizeRange = getEstimatedSizeRange(
+              originalFileSize,
+              estimate.min,
+              estimate.max,
+            );
+
+            return (
+              <div key={format} className="flex items-start space-x-2">
+                <Checkbox
+                  id={`format-${format}`}
+                  checked={selectedFormats.has(format)}
+                  onCheckedChange={(checked) => onFormatChange(format, checked)}
+                  disabled={disabled}
+                  className="mt-0.5"
+                />
+                <div className="flex flex-col">
+                  <label
+                    htmlFor={`format-${format}`}
+                    className="text-sm font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    {format.toUpperCase()}
+                  </label>
+                  <span className="text-xs text-muted-foreground">
+                    {tFormat(typedFormat)}
+                  </span>
+                  <span className="text-[11px] text-emerald-600 dark:text-emerald-400">
+                    {estimatedSizeRange
+                      ? t("estimatedSize", {
+                          min: estimatedSizeRange.min,
+                          max: estimatedSizeRange.max,
+                          minPercent: estimate.min,
+                          maxPercent: estimate.max,
+                        })
+                      : t("estimatedSizeWithoutFile", {
+                          minPercent: estimate.min,
+                          maxPercent: estimate.max,
+                        })}
+                  </span>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
+        <p className="text-[11px] text-muted-foreground">{t("estimateNotice")}</p>
       </div>
     </div>
   );

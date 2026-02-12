@@ -25,6 +25,17 @@ export const FORMAT_DESCRIPTION_KEYS: Record<FormatType, string> = {
   webp: "FormatDescriptions.webp",
 } as const;
 
+// 포맷별 예상 용량 절감률(%) 범위
+export const FORMAT_SIZE_REDUCTION_ESTIMATES: Record<
+  FormatType,
+  { min: number; max: number }
+> = {
+  png: { min: 0, max: 20 },
+  jpeg: { min: 15, max: 45 },
+  webp: { min: 30, max: 65 },
+  avif: { min: 40, max: 75 },
+} as const;
+
 // 프리셋이 원본 width보다 작은지 확인
 export function isPresetSmallerThanOriginal(
   preset: string,

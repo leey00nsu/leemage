@@ -657,7 +657,10 @@
     "sourceSize": "원본 해상도 (source)",
     "sourceSizeDescription": "가공 없이 원본 이미지를 그대로 저장합니다",
     "originalSizeDescription": "가공 없이 원본 이미지를 그대로 저장합니다",
-    "exceedsOriginal": "원본보다 큼"
+    "exceedsOriginal": "원본보다 큼",
+    "estimatedSize": "예상 용량 {min} ~ {max} (절감률 {minPercent}% ~ {maxPercent}%)",
+    "estimatedSizeWithoutFile": "예상 용량 (절감률 {minPercent}% ~ {maxPercent}%)",
+    "estimateNotice": "* 추정치입니다. 이미지 내용, 해상도, 품질 설정에 따라 실제 결과는 달라질 수 있습니다."
   },
   "ProjectSearch": {
     "placeholder": "프로젝트 검색...",

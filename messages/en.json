@@ -657,7 +657,10 @@
     "sourceSize": "Source Resolution",
     "sourceSizeDescription": "Save the original image without processing.",
     "originalSizeDescription": "Save the original image without processing.",
-    "exceedsOriginal": "Exceeds original"
+    "exceedsOriginal": "Exceeds original",
+    "estimatedSize": "Estimated size {min} ~ {max} (based on {minPercent}% ~ {maxPercent}% reduction)",
+    "estimatedSizeWithoutFile": "Estimated size (based on {minPercent}% ~ {maxPercent}% reduction)",
+    "estimateNotice": "* This is an estimate. Actual results can vary by image content, resolution, and quality settings."
   },
   "ProjectSearch": {
     "placeholder": "Search projects...",
