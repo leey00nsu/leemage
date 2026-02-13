@@ -10,18 +10,23 @@ import { routing } from "@/i18n/routing";
 
 const pretendard = localFont({
   src: "../../public/PretendardVariable.woff2",
-  display: "swap",
+  display: "optional",
+  preload: false,
   weight: "45 920",
   variable: "--font-pretendard",
+  fallback: ["system-ui", "-apple-system", "Segoe UI", "Roboto", "sans-serif"],
 });
 
 export const metadata: Metadata = {
   title: "Leemage",
   description: "Upload everything on Leemage",
   icons: {
-    icon: "/cloudy.png",
-    shortcut: "/cloudy.png",
-    apple: "/cloudy.png",
+    icon: [
+      { url: "/favicon-32x32.png", type: "image/png", sizes: "32x32" },
+      { url: "/favicon-16x16.png", type: "image/png", sizes: "16x16" },
+    ],
+    shortcut: "/favicon-32x32.png",
+    apple: [{ url: "/apple-touch-icon.png", type: "image/png", sizes: "180x180" }],
   },
 };
 
