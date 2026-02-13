@@ -68,7 +68,7 @@ export function SolutionsSection({ className = "" }: SolutionsSectionProps) {
               <div className="text-center font-semibold text-red-600 dark:text-red-400">
                 {t("beforeLabel")}
               </div>
-              <div className="text-center font-semibold text-green-600 dark:text-green-400">
+              <div className="text-center font-semibold text-green-700 dark:text-green-300">
                 {t("afterLabel")}
               </div>
             </div>

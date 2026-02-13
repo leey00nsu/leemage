@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Check, ChevronsUpDown, Globe } from "lucide-react";
 import { useLocale } from "next-intl";
-import { Link, usePathname, useRouter } from "@/i18n/navigation";
+import { usePathname, useRouter } from "@/i18n/navigation";
 
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
@@ -46,6 +46,7 @@ export function LanguageSelectorButton({ className }: LanguageSelectorButtonProp
           variant="outline"
           role="combobox"
           aria-expanded={open}
+          aria-label={currentLanguage ? `Language: ${currentLanguage.label}` : "Select language"}
           className={cn("w-[150px] justify-between", className)}
         >
           <div className="flex items-center">
@@ -78,21 +79,7 @@ export function LanguageSelectorButton({ className }: LanguageSelectorButtonProp
                       locale === language.value ? "opacity-100" : "opacity-0"
                     )}
                   />
-                  <Link
-                    href={pathname}
-                    locale={language.value}
-                    className="w-full h-full"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (language.value !== locale) {
-                        handleLanguageChange(language.value);
-                      } else {
-                        setOpen(false);
-                      }
-                    }}
-                  >
-                    {language.label}
-                  </Link>
+                  <span className="w-full">{language.label}</span>
                 </CommandItem>
               ))}
             </CommandGroup>
