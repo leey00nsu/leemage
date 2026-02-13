@@ -22,7 +22,7 @@ export function FloatingCard({
             className={cn(
                 "absolute z-20 flex flex-col items-center justify-center gap-2 px-5 py-4 rounded-xl shadow-xl backdrop-blur-sm",
                 "bg-white/80 dark:bg-gray-800/80 border border-white/20",
-                "opacity-0 animate-[fadeInFloat_0.6s_ease-out_forwards]",
+                "opacity-0 animate-fade-in-float will-change-transform will-change-opacity motion-reduce:animate-none",
                 className
             )}
             style={{
