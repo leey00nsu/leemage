@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getSessionFromEdge } from "@/lib/session";
+import { getSessionFromEdge, sessionOptions } from "@/lib/session";
 import createMiddleware from "next-intl/middleware";
 import { routing } from "@/i18n/routing";
 import {
@@ -54,11 +54,19 @@ function getFallbackKey(req: NextRequest) {
   return `ua:${userAgent}|lang:${acceptLanguage}`;
 }
 
+function isExactOrSubPath(pathname: string, basePath: string) {
+  return pathname === basePath || pathname.startsWith(`${basePath}/`);
+}
+
+function isApiRoutePath(pathname: string) {
+  return /^\/api(?:\/|$)/.test(pathname);
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // API 요청은 레이트 리밋만 적용하고 나머지는 패스
-  if (pathname.startsWith("/api")) {
+  if (isApiRoutePath(pathname)) {
     const limiter = selectLimiter(pathname);
     const key = limiter.getKey(request);
     const effectiveKey = key === "unknown" ? getFallbackKey(request) : key;
@@ -99,28 +107,45 @@ export async function proxy(request: NextRequest) {
   // 보호할 경로 목록 (locale 없는 경로)
   const protectedRoutes = ["/projects", "/account"];
   const isProtectedRoute = protectedRoutes.some((route) =>
-    pathWithoutLocale.startsWith(route),
+    isExactOrSubPath(pathWithoutLocale, route),
   );
 
   // 로그인 페이지 경로 (locale 없는 경로)
   const loginPath = "/auth/login";
+  const isLoginPath =
+    pathWithoutLocale === loginPath || pathWithoutLocale === `${loginPath}/`;
+  const needsSessionCheck = isProtectedRoute || isLoginPath;
 
-  // 세션 가져오기
-  const session = await getSessionFromEdge(request);
+  if (!needsSessionCheck) {
+    // 공개 경로에서는 세션 복호화를 건너뛰어 proxy 장애 전파를 줄인다.
+    return intlResponse;
+  }
 
-  // 로그인 여부 확인
-  const isLoggedIn = session?.isLoggedIn ?? false;
+  let isLoggedIn = false;
+  try {
+    // 세션 쿠키가 없으면 복호화를 시도하지 않고 비로그인으로 처리한다.
+    if (request.cookies.get(sessionOptions.cookieName)) {
+      const session = await getSessionFromEdge(request);
+      isLoggedIn = session?.isLoggedIn ?? false;
+    }
+  } catch {
+    // 인증 경로에서도 세션 파싱 실패는 비로그인으로 간주하고 계속 진행한다.
+    isLoggedIn = false;
+  }
 
   // 1. 로그인 안 된 사용자가 보호된 경로 접근 시
   if (!isLoggedIn && isProtectedRoute) {
     // 현재 locale을 포함한 로그인 페이지로 리디렉션
     const redirectUrl = new URL(`/${currentLocale}${loginPath}`, request.url);
-    redirectUrl.searchParams.set("redirectedFrom", pathname);
+    redirectUrl.searchParams.set(
+      "redirectedFrom",
+      `${request.nextUrl.pathname}${request.nextUrl.search}`,
+    );
     return NextResponse.redirect(redirectUrl);
   }
 
   // 2. 로그인 된 사용자가 로그인 페이지 접근 시
-  if (isLoggedIn && pathWithoutLocale === loginPath) {
+  if (isLoggedIn && isLoginPath) {
     // 현재 locale을 포함한 프로젝트 페이지로 리디렉션
     return NextResponse.redirect(
       new URL(`/${currentLocale}/projects`, request.url),
@@ -138,6 +163,6 @@ export const config = {
     // 다음으로 시작하는 경로를 제외한 모든 경로 매칭
     // - `/api`, `/trpc`, `/_next`, `/_vercel`로 시작하는 경로
     // - 점이 포함된 경로 (예: `favicon.ico`)
-    "/((?!api|trpc|_next|_vercel|.*\\..*).*)",
+    "/((?!api(?:/|$)|trpc(?:/|$)|_next|_vercel|.*\\..*).*)",
   ],
 };
