@@ -1,28 +1,22 @@
-"use client";
-
 import { Link } from "@/i18n/navigation";
-import { useTranslations } from "next-intl";
 import { LanguageSelectorButton } from "@/features/language/ui/langauge-selector-button";
-import { useEffect, useState } from "react";
-import { User, Loader2 } from "lucide-react";
+import { User } from "lucide-react";
 import { AppLogo } from "@/shared/ui/app/app-logo";
 import { MobileNavigation } from "./mobile-navigation";
 
 interface HeaderProps {
   className?: string;
+  labels: {
+    projectsLink: string;
+    apiDocsLink: string;
+    apiSecurityLink: string;
+    logsLink: string;
+    accountLink: string;
+    menu: string;
+  };
 }
 
-export function Header({ className = "" }: HeaderProps) {
-  const t = useTranslations("Header");
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    fetch("/api/auth/session")
-      .then((res) => res.json())
-      .then((data) => setIsLoggedIn(data.isLoggedIn))
-      .catch(() => setIsLoggedIn(false));
-  }, []);
-
+export function Header({ className = "", labels }: HeaderProps) {
   return (
     <header
       className={`sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 ${className}`}
@@ -40,13 +34,13 @@ export function Header({ className = "" }: HeaderProps) {
             href="/projects"
             className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
           >
-            {t("projectsLink")}
+            {labels.projectsLink}
           </Link>
           <Link
             href="/api-docs"
             className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
           >
-            {t("apiDocsLink")}
+            {labels.apiDocsLink}
           </Link>
         </nav>
 
@@ -54,29 +48,17 @@ export function Header({ className = "" }: HeaderProps) {
         <div className="flex items-center space-x-4">
           {/* Mobile Navigation */}
           <div className="md:hidden">
-            <MobileNavigation isLoggedIn={isLoggedIn} />
+            <MobileNavigation labels={labels} />
           </div>
           <LanguageSelectorButton />
           <div className="hidden md:flex w-5 h-5 items-center justify-center">
-            {isLoggedIn === null ? (
-              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-            ) : isLoggedIn ? (
-              <Link
-                href="/account"
-                className="text-muted-foreground transition-colors hover:text-foreground"
-                aria-label={t("accountLink")}
-              >
-                <User className="h-5 w-5" />
-              </Link>
-            ) : (
-              <Link
-                href="/auth/login"
-                className="text-muted-foreground transition-colors hover:text-foreground"
-                aria-label={t("accountLink")}
-              >
-                <User className="h-5 w-5" />
-              </Link>
-            )}
+            <Link
+              href="/account"
+              className="text-muted-foreground transition-colors hover:text-foreground"
+              aria-label={labels.accountLink}
+            >
+              <User className="h-5 w-5" />
+            </Link>
           </div>
         </div>
       </div>

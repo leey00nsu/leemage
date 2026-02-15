@@ -1,7 +1,6 @@
 "use client";
 
 import { X, Check } from "lucide-react";
-import { useTranslations } from "next-intl";
 import { cn } from "@/shared/lib/utils";
 import { ScrollFadeIn } from "@/shared/ui/scroll-fade-in";
 
@@ -34,17 +33,31 @@ function ComparisonRow({ before, after, delay = 0 }: ComparisonRowProps) {
 
 interface SolutionsSectionProps {
   className?: string;
+  labels: {
+    title: string;
+    subtitle: string;
+    beforeLabel: string;
+    afterLabel: string;
+    compare1Before: string;
+    compare1After: string;
+    compare2Before: string;
+    compare2After: string;
+    compare3Before: string;
+    compare3After: string;
+    compare4Before: string;
+    compare4After: string;
+    compare5Before: string;
+    compare5After: string;
+  };
 }
 
-export function SolutionsSection({ className = "" }: SolutionsSectionProps) {
-  const t = useTranslations("SolutionsSection");
-
+export function SolutionsSection({ className = "", labels }: SolutionsSectionProps) {
   const comparisons = [
-    { before: t("compare1Before"), after: t("compare1After") },
-    { before: t("compare2Before"), after: t("compare2After") },
-    { before: t("compare3Before"), after: t("compare3After") },
-    { before: t("compare4Before"), after: t("compare4After") },
-    { before: t("compare5Before"), after: t("compare5After") },
+    { before: labels.compare1Before, after: labels.compare1After },
+    { before: labels.compare2Before, after: labels.compare2After },
+    { before: labels.compare3Before, after: labels.compare3After },
+    { before: labels.compare4Before, after: labels.compare4After },
+    { before: labels.compare5Before, after: labels.compare5After },
   ];
 
   return (
@@ -52,12 +65,12 @@ export function SolutionsSection({ className = "" }: SolutionsSectionProps) {
       <div className="container mx-auto px-4">
         <ScrollFadeIn>
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
-            {t("title")}
+            {labels.title}
           </h2>
         </ScrollFadeIn>
         <ScrollFadeIn delay={100}>
           <p className="text-muted-foreground text-center mb-12 max-w-2xl mx-auto">
-            {t("subtitle")}
+            {labels.subtitle}
           </p>
         </ScrollFadeIn>
 
@@ -66,10 +79,10 @@ export function SolutionsSection({ className = "" }: SolutionsSectionProps) {
           <div className="max-w-4xl mx-auto mb-6">
             <div className="grid md:grid-cols-2 gap-4">
               <div className="text-center font-semibold text-red-600 dark:text-red-400">
-                {t("beforeLabel")}
+                {labels.beforeLabel}
               </div>
               <div className="text-center font-semibold text-green-700 dark:text-green-300">
-                {t("afterLabel")}
+                {labels.afterLabel}
               </div>
             </div>
           </div>

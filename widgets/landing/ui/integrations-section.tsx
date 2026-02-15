@@ -1,6 +1,5 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import { OrbitingCircles } from "@/shared/ui/orbiting-circles";
 import { ScrollFadeIn } from "@/shared/ui/scroll-fade-in";
 import {
@@ -20,20 +19,20 @@ import { AppLogo } from "@/shared/ui/app/app-logo";
 
 interface IntegrationsSectionProps {
   className?: string;
+  title: string;
 }
 
 export function IntegrationsSection({
   className = "",
+  title,
 }: IntegrationsSectionProps) {
-  const t = useTranslations("IntegrationsSection");
-
   return (
     <TooltipProvider>
       <section className={`py-20 bg-gray-50 dark:bg-gray-900/50 ${className}`}>
         <div className="container mx-auto px-4">
           <ScrollFadeIn>
             <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
-              {t("title")}
+              {title}
             </h2>
           </ScrollFadeIn>
 

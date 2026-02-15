@@ -1,14 +1,14 @@
-"use client";
-
-import { useTranslations } from "next-intl";
 import { GitHubIcon } from "@/shared/ui/icons/tech-icons";
 
-export function Footer() {
-    const t = useTranslations("Footer");
+interface FooterProps {
+    copyright: string;
+}
+
+export function Footer({ copyright }: FooterProps) {
     return (
         <footer className="p-4 border-t mt-auto">
             <div className="container mx-auto flex items-center justify-center gap-4 text-sm text-muted-foreground">
-                <span>{t("copyright")}</span>
+                <span>{copyright}</span>
                 <a
                     href="https://github.com/leey00nsu/leemage"
                     target="_blank"

@@ -1,5 +1,3 @@
-"use client";
-
 import { Button } from "@/shared/ui/button";
 import { AppCard } from "@/shared/ui/app/app-card";
 import {
@@ -9,14 +7,20 @@ import {
   CardContent,
 } from "@/shared/ui/card";
 import { Home } from "lucide-react";
-import { useTranslations } from "next-intl";
-import { useParams } from "next/navigation";
 import Link from "next/link";
 
-export function NotFound() {
-  const t = useTranslations("NotFound");
-  const params = useParams();
-  const locale = (params?.locale as string) || "ko";
+interface NotFoundLabels {
+  title: string;
+  description: string;
+  homeButton: string;
+}
+
+interface NotFoundProps {
+  locale: string;
+  labels: NotFoundLabels;
+}
+
+export function NotFound({ locale, labels }: NotFoundProps) {
 
   return (
     <AppCard className="w-full max-w-md text-center bg-white/80 backdrop-blur-sm dark:bg-gray-900/80">
@@ -29,10 +33,10 @@ export function NotFound() {
         </div>
 
         <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-          {t("title")}
+          {labels.title}
         </CardTitle>
         <CardDescription className="text-gray-600 dark:text-gray-400 text-base leading-relaxed">
-          {t("description")}
+          {labels.description}
         </CardDescription>
       </CardHeader>
 
@@ -41,7 +45,7 @@ export function NotFound() {
         <Button asChild>
           <Link href={`/${locale}`}>
             <Home className="w-4 h-4 mr-2" />
-            {t("homeButton")}
+            {labels.homeButton}
           </Link>
         </Button>
       </CardContent>

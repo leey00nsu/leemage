@@ -1,6 +1,5 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import { BentoCard, BentoGrid } from "@/shared/ui/bento-grid";
 import { ScrollFadeIn } from "@/shared/ui/scroll-fade-in";
 import { Database, Wand2, Code, Layers } from "lucide-react";
@@ -11,38 +10,59 @@ import { ProjectManagementAnimation } from "./animations/project-management-anim
 
 interface FeaturesSectionProps {
   className?: string;
+  labels: {
+    title: string;
+    feature1Title: string;
+    feature1Description: string;
+    feature2Title: string;
+    feature2Description: string;
+    feature3Title: string;
+    feature3Description: string;
+    feature4Title: string;
+    feature4Description: string;
+    projectAnimation: {
+      project1Name: string;
+      project1Description: string;
+      project2Name: string;
+      project2Description: string;
+      project3Name: string;
+      project3Description: string;
+      project4Name: string;
+      project4Description: string;
+      project5Name: string;
+      project5Description: string;
+    };
+  };
 }
 
-export function FeaturesSection({ className = "" }: FeaturesSectionProps) {
-  const t = useTranslations("LandingFeatures");
-
+export function FeaturesSection({ className = "", labels }: FeaturesSectionProps) {
   const features = [
     {
       Icon: Database,
-      name: t("feature1Title"),
-      description: t("feature1Description"),
+      name: labels.feature1Title,
+      description: labels.feature1Description,
       background: <PresignedUrlAnimation />,
       className: "md:col-span-1",
     },
     {
       Icon: Wand2,
-      name: t("feature2Title"),
-      description: t("feature2Description"),
+      name: labels.feature2Title,
+      description: labels.feature2Description,
       background: <ImageTransformAnimation />,
       className: "md:col-span-1",
     },
     {
       Icon: Code,
-      name: t("feature3Title"),
-      description: t("feature3Description"),
+      name: labels.feature3Title,
+      description: labels.feature3Description,
       background: <RestApiAnimation />,
       className: "md:col-span-1",
     },
     {
       Icon: Layers,
-      name: t("feature4Title"),
-      description: t("feature4Description"),
-      background: <ProjectManagementAnimation />,
+      name: labels.feature4Title,
+      description: labels.feature4Description,
+      background: <ProjectManagementAnimation labels={labels.projectAnimation} />,
       className: "md:col-span-1",
     },
   ];
@@ -52,7 +72,7 @@ export function FeaturesSection({ className = "" }: FeaturesSectionProps) {
       <div className="container mx-auto px-4">
         <ScrollFadeIn>
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
-            {t("title")}
+            {labels.title}
           </h2>
         </ScrollFadeIn>
 
