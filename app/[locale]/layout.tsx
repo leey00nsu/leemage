@@ -5,8 +5,10 @@ import { ThemeProvider } from "@/providers/theme-provider";
 import { Toaster } from "@/shared/ui/sonner";
 import localFont from "next/font/local";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
+import { setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
+import { getMetadataBase } from "@/shared/config/site-url";
 
 const pretendard = localFont({
   src: "../../public/PretendardVariable.woff2",
@@ -18,6 +20,7 @@ const pretendard = localFont({
 });
 
 export const metadata: Metadata = {
+  metadataBase: getMetadataBase(),
   title: "Leemage",
   description: "Upload everything on Leemage",
   icons: {
@@ -30,6 +33,10 @@ export const metadata: Metadata = {
   },
 };
 
+export function generateStaticParams() {
+  return routing.locales.map((locale) => ({ locale }));
+}
+
 export default async function RootLayout({
   children,
   params,
@@ -41,11 +48,12 @@ export default async function RootLayout({
   if (!hasLocale(routing.locales, locale)) {
     notFound();
   }
+  setRequestLocale(locale);
 
   return (
     <html lang={locale} className={`${pretendard.variable}`} suppressHydrationWarning>
       <body className={pretendard.className}>
-        <NextIntlClientProvider locale={locale}>
+        <NextIntlClientProvider locale={locale} messages={null}>
           <ThemeProvider
             attribute="class"
             defaultTheme="system"

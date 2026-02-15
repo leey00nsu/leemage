@@ -1,4 +1,5 @@
-import { getLocale } from "next-intl/server";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages } from "next-intl/server";
 import { redirect } from "@/i18n/navigation";
 import { getSessionDefault } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
@@ -17,6 +18,7 @@ export default async function AppLayout({
     redirect({ href: "/auth/login", locale });
   }
   const username = session.username!;
+  const messages = await getMessages({ locale });
 
   const projects = await prisma.project.findMany({
     where: { userId: username },
@@ -25,10 +27,12 @@ export default async function AppLayout({
   });
 
   return (
-    <AppShell
-      sidebar={<AppSidebar username={username} projects={projects} />}
-    >
-      {children}
-    </AppShell>
+    <NextIntlClientProvider locale={locale} messages={messages}>
+      <AppShell
+        sidebar={<AppSidebar username={username} projects={projects} />}
+      >
+        {children}
+      </AppShell>
+    </NextIntlClientProvider>
   );
 }
