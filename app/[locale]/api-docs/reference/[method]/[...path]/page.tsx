@@ -4,6 +4,8 @@ import {
   decodeEndpointPathFromRouteSegments,
   getEndpointActiveKey,
 } from "@/entities/api-docs/model/navigation";
+import { getApiReferenceRoutes } from "@/entities/api-docs/model/data";
+import { routing } from "@/i18n/routing";
 import {
   buildApiDocsMetadata,
   getApiDocsRenderData,
@@ -14,6 +16,19 @@ const VALID_METHODS = new Set(["GET", "POST", "PUT", "PATCH", "DELETE"]);
 
 interface ApiReferencePageProps {
   params: Promise<{ locale: string; method: string; path: string[] }>;
+}
+
+export const dynamicParams = false;
+
+export function generateStaticParams() {
+  const referenceRoutes = getApiReferenceRoutes();
+  return routing.locales.flatMap((locale) =>
+    referenceRoutes.map((route) => ({
+      locale,
+      method: route.method.toLowerCase(),
+      path: route.routeSegments,
+    })),
+  );
 }
 
 function resolveEndpoint(params: { method: string; path: string[] }) {

@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
+import { getSiteUrl } from "@/shared/config/site-url";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://leemage.leey00nsu.com";
+const siteUrl = getSiteUrl();
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -11,5 +12,6 @@ export default function robots(): MetadataRoute.Robots {
       },
     ],
     host: siteUrl,
+    sitemap: `${siteUrl}/sitemap.xml`,
   };
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { getApiDocsData } from "@/entities/api-docs/model/data";
+import { toAbsoluteUrl } from "@/shared/config/site-url";
 import {
   ActiveItemKey,
   flattenApiDocs,
@@ -32,7 +33,7 @@ export function normalizeLocale(value: string): ApiDocsLocale {
 }
 
 async function loadApiDocs(locale: ApiDocsLocale) {
-  const t = await getTranslations();
+  const t = await getTranslations({ locale });
   const safeT = (key: string): string => {
     try {
       return t(key);
@@ -79,7 +80,7 @@ async function getResolvedHeadlineAndDescription(
   activeItemKey: ActiveItemKey,
   preloadedApiDocs?: Awaited<ReturnType<typeof loadApiDocs>>,
 ) {
-  const tApiDocs = await getTranslations("ApiDocsView");
+  const tApiDocs = await getTranslations({ locale, namespace: "ApiDocsView" });
   const staticDocKeys = getStaticDocI18nKeys(activeItemKey);
 
   if (staticDocKeys) {
@@ -120,6 +121,7 @@ export async function buildApiDocsMetadata({
   );
   const title = `${headline} | Leemage`;
   const canonicalPath = `/${normalizedLocale}${getHrefByActiveKey(activeItemKey)}`;
+  const canonicalUrl = toAbsoluteUrl(canonicalPath);
 
   return {
     title,
@@ -137,7 +139,7 @@ export async function buildApiDocsMetadata({
       title,
       description,
       type: "article",
-      url: canonicalPath,
+      url: canonicalUrl,
       locale: normalizedLocale,
     },
     twitter: {
@@ -167,6 +169,7 @@ export async function getApiDocsRenderData({
     apiDocsData,
   );
   const canonicalPath = `/${normalizedLocale}${getHrefByActiveKey(activeItemKey)}`;
+  const canonicalUrl = toAbsoluteUrl(canonicalPath);
 
   return {
     activeItemKey,
@@ -177,8 +180,8 @@ export async function getApiDocsRenderData({
       headline,
       description,
       inLanguage: normalizedLocale,
-      url: canonicalPath,
-      mainEntityOfPage: canonicalPath,
+      url: canonicalUrl,
+      mainEntityOfPage: canonicalUrl,
       about: ["API", "OpenAPI", "SDK", "Authentication", "Rate Limits"],
       publisher: {
         "@type": "Organization",
