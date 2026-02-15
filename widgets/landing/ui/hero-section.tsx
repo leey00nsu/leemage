@@ -1,8 +1,5 @@
-"use client";
-
 import { Link } from "@/i18n/navigation";
 import { AppButton } from "@/shared/ui/app/app-button";
-import { ScrollFadeIn } from "@/shared/ui/scroll-fade-in";
 import { FloatingCard } from "@/shared/ui/floating-card";
 import { ArrowRight, FileText, Database, Wand2, FolderOpen, Code } from "lucide-react";
 
@@ -60,40 +57,34 @@ export function HeroSection({ className = "", labels }: HeroSectionProps) {
 
       {/* Main content */}
       <div className="container mx-auto px-4 text-center relative z-10">
-        <ScrollFadeIn>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
-            <span className="bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
-              {labels.headline1}
-            </span>
-            <br />
-            <span className="text-gray-500 dark:text-gray-400">
-              {labels.headline2}
-            </span>
-          </h1>
-        </ScrollFadeIn>
+        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
+          <span className="bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
+            {labels.headline1}
+          </span>
+          <br />
+          <span className="text-gray-500 dark:text-gray-400">
+            {labels.headline2}
+          </span>
+        </h1>
 
-        <ScrollFadeIn delay={100}>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 break-keep">
-            {labels.subtitle}
-          </p>
-        </ScrollFadeIn>
+        <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 break-keep motion-safe:animate-fade-in-up [animation-delay:100ms] [animation-fill-mode:both]">
+          {labels.subtitle}
+        </p>
 
-        <ScrollFadeIn delay={200}>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/projects">
-              <AppButton size="lg">
-                {labels.primaryCta}
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </AppButton>
-            </Link>
-            <Link href="/api-docs">
-              <AppButton size="lg" variant="outline">
-                <FileText className="mr-2 h-5 w-5" />
-                {labels.secondaryCta}
-              </AppButton>
-            </Link>
-          </div>
-        </ScrollFadeIn>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 motion-safe:animate-fade-in-up [animation-delay:200ms] [animation-fill-mode:both]">
+          <Link href="/projects">
+            <AppButton size="lg">
+              {labels.primaryCta}
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </AppButton>
+          </Link>
+          <Link href="/api-docs">
+            <AppButton size="lg" variant="outline">
+              <FileText className="mr-2 h-5 w-5" />
+              {labels.secondaryCta}
+            </AppButton>
+          </Link>
+        </div>
       </div>
 
       {/* Background decoration */}

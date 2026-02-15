@@ -12,18 +12,15 @@ export default async function HomePage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const tHeader = await getTranslations({ locale, namespace: "Header" });
-  const tFooter = await getTranslations({ locale, namespace: "Footer" });
-  const tHero = await getTranslations({ locale, namespace: "LandingHero" });
-  const tSolutions = await getTranslations({
-    locale,
-    namespace: "SolutionsSection",
-  });
-  const tFeatures = await getTranslations({ locale, namespace: "LandingFeatures" });
-  const tIntegrations = await getTranslations({
-    locale,
-    namespace: "IntegrationsSection",
-  });
+  const [tHeader, tFooter, tHero, tSolutions, tFeatures, tIntegrations] =
+    await Promise.all([
+      getTranslations({ locale, namespace: "Header" }),
+      getTranslations({ locale, namespace: "Footer" }),
+      getTranslations({ locale, namespace: "LandingHero" }),
+      getTranslations({ locale, namespace: "SolutionsSection" }),
+      getTranslations({ locale, namespace: "LandingFeatures" }),
+      getTranslations({ locale, namespace: "IntegrationsSection" }),
+    ]);
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col">
