@@ -22,15 +22,15 @@
 </p>
 
 <p align="center">
-  <img src="public/sample_1.png" alt="Leemage Screenshot 1" width="800" />
+  <img src="public/readme-captures/project-detail-grid.png" alt="Leemage Project Detail" width="800" />
 </p>
 
 <p align="center">
-  <img src="public/sample_2.png" alt="Leemage Screenshot 2" width="800" />
+  <img src="public/readme-captures/file-detail-image.png" alt="Leemage File Detail" width="800" />
 </p>
 
 <p align="center">
-  <img src="public/sample_3.png" alt="Leemage Screenshot 3" width="800" />
+  <img src="public/readme-captures/monitoring-30d.png" alt="Leemage Monitoring Dashboard" width="800" />
 </p>
 
 ---
