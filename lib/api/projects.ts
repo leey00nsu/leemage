@@ -35,9 +35,16 @@ export async function getProjectsHandler(
         storageProvider: true,
         createdAt: true,
         updatedAt: true,
+        // File rows are updated by confirmation workflows, so this is upload completion time.
+        files: {
+          where: { status: "COMPLETED" },
+          orderBy: { updatedAt: "desc" },
+          take: 1,
+          select: { updatedAt: true },
+        },
         _count: {
           select: {
-            files: true,
+            files: { where: { status: "COMPLETED" } },
           },
         },
       },
@@ -52,6 +59,7 @@ export async function getProjectsHandler(
       createdAt: p.createdAt.toISOString(),
       updatedAt: p.updatedAt.toISOString(),
       fileCount: p._count.files,
+      lastUploadedAt: p.files?.[0]?.updatedAt.toISOString() ?? null,
     }));
 
     return NextResponse.json(response);

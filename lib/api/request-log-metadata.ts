@@ -12,7 +12,13 @@ export function attachResponseLogMetadata(
     return response;
   }
 
-  response.headers.set(LOG_METADATA_HEADER, JSON.stringify(metadata));
+  response.headers.set(
+    LOG_METADATA_HEADER,
+    JSON.stringify(metadata).replace(
+      /[\u007f-\uffff]/g,
+      (char) => `\\u${char.charCodeAt(0).toString(16).padStart(4, "0")}`,
+    ),
+  );
   return response;
 }
 

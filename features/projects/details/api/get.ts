@@ -4,12 +4,23 @@ import { FileWithVariants } from "@/entities/files/model/types";
 // API 응답 타입 정의 - files 필드 사용
 export type ProjectDetailsApiResponse = Omit<PrismaProject, "images"> & {
   files: FileWithVariants[];
+  total: number;
+  page: number;
+  pageCount: number;
+  pageSize: number;
+  fileCount: number;
+  totalBytes: number;
+  formats: string[];
 };
 
 export const getProjectDetails = async (
-  projectId: string
+  projectId: string,
+  query = "",
+  signal?: AbortSignal,
 ): Promise<ProjectDetailsApiResponse> => {
-  const response = await fetch(`/api/projects/${projectId}`);
+  const response = await fetch(`/api/projects/${projectId}/assets?${query}`, {
+    signal,
+  });
 
   if (!response.ok) {
     const errorData = await response.json();

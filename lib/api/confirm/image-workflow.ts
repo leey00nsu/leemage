@@ -5,7 +5,10 @@ import type { StorageAdapter } from "@/lib/storage";
 import { prisma } from "@/lib/prisma";
 import { attachResponseLogMetadata } from "@/lib/api/request-log-metadata";
 import { validateMagicBytes } from "@/lib/validation/file-validator";
-import { type ImageVariantData, type VariantOption } from "@/lib/api/confirm/types";
+import {
+  type ImageVariantData,
+  type VariantOption,
+} from "@/lib/api/confirm/types";
 
 async function processImageVariants(
   originalBuffer: Buffer,
@@ -56,17 +59,23 @@ async function processImageVariants(
 
               switch (reqFormat) {
                 case "jpeg":
-                  bufferToUpload = await pipeline.jpeg(formatOptions).toBuffer();
+                  bufferToUpload = await pipeline
+                    .jpeg(formatOptions)
+                    .toBuffer();
                   break;
                 case "png":
                   bufferToUpload = await pipeline.png().toBuffer();
                   break;
                 case "avif":
-                  bufferToUpload = await pipeline.avif({ quality: 50 }).toBuffer();
+                  bufferToUpload = await pipeline
+                    .avif({ quality: 50 })
+                    .toBuffer();
                   break;
                 case "webp":
                 default:
-                  bufferToUpload = await pipeline.webp(formatOptions).toBuffer();
+                  bufferToUpload = await pipeline
+                    .webp(formatOptions)
+                    .toBuffer();
                   break;
               }
 
@@ -194,7 +203,41 @@ export async function handleImageConfirm({
     );
   }
 
-  const originalMetadata = await sharp(originalBuffer).metadata();
+  let originalMetadata: sharp.Metadata;
+  try {
+    originalMetadata = await sharp(originalBuffer).metadata();
+  } catch (error) {
+    // Preserve source-only uploads for formats not supported by this Sharp build.
+    if (variants.length > 0) throw error;
+    const savedFile = await prisma.file.update({
+      where: { id: fileId },
+      data: {
+        name: fileName,
+        mimeType: contentType,
+        isImage: true,
+        size: fileSize,
+        url: objectUrl,
+        objectName,
+        status: "COMPLETED",
+        variants: [],
+      },
+    });
+    const response = NextResponse.json(
+      {
+        message: "Image uploaded; preview unavailable for this format",
+        file: savedFile,
+        variants: [],
+      },
+      { status: 201 },
+    );
+    attachResponseLogMetadata(response, {
+      fileName,
+      fileSize,
+      contentType,
+      fileType: "image",
+    });
+    return response;
+  }
   const originalFormat = contentType.split("/")[1] || "jpeg";
 
   const processedVariants = await processImageVariants(
@@ -205,6 +248,31 @@ export async function handleImageConfirm({
     storageAdapter,
     originalFormat,
   );
+
+  // Always provide a browser-compatible preview, including TIFF/HEIF originals.
+  const { data: thumbnail, info } = await sharp(originalBuffer)
+    .rotate()
+    .resize({
+      width: 480,
+      height: 480,
+      fit: "inside",
+      withoutEnlargement: true,
+    })
+    .webp({ quality: 80 })
+    .toBuffer({ resolveWithObject: true });
+  const thumbnailUrl = await storageAdapter.uploadObject(
+    `${projectId}/${fileId}-thumbnail.webp`,
+    thumbnail,
+    "image/webp",
+  );
+  processedVariants.push({
+    url: thumbnailUrl,
+    width: info.width,
+    height: info.height,
+    size: thumbnail.length,
+    format: "webp",
+    label: "thumbnail",
+  });
 
   const sourceLabel = `${originalMetadata.width || 0}x${originalMetadata.height || 0}`;
   const allVariants: ImageVariantData[] = [

@@ -50,9 +50,9 @@ export function AppSelect({
           "border border-gray-200 dark:border-gray-700 rounded-md",
           "text-sm font-medium text-slate-600 dark:text-slate-300",
           "hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors",
-          "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
+          "focus-visible:ring-primary/20 focus-visible:border-primary",
           className,
-          triggerClassName
+          triggerClassName,
         )}
       >
         <SelectValue placeholder={placeholder} />
@@ -60,7 +60,7 @@ export function AppSelect({
       <SelectContent
         className={cn(
           "bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-lg",
-          contentClassName
+          contentClassName,
         )}
       >
         {options.map((opt) => (
@@ -68,7 +68,7 @@ export function AppSelect({
             key={opt.value}
             value={opt.value}
             className={cn(
-              "rounded-md focus:bg-gray-100 focus:text-slate-900 dark:focus:bg-gray-800 dark:focus:text-white"
+              "rounded-md focus:bg-gray-100 focus:text-slate-900 dark:focus:bg-gray-800 dark:focus:text-white",
             )}
           >
             {opt.label}

@@ -1,8 +1,8 @@
 "use client";
 
 import { ImageIcon, Layers } from "lucide-react";
-import Image from "next/image";
-import { Link } from "@/i18n/navigation";
+import { useState } from "react";
+import { AppCardLink } from "@/shared/ui/app/app-card-link";
 import { FileCard } from "./file-card";
 import { VideoCard } from "./video/video-card";
 import { ImageVariantData } from "../model/types";
@@ -20,6 +20,7 @@ interface AssetCardProps {
   isImage?: boolean;
   mimeType?: string;
   size?: number;
+  url?: string | null;
 }
 
 export function AssetCard({
@@ -32,7 +33,9 @@ export function AssetCard({
   isImage = true,
   mimeType = "application/octet-stream",
   size = 0,
+  url,
 }: AssetCardProps) {
+  const [failedUrls, setFailedUrls] = useState<string[]>([]);
   // 비디오 파일인 경우 VideoCard로 위임
   if (isVideoMimeType(mimeType)) {
     return (
@@ -47,9 +50,8 @@ export function AssetCard({
     );
   }
 
-  // variants가 비어있으면 비이미지로 처리 (기존 데이터 호환)
-  const hasVariants = variants && variants.length > 0;
-  const effectiveIsImage = isImage && hasVariants;
+  // Legacy uploads may have isImage=false despite an image MIME type.
+  const effectiveIsImage = isImage || mimeType.startsWith("image/");
 
   // 비이미지 파일인 경우 FileCard로 위임
   if (!effectiveIsImage) {
@@ -65,33 +67,54 @@ export function AssetCard({
   }
 
   // 이미지 파일인 경우
-  const displayVariant =
-    variants.find((v) => v.label === thumbnailLabel) || variants[0];
-
-  if (!displayVariant) {
-    return (
-      <AppAssetCard className="aspect-square flex items-center justify-center bg-gray-100 dark:bg-gray-800">
-        <ImageIcon className="h-8 w-8 text-muted-foreground" />
-      </AppAssetCard>
-    );
-  }
+  const candidates = [...(variants || [])]
+    .filter((v) => v.url)
+    .sort((a, b) => {
+      const rank = (v: ImageVariantData) =>
+        v.label === thumbnailLabel
+          ? 0
+          : /^(webp|png|jpeg|jpg|avif|gif|svg|svg\+xml)$/i.test(v.format)
+            ? 1
+            : 2;
+      return rank(a) - rank(b) || a.size - b.size;
+    });
+  const displayVariant = candidates.find((v) => !failedUrls.includes(v.url));
+  const fallbackUrl = `/api/projects/${projectId}/files/${id}/preview`;
+  const displayUrl =
+    displayVariant?.url ||
+    (url && !failedUrls.includes(url) ? url : null) ||
+    (!failedUrls.includes(fallbackUrl) ? fallbackUrl : null);
 
   const format =
     mimeType && mimeType.includes("/") ? mimeType.split("/")[1] : "file";
-  const resolution = `${displayVariant.width}x${displayVariant.height}`;
+  const resolution = displayVariant
+    ? `${displayVariant.width}x${displayVariant.height}`
+    : "—";
 
   return (
-    <Link href={`/projects/${projectId}/files/${id}`} className="block">
+    <AppCardLink href={`/projects/${projectId}/files/${id}`} className="block">
       <AppAssetCard>
         <div className="aspect-square bg-gray-100 dark:bg-gray-800 relative overflow-hidden flex items-center justify-center">
-          <Image
-            src={displayVariant.url}
-            alt={name}
-            width={displayVariant.width}
-            height={displayVariant.height}
-            className="w-full h-full object-contain p-2 transition-transform duration-500 group-hover:scale-105"
-            priority={priority}
-          />
+          {displayUrl ? (
+            // Storage URLs can use configured custom domains; use native lazy loading.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={displayUrl}
+              alt={name}
+              loading={priority ? "eager" : "lazy"}
+              decoding="async"
+              className="w-full h-full object-contain p-2 transition-transform duration-500 group-hover:scale-105"
+              onError={() =>
+                setFailedUrls((previous) => [...previous, displayUrl])
+              }
+            />
+          ) : (
+            <ImageIcon
+              role="img"
+              aria-label={name}
+              className="h-8 w-8 text-muted-foreground"
+            />
+          )}
           <div className="absolute bottom-2 left-2 px-1.5 py-0.5 bg-black/60 backdrop-blur rounded text-[10px] font-mono text-white uppercase">
             {format}
           </div>
@@ -114,6 +137,6 @@ export function AssetCard({
           </div>
         </div>
       </AppAssetCard>
-    </Link>
+    </AppCardLink>
   );
 }

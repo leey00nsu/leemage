@@ -94,6 +94,7 @@ export const projectResponseSchema = z
 // 프로젝트 목록 아이템 스키마 (파일 개수 포함)
 export const projectListItemResponseSchema = projectResponseSchema
   .extend({
+    lastUploadedAt: z.string().datetime().nullable().optional().openapi({ description: "Most recent completed file upload; null when empty" }),
     fileCount: z.number().int().nonnegative().openapi({
       description: "Number of files in the project",
       example: 12,

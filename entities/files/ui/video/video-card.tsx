@@ -2,7 +2,7 @@
 
 import { Video, Play } from "lucide-react";
 import Image from "next/image";
-import { Link } from "@/i18n/navigation";
+import { AppCardLink } from "@/shared/ui/app/app-card-link";
 import { ImageVariantData } from "../../model/types";
 import { formatFileSize } from "@/shared/lib/file-utils";
 import { AppAssetCard } from "@/shared/ui/app/app-asset-card";
@@ -28,7 +28,7 @@ export function VideoCard({
   const thumbnail = variants?.find((v) => v.label === "thumbnail");
 
   return (
-    <Link href={`/projects/${projectId}/files/${id}`} className="block">
+    <AppCardLink href={`/projects/${projectId}/files/${id}`} className="block">
       <AppAssetCard>
         <div className="aspect-square bg-gray-100 dark:bg-gray-800 relative overflow-hidden flex items-center justify-center">
           {thumbnail ? (
@@ -63,6 +63,6 @@ export function VideoCard({
           </div>
         </div>
       </AppAssetCard>
-    </Link>
+    </AppCardLink>
   );
 }

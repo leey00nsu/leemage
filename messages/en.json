@@ -69,7 +69,9 @@
     "noDescription": "No description provided.",
     "filesCount": "{count} files",
     "lastUpdated": "Updated {date}",
-    "unknownUpdatedAt": "Unknown"
+    "unknownUpdatedAt": "Unknown",
+    "lastUploaded": "Last upload: {date}",
+    "noUploads": "No uploads"
   },
   "EmptyProjectState": {
     "defaultMessage": "No projects created yet.\nClick the 'Create New Project' button to get started."
@@ -187,7 +189,17 @@
     "loadingDescription": "Loading API key information..."
   },
   "FileList": {
-    "noFilesInProject": "This project does not have any files yet."
+    "noFilesInProject": "This project does not have any files yet.",
+    "selected": "{count} selected",
+    "deleteSelected": "Delete selected",
+    "deleting": "Deleting…",
+    "selectionHint": "Shift for range · Drag to select · Selection clears on page change",
+    "selectFile": "Select {name}",
+    "confirmDelete": "Delete {count} selected files? This cannot be undone.",
+    "deleteFailed": "Failed to delete {count} files. Retry the selected files.",
+    "deleteSuccess": "Deleted {count} files.",
+    "selectAll": "Select all",
+    "clearSelection": "Clear selection"
   },
   "FileUploadDialog": {
     "uploadSuccess": "File \"{fileName}\" uploaded successfully!",
@@ -629,7 +641,12 @@
       "sortOldest": "Oldest",
       "sortNameAsc": "Name (A–Z)",
       "sortNameDesc": "Name (Z–A)",
-      "sortSizeDesc": "Size (desc)"
+      "sortSizeDesc": "Size (desc)",
+      "typeAudio": "Audio",
+      "typeDocument": "Documents",
+      "typeArchive": "Archives",
+      "pageSizeLabel": "Files per page",
+      "pageSizeOption": "{count} per page"
     },
     "type": {
       "image": "Image",
@@ -640,6 +657,12 @@
       "name": "Name",
       "type": "Type",
       "size": "Size"
+    },
+    "pagination": {
+      "label": "File pages",
+      "previous": "Previous",
+      "next": "Next",
+      "status": "{page} / {pages} · {total} files"
     }
   },
   "Footer": {

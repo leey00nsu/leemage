@@ -1,6 +1,6 @@
 "use client";
 
-import { Link } from "@/i18n/navigation";
+import { AppCardLink } from "@/shared/ui/app/app-card-link";
 import { FileTypeIcon } from "./file-type-icon";
 import { formatFileSize } from "@/shared/lib/file-utils";
 import { AppAssetCard } from "@/shared/ui/app/app-asset-card";
@@ -21,7 +21,7 @@ export function FileCard({
   size,
 }: FileCardProps) {
   return (
-    <Link href={`/projects/${projectId}/files/${id}`} className="block">
+    <AppCardLink href={`/projects/${projectId}/files/${id}`} className="block">
       <AppAssetCard>
         <div className="aspect-square bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
           <FileTypeIcon mimeType={mimeType} size={56} />
@@ -36,6 +36,6 @@ export function FileCard({
           </div>
         </div>
       </AppAssetCard>
-    </Link>
+    </AppCardLink>
   );
 }

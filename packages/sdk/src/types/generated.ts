@@ -923,6 +923,11 @@ export interface components {
         };
         ProjectListItemResponse: components["schemas"]["ProjectResponse"] & {
             /**
+             * Format: date-time
+             * @description Most recent completed file upload; null when empty
+             */
+            lastUploadedAt?: string | null;
+            /**
              * @description Number of files in the project
              * @example 12
              */

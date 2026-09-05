@@ -16,6 +16,7 @@ interface AppProjectCardProps {
   name: string;
   storageProvider?: StorageProvider | string;
   updatedAt?: string | Date;
+  lastUploadedAt?: string | null;
 }
 
 function formatUpdatedAt(
@@ -55,9 +56,11 @@ export function AppProjectCard({
   name,
   storageProvider,
   updatedAt,
+  lastUploadedAt,
 }: AppProjectCardProps) {
   const t = useTranslations("ProjectCard");
   const locale = useLocale();
+  const formattedUpload = formatUpdatedAt(lastUploadedAt ?? undefined, locale, layout);
   const formattedUpdatedAt = formatUpdatedAt(updatedAt, locale, layout);
 
   if (layout === "list") {
@@ -84,6 +87,7 @@ export function AppProjectCard({
               {t("filesCount", { count: fileCount })}
             </span>
             <span className="text-right">
+              <span className="block">{t("lastUploaded", { date: formattedUpload || t("noUploads") })}</span>
               {t("lastUpdated", {
                 date: formattedUpdatedAt || t("unknownUpdatedAt"),
               })}
@@ -111,6 +115,7 @@ export function AppProjectCard({
         </div>
         <div className="mt-1 space-y-0.5 text-[11px] text-slate-500 dark:text-slate-400 font-mono">
           <div>{t("filesCount", { count: fileCount })}</div>
+          <div>{t("lastUploaded", { date: formattedUpload || t("noUploads") })}</div>
           <div className="truncate">
             {t("lastUpdated", {
               date: formattedUpdatedAt || t("unknownUpdatedAt"),

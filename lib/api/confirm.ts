@@ -162,7 +162,7 @@ export async function confirmHandler(
 
     const storageAdapter = await StorageFactory.getAdapter(project.storageProvider);
 
-    if (isImageMimeType(contentType) && variants && variants.length > 0) {
+    if (isImageMimeType(contentType)) {
       return handleImageConfirm({
         projectId,
         fileId,
@@ -170,7 +170,7 @@ export async function confirmHandler(
         fileName,
         contentType,
         fileSize,
-        variants,
+        variants: variants ?? [],
         storageAdapter,
       });
     }

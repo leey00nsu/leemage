@@ -115,7 +115,7 @@ export function usePresignedUpload(options: UsePresignedUploadOptions) {
 
       // 프로젝트 상세 캐시 무효화 (파일 목록 포함)
       queryClient.invalidateQueries({
-        queryKey: projectKeys.byId(projectId),
+        queryKey: projectKeys.all(),
       });
 
       onSuccess?.(response);

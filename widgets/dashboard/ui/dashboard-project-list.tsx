@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Search } from "lucide-react";
 
-import { Link } from "@/i18n/navigation";
+import { AppCardLink } from "@/shared/ui/app/app-card-link";
 import { useGetProjects } from "@/features/projects/list/model/get";
 import {
   filterProjects,
@@ -138,7 +138,7 @@ export function DashboardProjectList() {
           />
         </div>
 
-        <div className="flex items-center gap-3 overflow-x-auto">
+        <div className="flex flex-wrap items-center gap-3">
           <div className="mr-1 flex items-center gap-2 border-r border-gray-200 pr-3 dark:border-gray-700">
             <AppSelect
               value={storageFilter}
@@ -177,31 +177,33 @@ export function DashboardProjectList() {
           {viewMode === "grid" ? (
             <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
               {filteredProjects.map((project) => (
-                <Link key={project.id} href={`/projects/${project.id}`} className="block h-full">
+                <AppCardLink key={project.id} href={`/projects/${project.id}`} className="block h-full">
                   <AppProjectCard
                     name={project.name}
                     description={project.description || tProjectCard("noDescription")}
                     storageProvider={project.storageProvider}
                     fileCount={project.fileCount}
                     updatedAt={project.updatedAt}
+                    lastUploadedAt={project.lastUploadedAt}
                     className="h-full"
                   />
-                </Link>
+                </AppCardLink>
               ))}
             </div>
           ) : (
             <div className="space-y-3">
               {filteredProjects.map((project) => (
-                <Link key={project.id} href={`/projects/${project.id}`} className="block">
+                <AppCardLink key={project.id} href={`/projects/${project.id}`} className="block">
                   <AppProjectCard
                     name={project.name}
                     description={project.description || tProjectCard("noDescription")}
                     storageProvider={project.storageProvider}
                     fileCount={project.fileCount}
                     updatedAt={project.updatedAt}
+                    lastUploadedAt={project.lastUploadedAt}
                     layout="list"
                   />
-                </Link>
+                </AppCardLink>
               ))}
             </div>
           )}

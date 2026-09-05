@@ -6,5 +6,6 @@ export interface ProjectListItem {
   createdAt: string;
   updatedAt: string;
   fileCount: number;
+  lastUploadedAt?: string | null;
 }
 

@@ -13,9 +13,9 @@ export const useDeleteFile = (options?: UseDeleteFileMutationOptions) => {
   return useMutation({
     mutationFn: ({ projectId, fileId }: { projectId: string; fileId: string }) =>
       deleteFile({ projectId, fileId }),
-    onSuccess: (data, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: projectKeys.byId(variables.projectId),
+        queryKey: projectKeys.all(),
       });
 
       if (options?.onSuccessCallback) {

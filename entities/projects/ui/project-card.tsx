@@ -1,6 +1,6 @@
 "use client";
 
-import { Link } from "@/i18n/navigation";
+import { AppCardLink } from "@/shared/ui/app/app-card-link";
 import { useTranslations } from "next-intl";
 import { StorageProvider } from "@/lib/storage/types";
 import { AppProjectCard } from "@/shared/ui/app/app-project-card";
@@ -12,6 +12,7 @@ interface ProjectCardProps {
   storageProvider?: StorageProvider | string;
   fileCount?: number;
   updatedAt?: string | Date;
+  lastUploadedAt?: string | null;
 }
 
 export function ProjectCard({
@@ -21,11 +22,12 @@ export function ProjectCard({
   storageProvider,
   fileCount,
   updatedAt,
+  lastUploadedAt,
 }: ProjectCardProps) {
   const t = useTranslations("ProjectCard");
 
   return (
-    <Link href={`/projects/${id}`} className="block h-full">
+    <AppCardLink href={`/projects/${id}`} className="block h-full">
       <AppProjectCard
         className="h-full"
         name={name}
@@ -33,7 +35,8 @@ export function ProjectCard({
         storageProvider={storageProvider}
         fileCount={fileCount}
         updatedAt={updatedAt}
+        lastUploadedAt={lastUploadedAt}
       />
-    </Link>
+    </AppCardLink>
   );
 }
