@@ -11,6 +11,7 @@ import { StorageProvider } from "@/lib/generated/prisma";
 // Prisma 목업
 vi.mock("@/lib/prisma", () => ({
   prisma: {
+    $queryRaw: vi.fn(async () => [{ bytes: BigInt(0) }]),
     file: {
       aggregate: vi.fn(),
     },
@@ -75,7 +76,7 @@ describe("스토리지 쿼터 최적화", () => {
   });
 
   describe("속성 10: 스토리지 집계 효율성", () => {
-    it("사용량 계산 시 정확히 한 번의 데이터베이스를 호출해야 한다", async () => {
+    it("사용량 계산 시 원본 크기를 한 번 집계해야 한다", async () => {
       mockPrisma.file.aggregate.mockResolvedValue({
         _sum: { size: 5000000 },
         _count: { id: 50 },

@@ -114,9 +114,20 @@ components:
                 - max800
                 - max1920
             - type: string
+              enum:
+                - thumbnail
+            - type: string
+              pattern: ^max[1-9]\d{0,4}$
+            - type: string
               pattern: ^\d+x\d+$
-          description: "Image size label. Presets: source (original), max300 (longest side 300px), max800 (longest side 800px), max1920 (longest side 1920px), or custom resolution (WIDTHxHEIGHT format)."
+          description: "Image size label. Presets: source (original), max300 (width 300px), max800 (width 800px), max1920 (width 1920px), thumbnail (WebP inside 480x480), maxN (width 1–10000px), or custom resolution (WIDTHxHEIGHT, each 1–10000px)."
           example: source
+        fit:
+          type: string
+          enum:
+            - inside
+            - cover
+          description: "Custom sizes: inside preserves aspect ratio within both bounds; cover center-crops to exact dimensions. Default inside. Thumbnail is always inside."
         format:
           type: string
           enum:
@@ -269,6 +280,7 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/VariantOption"
+          maxItems: 20
           description: (Image only) Array of image variant options to generate
       required:
         - fileId
@@ -317,6 +329,11 @@ components:
           format: uri
           description: URL for non-image files
           example: null
+        thumbnail:
+          allOf:
+            - $ref: "#/components/schemas/ImageVariantData"
+            - nullable: true
+              description: Shared WebP preview, fits within 480x480 without enlargement. References an existing variant; not a separate stored copy.
         variants:
           type: array
           items:

@@ -81,6 +81,7 @@ export async function getProjectDetailsHandler(
       updatedAt: projectData.updatedAt.toISOString(),
       files: projectFiles.map((file) => ({
         ...file,
+        thumbnail: (file.variants as unknown as ImageVariantData[]).find(v => v.label === "thumbnail") ?? null,
         createdAt: file.createdAt.toISOString(),
         updatedAt: file.updatedAt.toISOString(),
         variants: file.variants as unknown as ImageVariantData[],

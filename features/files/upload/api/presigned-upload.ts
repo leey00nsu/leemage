@@ -13,7 +13,7 @@ export interface PresignResponse {
 // Confirm API 응답 타입
 export interface ConfirmResponse {
   message: string;
-  file: Omit<PrismaFile, "variants"> & { variants: ImageVariantData[] };
+  file: Omit<PrismaFile, "variants"> & { variants: ImageVariantData[]; thumbnail?: ImageVariantData | null };
   variants?: ImageVariantData[];
 }
 
@@ -21,6 +21,7 @@ export interface ConfirmResponse {
 export interface VariantOption {
   sizeLabel: string;
   format: string;
+  fit?: "inside" | "cover";
 }
 
 export interface ImageDimensions {

@@ -4,6 +4,8 @@
  */
 
 import { prisma } from "@/lib/prisma";
+import { variantBytesSql } from "@/lib/storage/variant-bytes-sql";
+import { Prisma } from "@/lib/generated/prisma";
 import { StorageProvider } from "@/lib/generated/prisma";
 
 /**
@@ -58,11 +60,12 @@ export async function calculateStorageUsage(
     },
   });
 
-  // Note: variants sizes are stored in JSON, so we need a separate query
-  // For now, we calculate base file sizes only
-  // A more complete solution would use a raw SQL query with JSON aggregation
-  
-  const totalBytes = result._sum.size || 0;
+  const extra = await prisma.$queryRaw<{ bytes: bigint }[]>(Prisma.sql`
+    SELECT COALESCE(SUM(${variantBytesSql}), 0)::bigint AS bytes FROM "File"
+    INNER JOIN "Project" ON "Project".id = "File"."projectId"
+    WHERE "File".status = 'COMPLETED' AND "Project"."storageProvider" = ${provider}::"StorageProvider"
+  `);
+  const totalBytes = (result._sum.size || 0) + Number(extra[0]?.bytes ?? 0);
   const fileCount = result._count.id || 0;
 
   return {

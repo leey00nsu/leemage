@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import { Button } from "@/shared/ui/button";
 import {
   Dialog,
@@ -10,341 +12,216 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogClose,
 } from "@/shared/ui/dialog";
 import { usePresignedUpload } from "../model/presigned-upload";
-import { toast } from "sonner";
-import {
-  AVAILABLE_FORMATS,
-  AVAILABLE_SIZES,
-} from "@/shared/config/image-options";
-import { TransformOptions } from "@/entities/files/ui/image/transform-options";
 import { FileInput } from "@/entities/files/ui/file-input";
-import { useForm, SubmitHandler } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { FileUploadFormValues, createFileUploadSchema } from "../model/schema";
-import { useTranslations } from "next-intl";
-import { isImageFile } from "@/shared/lib/file-utils";
+import { TransformOptions } from "@/entities/files/ui/image/transform-options";
+import {
+  isImageFile,
+  createFileSizeSchema,
+  DEFAULT_MAX_FILE_SIZE,
+} from "@/shared/lib/file-utils";
+import {
+  planImageTransforms,
+  type ImageTransformRequest,
+} from "@/shared/lib/image-transform-plan";
 import { Progress } from "@/shared/ui/progress";
-import { Loader2, X, CheckCircle, AlertCircle } from "lucide-react";
-
-type FormatType = (typeof AVAILABLE_FORMATS)[number];
-type SizeType = (typeof AVAILABLE_SIZES)[number];
-
-interface FileUploadDialogProps {
-  projectId: string;
-  children: React.ReactNode;
-}
 
 export function FileUploadDialog({
   projectId,
   children,
-}: FileUploadDialogProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [fileState, setFileState] = useState<File | null>(null);
-  const [isImage, setIsImage] = useState(false);
-  const [customResolutions, setCustomResolutions] = useState<string[]>([]);
-  const [imageDimensions, setImageDimensions] = useState<{
+}: {
+  projectId: string;
+  children: React.ReactNode;
+}) {
+  const t = useTranslations("FileUploadDialog");
+  const o = useTranslations("UploadOptions");
+  const [open, setOpen] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [variants, setVariants] = useState<ImageTransformRequest[]>([]);
+  const [dimensions, setDimensions] = useState<{
     width: number;
     height: number;
   } | null>(null);
-  const t = useTranslations("FileUploadDialog");
-  const tValidation = useTranslations("Validation");
-
-  // i18n 스키마 생성
-  const schema = useMemo(
-    () => createFileUploadSchema((key) => tValidation(key)),
-    [tValidation]
-  );
-
-  // react-hook-form 설정
-  const {
-    handleSubmit,
-    setValue,
-    watch,
-    reset,
-    formState: { errors },
-  } = useForm<FileUploadFormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: {
-      formats: [AVAILABLE_FORMATS[0]],
-      sizes: [
-        AVAILABLE_SIZES.find((s) => s === "source") || AVAILABLE_SIZES[0],
-      ],
-      customResolutions: [],
-    },
-    mode: "onChange",
-  });
-
-  // Presigned Upload 훅
-  const {
-    status,
-    progress,
-    error,
-    upload,
-    cancel,
-    reset: resetUpload,
-    isUploading,
-  } = usePresignedUpload({
-    projectId,
-    onSuccess: () => {
-      toast.success(t("uploadSuccess", { fileName: fileState?.name || "" }));
-      setIsOpen(false);
-      setFileState(null);
-    },
-    onError: (error: Error) => {
-      if (error.message !== "업로드가 취소되었습니다.") {
-        toast.error(error.message);
-      }
-    },
-  });
-
-  // 포맷, 사이즈 상태 관찰
-  const selectedFormats = watch("formats") || [];
-  const selectedSizes = watch("sizes") || [];
-
-  // 파일이 이미지인지 확인
-  useEffect(() => {
-    if (fileState) {
-      setIsImage(isImageFile(fileState));
-    } else {
-      setIsImage(false);
+  const isImage = file ? isImageFile(file) : false;
+  const { status, progress, error, upload, cancel, reset, isUploading } =
+    usePresignedUpload({
+      projectId,
+      onSuccess: () => {
+        toast.success(t("uploadSuccess", { fileName: file?.name || "" }));
+        setOpen(false);
+        clear();
+      },
+      onError: (e) => toast.error(e.message),
+    });
+  function clear() {
+    setFile(null);
+    setVariants([]);
+    setDimensions(null);
+    reset();
+  }
+  const plan = useMemo(() => {
+    if (!isImage || !file || !dimensions)
+      return { outputs: null, invalid: false };
+    try {
+      return {
+        outputs: planImageTransforms(
+          dimensions.width,
+          dimensions.height,
+          file.type.split("/")[1],
+          variants,
+        ),
+        invalid: false,
+      };
+    } catch {
+      return { outputs: null, invalid: true };
     }
-  }, [fileState]);
-
-  // 폼 유효성 검사 (프리셋 사이즈 또는 커스텀 해상도 중 하나 이상 선택)
-  const hasValidSizes = selectedSizes.length > 0 || customResolutions.length > 0;
-  const hasImageDimensions = !isImage || imageDimensions !== null;
-  const isFormValid =
-    Object.keys(errors).length === 0 &&
-    fileState &&
-    (!isImage || (selectedFormats.length > 0 && hasValidSizes && hasImageDimensions)) &&
-    !isUploading;
-
-  // 포맷 변경 핸들러
-  const handleFormatChange = (format: string, checked: boolean | string) => {
-    const formatValue = format as FormatType;
-    const newFormats = [...selectedFormats];
-
-    if (checked === true && !newFormats.includes(formatValue)) {
-      newFormats.push(formatValue);
-    } else if (checked !== true) {
-      const index = newFormats.indexOf(formatValue);
-      if (index !== -1) {
-        newFormats.splice(index, 1);
-      }
-    }
-
-    setValue("formats", newFormats, { shouldValidate: true });
-  };
-
-  // 사이즈 변경 핸들러
-  const handleSizeChange = (size: string, checked: boolean | string) => {
-    const sizeValue = size as SizeType;
-    const newSizes = [...selectedSizes];
-
-    if (checked === true && !newSizes.includes(sizeValue)) {
-      newSizes.push(sizeValue);
-    } else if (checked !== true) {
-      const index = newSizes.indexOf(sizeValue);
-      if (index !== -1) {
-        newSizes.splice(index, 1);
-      }
-    }
-
-    setValue("sizes", newSizes, { shouldValidate: true });
-  };
-
-  // 파일 변경 핸들러
-  const handleFileChange = (file: File | null) => {
-    setFileState(file);
-    if (file) {
-      setValue("file", file, { shouldValidate: true });
-    }
-  };
-
-  // 커스텀 해상도 추가 핸들러
-  const handleCustomResolutionAdd = (resolution: string) => {
-    if (!customResolutions.includes(resolution)) {
-      const newResolutions = [...customResolutions, resolution];
-      setCustomResolutions(newResolutions);
-      setValue("customResolutions", newResolutions, { shouldValidate: true });
-    }
-  };
-
-  // 커스텀 해상도 제거 핸들러
-  const handleCustomResolutionRemove = (resolution: string) => {
-    const newResolutions = customResolutions.filter((r) => r !== resolution);
-    setCustomResolutions(newResolutions);
-    setValue("customResolutions", newResolutions, { shouldValidate: true });
-  };
-
-  // 폼 제출 핸들러
-  const onSubmit: SubmitHandler<FileUploadFormValues> = (data) => {
-    const { file, formats, sizes } = data;
-
-    if (!file) {
-      toast.warning(t("selectFileWarning"));
-      return;
-    }
-
-    // 이미지 파일인 경우 variants 생성
-    let variants;
-    if (isImage && formats) {
-      // 프리셋 사이즈와 커스텀 해상도 합치기
-      const allSizes = [...(sizes || []), ...customResolutions];
-      variants = allSizes.flatMap((sizeLabel) =>
-        formats.map((format) => ({ sizeLabel, format }))
-      );
-    }
-
-    upload(file, variants, isImage ? imageDimensions : undefined);
-  };
-
-  // 다이얼로그 상태 변경 핸들러
-  const handleOpenChange = (open: boolean) => {
-    setIsOpen(open);
-    if (!open) {
-      reset({
-        formats: [AVAILABLE_FORMATS[0]],
-        sizes: [
-          AVAILABLE_SIZES.find((s) => s === "source") || AVAILABLE_SIZES[0],
-        ],
-        customResolutions: [],
-      });
-      setFileState(null);
-      setIsImage(false);
-      setCustomResolutions([]);
-      setImageDimensions(null);
-      resetUpload();
-    }
-  };
-
-  // 업로드 취소 핸들러
-  const handleCancel = () => {
-    cancel();
-    toast.info("업로드가 취소되었습니다.");
-  };
-
-  // 상태별 메시지
-  const getStatusMessage = () => {
-    switch (status) {
-      case "presigning":
-        return "업로드 준비 중...";
-      case "uploading":
-        return `업로드 중... ${progress}%`;
-      case "confirming":
-        return "업로드 완료 확인 중...";
-      case "processing":
-        return "이미지 처리 중...";
-      case "complete":
-        return "업로드 완료!";
-      case "error":
-        return error || "업로드 실패";
-      default:
-        return "";
-    }
-  };
-
+  }, [isImage, file, dimensions, variants]);
+  const fileValid =
+    !!file &&
+    createFileSizeSchema(DEFAULT_MAX_FILE_SIZE).safeParse(file).success;
+  const invalid =
+    !fileValid ||
+    plan.invalid ||
+    (isImage && variants.length > 0 && !dimensions);
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(value) => {
+        if (isUploading) return;
+        setOpen(value);
+        if (!value) clear();
+      }}
+    >
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
+      <DialogContent
+        showCloseButton={!isUploading}
+        className="flex max-h-[min(760px,calc(100dvh-2rem))] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl"
+      >
+        <DialogHeader className="shrink-0 border-b px-6 py-5 pr-12">
           <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="grid gap-4 py-4">
+        <form
+          className="flex min-h-0 flex-auto flex-col"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (file && !invalid && !isUploading)
+              upload(
+                file,
+                isImage ? variants : undefined,
+                isImage ? dimensions : undefined,
+              );
+          }}
+        >
+          <div
+            data-slot="upload-scroll-area"
+            className="min-h-0 flex-auto space-y-5 overflow-y-auto overscroll-contain px-6 py-5"
+          >
             <FileInput
-              onChange={handleFileChange}
-              selectedFile={fileState}
+              selectedFile={file}
+              onChange={(value) => {
+                setFile(value);
+                setDimensions(null);
+              }}
               disabled={isUploading}
               id="file-input"
               label={t("fileInputLabel")}
               accept="*/*"
-              onDimensionsLoad={setImageDimensions}
+              onDimensionsLoad={setDimensions}
             />
-            {errors.file && (
-              <p className="text-sm text-destructive pl-[25%]">
-                {errors.file.message}
+            {file && !fileValid && (
+              <p role="alert" className="text-sm text-destructive">
+                {o("fileLimit")}
               </p>
             )}
-
-            {/* 이미지 파일인 경우에만 변환 옵션 표시 */}
             {isImage && (
               <>
+                <p className="rounded-lg bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+                  {o("includedSummary")}
+                </p>
                 <TransformOptions
-                  selectedSizes={new Set(selectedSizes)}
-                  selectedFormats={new Set(selectedFormats)}
-                  customResolutions={customResolutions}
-                  onSizeChange={handleSizeChange}
-                  onFormatChange={handleFormatChange}
-                  onCustomResolutionAdd={handleCustomResolutionAdd}
-                  onCustomResolutionRemove={handleCustomResolutionRemove}
+                  variants={variants}
+                  onChange={setVariants}
                   disabled={isUploading}
-                  originalWidth={imageDimensions?.width}
-                  originalHeight={imageDimensions?.height}
-                  originalFileSize={fileState?.size}
                 />
-                {errors.formats && (
-                  <p className="text-sm text-destructive">
-                    {errors.formats.message}
+                {plan.invalid && (
+                  <p role="alert" className="text-sm text-destructive">
+                    {o("invalid")}
                   </p>
                 )}
-                {errors.sizes && (
-                  <p className="text-sm text-destructive">
-                    {errors.sizes.message}
+                {!dimensions && (
+                  <p className="text-xs text-muted-foreground">
+                    {o("dimensionsUnknown")}
                   </p>
                 )}
+                <section
+                  className="rounded-lg border p-4 space-y-2"
+                  aria-live="polite"
+                >
+                  <h3 className="font-medium">{o("planned")}</h3>
+                  <p className="text-sm">{o("original")}</p>
+                  {plan.outputs ? (
+                    <>
+                      <ul className="space-y-1 text-sm">
+                        {plan.outputs.map((output) => (
+                          <li key={output.key}>
+                            {output.thumbnail
+                              ? o("thumbnailName")
+                              : o("output")}{" "}
+                            · {output.width}×{output.height} ·{" "}
+                            {output.format.toUpperCase()}
+                            {output.fit === "cover" ? ` · ${o("cover")}` : ""}
+                          </li>
+                        ))}
+                      </ul>
+                      <p className="font-medium text-sm">
+                        {o("count", { count: 1 + plan.outputs.length })}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      {o("pendingPlan")}
+                    </p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    {o("dedupHint")}
+                  </p>
+                </section>
               </>
             )}
-
-            {/* 비이미지 파일 안내 메시지 */}
-            {fileState && !isImage && (
+            {file && !isImage && (
               <p className="text-sm text-muted-foreground">
-                {t("nonImageFileInfo") ||
-                  "이 파일은 원본 그대로 업로드됩니다."}
+                {t("nonImageFileInfo")}
               </p>
             )}
-
-            {/* 업로드 진행 상태 */}
             {status !== "idle" && (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  {status === "error" ? (
-                    <AlertCircle className="h-4 w-4 text-destructive" />
-                  ) : status === "complete" ? (
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                  ) : (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  )}
-                  <span
-                    className={`text-sm ${status === "error" ? "text-destructive" : ""}`}
-                  >
-                    {getStatusMessage()}
-                  </span>
-                </div>
-                {(status === "uploading" || status === "presigning") && (
-                  <Progress value={progress} className="h-2" />
-                )}
+              <div role="status" className="space-y-2">
+                <p className={error ? "text-sm text-destructive" : "text-sm"}>
+                  {error || o(`status.${status}`)}
+                </p>
+                {isUploading && <Progress value={progress} />}
               </div>
             )}
           </div>
-          <DialogFooter>
+          <DialogFooter className="shrink-0 border-t bg-background px-6 py-4">
             {isUploading ? (
-              <Button type="button" variant="destructive" onClick={handleCancel}>
-                <X className="h-4 w-4 mr-2" />
-                취소
+              <Button type="button" variant="destructive" onClick={cancel}>
+                {t("cancelButton")}
               </Button>
             ) : (
               <>
-                <DialogClose asChild>
-                  <Button type="button" variant="outline" disabled={isUploading}>
-                    {t("cancelButton")}
-                  </Button>
-                </DialogClose>
-                <Button type="submit" disabled={!isFormValid}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setOpen(false);
+                    clear();
+                  }}
+                >
+                  {t("cancelButton")}
+                </Button>
+                <Button type="submit" disabled={invalid}>
                   {t("uploadButton")}
                 </Button>
               </>

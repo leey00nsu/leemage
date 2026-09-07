@@ -5,7 +5,7 @@ import {
   calculateUsagePercentage,
   getUsageStatus,
 } from "@/shared/lib/storage-quota-utils";
-import { ImageVariantData } from "@/entities/files/model/types";
+import { getStoredFileBytes } from "@/shared/lib/file-storage-size";
 
 export interface StorageProviderUsage {
   provider: "OCI" | "R2";
@@ -39,7 +39,7 @@ export const GET = withSessionAuth(async (req: AuthenticatedRequest) => {
       select: {
         storageProvider: true,
         files: {
-          select: { size: true, variants: true },
+          select: { size: true, variants: true, url: true, objectName: true },
           where: { status: "COMPLETED" },
         },
       },
@@ -68,11 +68,7 @@ export const GET = withSessionAuth(async (req: AuthenticatedRequest) => {
 
       // 원본 파일 크기 + variants 크기 합산
       for (const file of project.files) {
-        existing.bytes += file.size; // 원본 크기
-        const variants = file.variants as unknown as ImageVariantData[];
-        if (Array.isArray(variants)) {
-          existing.bytes += variants.reduce((sum, v) => sum + (v.size || 0), 0);
-        }
+        existing.bytes += getStoredFileBytes(file);
       }
 
       usageMap.set(provider, existing);

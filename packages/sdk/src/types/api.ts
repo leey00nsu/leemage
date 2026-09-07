@@ -49,7 +49,7 @@ export type SizePreset = "source" | "max300" | "max800" | "max1920";
 /**
  * 이미지 크기 레이블 (프리셋 또는 커스텀 "WIDTHxHEIGHT" 형식)
  */
-export type SizeLabel = SizePreset | `${number}x${number}`;
+export type SizeLabel = SizePreset | "thumbnail" | `max${number}` | `${number}x${number}`;
 
 /**
  * 파일 업로드 옵션

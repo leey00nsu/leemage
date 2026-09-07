@@ -25,12 +25,15 @@ export const fileIdParamSchema = z.object({
 // 사이즈 레이블 스키마 (프리셋 또는 커스텀 해상도 "WIDTHxHEIGHT" 형식)
 const sizeLabelSchema = z.union([
   z.enum(AVAILABLE_SIZES),
+  z.literal("thumbnail"),
+  z.string().regex(/^max[1-9]\d{0,4}$/).refine(v => Number(v.slice(3)) <= 10000),
   z
     .string()
-    .regex(/^\d+x\d+$/, "Custom resolution must use WIDTHxHEIGHT format (e.g. 1200x800)"),
+    .regex(/^\d+x\d+$/, "Custom resolution must use WIDTHxHEIGHT format (e.g. 1200x800)")
+    .refine(v => v.split("x").every(n => Number(n) >= 1 && Number(n) <= 10000), "Dimensions must be between 1 and 10000"),
 ]).openapi({
   description:
-    "Image size label. Presets: source (original), max300 (longest side 300px), max800 (longest side 800px), max1920 (longest side 1920px), or custom resolution (WIDTHxHEIGHT format).",
+    "Image size label. Presets: source (original), max300 (width 300px), max800 (width 800px), max1920 (width 1920px), thumbnail (WebP inside 480x480), maxN (width 1–10000px), or custom resolution (WIDTHxHEIGHT, each 1–10000px).",
   example: "source",
 });
 
@@ -38,6 +41,7 @@ const sizeLabelSchema = z.union([
 export const variantOptionSchema = z
   .object({
     sizeLabel: sizeLabelSchema,
+    fit: z.enum(["inside", "cover"]).optional().openapi({ description: "Custom sizes: inside preserves aspect ratio within both bounds; cover center-crops to exact dimensions. Default inside. Thumbnail is always inside." }),
     format: z.enum(AVAILABLE_FORMATS).openapi({
       description: "Image format",
       example: "webp",
@@ -176,6 +180,7 @@ export const confirmRequestSchema = z
     }),
     variants: z
       .array(variantOptionSchema)
+      .max(20)
       .optional()
       .openapi({
         description: "(Image only) Array of image variant options to generate",
@@ -226,6 +231,7 @@ export const fileResponseSchema = z
         format: "uri",
         example: null,
       }),
+    thumbnail: imageVariantDataSchema.nullable().optional().openapi({ description: "Shared WebP preview, fits within 480x480 without enlargement. References an existing variant; not a separate stored copy." }),
     variants: z.array(imageVariantDataSchema).openapi({
       description: "Image variants list (image files only)",
     }),

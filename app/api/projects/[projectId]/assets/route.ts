@@ -1,3 +1,4 @@
+import { variantBytesSql } from "@/lib/storage/variant-bytes-sql";
 import { NextResponse } from "next/server";
 import { withSessionAuth } from "@/lib/auth/session-auth";
 import { verifyProjectOwnership } from "@/lib/auth/ownership";
@@ -42,9 +43,7 @@ export const GET = withSessionAuth(
         select: { mimeType: true },
       }),
       prisma.$queryRaw<{ count: bigint; bytes: bigint }[]>(Prisma.sql`
-      SELECT COUNT(*) AS count, COALESCE(SUM(size::bigint + COALESCE((
-        SELECT SUM((v->>'size')::bigint) FROM jsonb_array_elements(variants::jsonb) v
-      ), 0)), 0)::bigint AS bytes FROM "File" WHERE "projectId" = ${projectId} AND status = 'COMPLETED'
+      SELECT COUNT(*) AS count, COALESCE(SUM(size::bigint + ${variantBytesSql}), 0)::bigint AS bytes FROM "File" WHERE "projectId" = ${projectId} AND status = 'COMPLETED'
     `),
     ]);
     const type = fileTypes.includes(query.get("type") as FileTypeFilter)
@@ -88,7 +87,7 @@ export const GET = withSessionAuth(
     return NextResponse.json({
       ...project,
       storageProvider: fromPrismaStorageProvider(project.storageProvider),
-      files,
+      files: files.map(file => ({ ...file, thumbnail: Array.isArray(file.variants) ? file.variants.find(v => v && typeof v === "object" && !Array.isArray(v) && v.label === "thumbnail") ?? null : null })),
       total,
       page,
       pageCount,

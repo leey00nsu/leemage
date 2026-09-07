@@ -622,10 +622,15 @@ export interface components {
         };
         VariantOption: {
             /**
-             * @description Image size label. Presets: source (original), max300 (longest side 300px), max800 (longest side 800px), max1920 (longest side 1920px), or custom resolution (WIDTHxHEIGHT format).
+             * @description Image size label. Presets: source (original), max300 (width 300px), max800 (width 800px), max1920 (width 1920px), thumbnail (WebP inside 480x480), maxN (width 1–10000px), or custom resolution (WIDTHxHEIGHT, each 1–10000px).
              * @example source
              */
-            sizeLabel: ("source" | "max300" | "max800" | "max1920") | string;
+            sizeLabel: ("source" | "max300" | "max800" | "max1920") | "thumbnail" | string;
+            /**
+             * @description Custom sizes: inside preserves aspect ratio within both bounds; cover center-crops to exact dimensions. Default inside. Thumbnail is always inside.
+             * @enum {string}
+             */
+            fit?: "inside" | "cover";
             /**
              * @description Image format
              * @example webp
@@ -812,6 +817,7 @@ export interface components {
              * @example null
              */
             url: string | null;
+            thumbnail?: components["schemas"]["ImageVariantData"] & unknown;
             /** @description Image variants list (image files only) */
             variants: components["schemas"]["ImageVariantData"][];
             /**

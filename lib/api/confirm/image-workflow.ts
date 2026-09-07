@@ -1,3 +1,4 @@
+import { invalidateAllStorageCaches } from "@/lib/api/storage-quota";
 import { NextResponse } from "next/server";
 import sharp from "sharp";
 import { Prisma } from "@/lib/generated/prisma";
@@ -10,163 +11,7 @@ import {
   type VariantOption,
 } from "@/lib/api/confirm/types";
 
-async function processImageVariants(
-  originalBuffer: Buffer,
-  projectId: string,
-  fileId: string,
-  requestedVariants: VariantOption[],
-  storageAdapter: StorageAdapter,
-  originalFormat: string,
-): Promise<ImageVariantData[]> {
-  const originalMetadata = await sharp(originalBuffer).metadata();
-
-  if (
-    !originalMetadata.format ||
-    !originalMetadata.width ||
-    !originalMetadata.height ||
-    !originalMetadata.size
-  ) {
-    throw new Error("Failed to read image metadata.");
-  }
-
-  const allVariantData: ImageVariantData[] = [];
-  const processingPromises: Promise<void>[] = [];
-
-  requestedVariants.forEach((variantOption) => {
-    processingPromises.push(
-      (async () => {
-        const { sizeLabel, format: reqFormat } = variantOption;
-
-        if (sizeLabel === "source" && reqFormat === originalFormat) {
-          return;
-        }
-
-        try {
-          if (sizeLabel === "source") {
-            const originalImageFormat = originalMetadata.format;
-            let bufferToUpload = originalBuffer;
-            let finalFormat = originalImageFormat;
-            let finalMimeType = `image/${finalFormat}`;
-            const finalWidth = originalMetadata.width ?? 0;
-            const finalHeight = originalMetadata.height ?? 0;
-            let finalSize = originalMetadata.size ?? 0;
-
-            const resolutionLabel = `${finalWidth}x${finalHeight}`;
-
-            if (reqFormat !== originalImageFormat) {
-              const pipeline = sharp(originalBuffer);
-              const formatOptions = { quality: 80 };
-
-              switch (reqFormat) {
-                case "jpeg":
-                  bufferToUpload = await pipeline
-                    .jpeg(formatOptions)
-                    .toBuffer();
-                  break;
-                case "png":
-                  bufferToUpload = await pipeline.png().toBuffer();
-                  break;
-                case "avif":
-                  bufferToUpload = await pipeline
-                    .avif({ quality: 50 })
-                    .toBuffer();
-                  break;
-                case "webp":
-                default:
-                  bufferToUpload = await pipeline
-                    .webp(formatOptions)
-                    .toBuffer();
-                  break;
-              }
-
-              finalFormat = reqFormat;
-              finalMimeType = `image/${reqFormat}`;
-              finalSize = bufferToUpload.length;
-            }
-
-            const objectName = `${projectId}/${fileId}-${resolutionLabel}-${reqFormat}.${finalFormat}`;
-            const url = await storageAdapter.uploadObject(
-              objectName,
-              bufferToUpload,
-              finalMimeType,
-            );
-
-            allVariantData.push({
-              url,
-              width: finalWidth,
-              height: finalHeight,
-              size: finalSize,
-              format: finalFormat,
-              label: resolutionLabel,
-            });
-            return;
-          }
-
-          let targetWidth: number;
-          if (sizeLabel.startsWith("max")) {
-            targetWidth = parseInt(sizeLabel.replace("max", ""), 10);
-          } else {
-            [targetWidth] = sizeLabel.split("x").map(Number);
-          }
-
-          const pipeline = sharp(originalBuffer).resize({
-            width: targetWidth,
-            withoutEnlargement: true,
-          });
-
-          let processedBuffer: Buffer;
-          const formatOptions = { quality: 80 };
-          switch (reqFormat) {
-            case "jpeg":
-              processedBuffer = await pipeline.jpeg(formatOptions).toBuffer();
-              break;
-            case "png":
-              processedBuffer = await pipeline.png().toBuffer();
-              break;
-            case "avif":
-              processedBuffer = await pipeline.avif({ quality: 50 }).toBuffer();
-              break;
-            case "webp":
-            default:
-              processedBuffer = await pipeline.webp(formatOptions).toBuffer();
-              break;
-          }
-
-          const processedMetadata = await sharp(processedBuffer).metadata();
-          const finalWidth = processedMetadata.width ?? 0;
-          const finalHeight = processedMetadata.height ?? 0;
-
-          const resolutionLabel = `${finalWidth}x${finalHeight}`;
-          const objectName = `${projectId}/${fileId}-${resolutionLabel}-${reqFormat}.${reqFormat}`;
-
-          const url = await storageAdapter.uploadObject(
-            objectName,
-            processedBuffer,
-            `image/${reqFormat}`,
-          );
-
-          allVariantData.push({
-            url,
-            width: finalWidth,
-            height: finalHeight,
-            size: processedBuffer.length,
-            format: reqFormat,
-            label: resolutionLabel,
-          });
-        } catch (error) {
-          console.error(
-            `Error processing variant ${variantOption.sizeLabel}-${variantOption.format}:`,
-            error,
-          );
-          throw error;
-        }
-      })(),
-    );
-  });
-
-  await Promise.all(processingPromises);
-  return allVariantData;
-}
+import { planImageTransforms } from "@/shared/lib/image-transform-plan";
 
 interface HandleImageConfirmInput {
   projectId: string;
@@ -222,10 +67,11 @@ export async function handleImageConfirm({
         variants: [],
       },
     });
+    invalidateAllStorageCaches();
     const response = NextResponse.json(
       {
         message: "Image uploaded; preview unavailable for this format",
-        file: savedFile,
+        file: { ...savedFile, thumbnail: null },
         variants: [],
       },
       { status: 201 },
@@ -240,39 +86,65 @@ export async function handleImageConfirm({
   }
   const originalFormat = contentType.split("/")[1] || "jpeg";
 
-  const processedVariants = await processImageVariants(
-    originalBuffer,
-    projectId,
-    fileId,
-    variants,
-    storageAdapter,
-    originalFormat,
-  );
-
-  // Always provide a browser-compatible preview, including TIFF/HEIF originals.
-  const { data: thumbnail, info } = await sharp(originalBuffer)
-    .rotate()
-    .resize({
-      width: 480,
-      height: 480,
-      fit: "inside",
-      withoutEnlargement: true,
-    })
-    .webp({ quality: 80 })
-    .toBuffer({ resolveWithObject: true });
-  const thumbnailUrl = await storageAdapter.uploadObject(
-    `${projectId}/${fileId}-thumbnail.webp`,
-    thumbnail,
-    "image/webp",
-  );
-  processedVariants.push({
-    url: thumbnailUrl,
-    width: info.width,
-    height: info.height,
-    size: thumbnail.length,
-    format: "webp",
-    label: "thumbnail",
-  });
+  const orientedWidth =
+    originalMetadata.autoOrient?.width ?? originalMetadata.width ?? 0;
+  const orientedHeight =
+    originalMetadata.autoOrient?.height ?? originalMetadata.height ?? 0;
+  let plans;
+  try {
+    plans = planImageTransforms(
+      orientedWidth,
+      orientedHeight,
+      originalFormat,
+      variants,
+    );
+  } catch (error) {
+    return NextResponse.json(
+      {
+        message:
+          error instanceof Error ? error.message : "Invalid image transform",
+      },
+      { status: 400 },
+    );
+  }
+  const processedVariants: ImageVariantData[] = [];
+  // Bounded sequential processing avoids spikes from large combination requests.
+  for (const plan of plans) {
+    const pipeline = sharp(originalBuffer)
+      .rotate()
+      .resize({
+        width: plan.width,
+        height: plan.height,
+        fit: plan.fit === "cover" ? "cover" : "fill",
+        withoutEnlargement: true,
+      });
+    const { data, info } = await pipeline
+      .toFormat(
+        plan.format,
+        plan.format === "png"
+          ? {}
+          : { quality: plan.format === "avif" ? 50 : 80 },
+      )
+      .toBuffer({ resolveWithObject: true });
+    const outputName = plan.thumbnail
+      ? `${projectId}/${fileId}-thumbnail.webp`
+      : `${projectId}/${fileId}-${plan.key}.${plan.format}`;
+    const url = await storageAdapter.uploadObject(
+      outputName,
+      data,
+      `image/${plan.format}`,
+    );
+    processedVariants.push({
+      url,
+      width: info.width,
+      height: info.height,
+      size: data.length,
+      format: plan.format,
+      label: plan.thumbnail ? "thumbnail" : `${info.width}x${info.height}`,
+    });
+  }
+  const thumbnail =
+    processedVariants.find((v) => v.label === "thumbnail") ?? null;
 
   const sourceLabel = `${originalMetadata.width || 0}x${originalMetadata.height || 0}`;
   const allVariants: ImageVariantData[] = [
@@ -294,20 +166,18 @@ export async function handleImageConfirm({
       mimeType: contentType,
       isImage: true,
       size: fileSize,
+      url: objectUrl,
       objectName,
       status: "COMPLETED",
       variants: allVariants as Prisma.JsonArray,
     },
   });
 
-  const thumbnailVariant = allVariants.reduce((smallest, variant) =>
-    variant.size < smallest.size ? variant : smallest,
-  );
-
+  invalidateAllStorageCaches();
   const response = NextResponse.json(
     {
       message: "Image upload and processing complete",
-      file: savedFile,
+      file: { ...savedFile, thumbnail },
       variants: allVariants,
     },
     { status: 201 },
@@ -319,7 +189,7 @@ export async function handleImageConfirm({
     contentType,
     fileType: "image",
     variantCount: allVariants.length,
-    thumbnailUrl: thumbnailVariant.url,
+    thumbnailUrl: thumbnail?.url,
   });
 
   return response;

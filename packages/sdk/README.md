@@ -188,3 +188,35 @@ npm publish
 ## 라이선스
 
 MIT
+
+### Shared thumbnail and optional versions
+
+Image uploads keep the original and generate one shared WebP thumbnail (inside
+480×480, aspect ratio preserved, no upscaling, quality 80). With no `variants`,
+no other versions are generated. Unsupported image formats may return a null
+thumbnail. Leemage uses the same thumbnail URL that your website can use:
+
+```ts
+const file = await client.files.upload(projectId, image);
+const thumbnailUrl = file.thumbnail?.url;
+```
+
+Each optional version defines its own size and format; sizes and formats are not
+cross-multiplied. `max800` means width 800, not longest side. Custom dimensions
+use both bounds with `inside` by default. Use `cover` for an exact center crop;
+upscaling crops are rejected. Up to 20 additional requests are accepted.
+
+```ts
+const file = await client.files.upload(projectId, image, {
+  variants: [
+    { sizeLabel: "max800", format: "webp" },
+    { sizeLabel: "1200x630", format: "avif", fit: "cover" },
+  ],
+});
+```
+
+Equivalent outputs, including requests matching the thumbnail, are stored once.
+`file.thumbnail` references a version already in `file.variants`; it does not
+represent another stored file. Existing v1 project detail responses also include
+this thumbnail field when a shared thumbnail is available. The thumbnail preset
+requires WebP and `inside`; changing card sizes does not change this public preset.
