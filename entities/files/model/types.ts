@@ -26,4 +26,5 @@ export type FileData = {
 // PrismaFileType에서 variants를 ImageVariantData[]로 오버라이드
 export type FileWithVariants = Omit<PrismaFileType, "variants"> & {
   variants: ImageVariantData[];
+  tags?: import("@/shared/lib/project-tags").ProjectTag[];
 };

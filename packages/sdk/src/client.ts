@@ -1,3 +1,4 @@
+import { TagsResource } from "./resources/tags";
 import { FetchClient } from "./utils/fetch";
 import { ProjectsResource } from "./resources/projects";
 import { FilesResource } from "./resources/files";
@@ -71,6 +72,7 @@ export class LeemageClient {
    * 파일 업로드, 삭제 등의 기능을 제공합니다.
    */
   readonly files: FilesResource;
+  readonly tags: TagsResource;
 
   private readonly client: FetchClient;
 
@@ -92,6 +94,7 @@ export class LeemageClient {
     });
 
     this.projects = new ProjectsResource(this.client);
+    this.tags = new TagsResource(this.client);
     this.files = new FilesResource(this.client);
   }
 }

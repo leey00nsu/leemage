@@ -37,10 +37,13 @@ export class ProjectsResource {
    * console.log(project.files);
    * ```
    */
-  async get(projectId: string): Promise<ProjectDetails> {
+  async get(projectId: string, options: { tagIds?: string[]; tagMode?: "all" | "any" } = {}): Promise<ProjectDetails> {
     const encodedProjectId = encodePathSegment(projectId, "projectId");
+    const query = new URLSearchParams();
+    if (options.tagIds?.length) query.set("tags", options.tagIds.join(","));
+    if (options.tagMode) query.set("tagMode", options.tagMode);
     return this.client.get<ProjectDetails>(
-      `/api/v1/projects/${encodedProjectId}`
+      `/api/v1/projects/${encodedProjectId}${query.size ? `?${query}` : ""}`
     );
   }
 

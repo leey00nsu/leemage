@@ -1,3 +1,4 @@
+import { projectTagSchema } from "./tags";
 import "@/lib/openapi/setup";
 import { z } from "zod";
 import { registry } from "../registry";
@@ -231,6 +232,7 @@ export const fileResponseSchema = z
         format: "uri",
         example: null,
       }),
+    tags: z.array(projectTagSchema).optional().openapi({ description: "Tags assigned to this file in its project. Included in project file listings." }),
     thumbnail: imageVariantDataSchema.nullable().optional().openapi({ description: "Shared WebP preview, fits within 480x480 without enlargement. References an existing variant; not a separate stored copy." }),
     variants: z.array(imageVariantDataSchema).openapi({
       description: "Image variants list (image files only)",

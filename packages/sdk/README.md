@@ -220,3 +220,40 @@ Equivalent outputs, including requests matching the thumbnail, are stored once.
 represent another stored file. Existing v1 project detail responses also include
 this thumbnail field when a shared thumbnail is available. The thumbnail preset
 requires WebP and `inside`; changing card sizes does not change this public preset.
+
+### Project tags
+
+Tags are independent for each project. Names are trimmed, Unicode NFC normalized,
+and unique ignoring case within that project (1–40 characters). Deleting a tag
+removes its assignments but preserves the files.
+
+```ts
+const tag = await client.tags.create(projectId, "홈페이지 배너");
+const tags = await client.tags.list(projectId);
+await client.tags.rename(projectId, tag.id, "메인 배너");
+
+// Assign tags after uploading, or to existing completed files.
+const file = await client.files.upload(projectId, imageFile);
+await client.tags.apply(projectId, {
+  fileIds: [file.id],
+  tagIds: [tag.id],
+  operation: "add", // "remove" removes only the specified assignments
+});
+
+const project = await client.projects.get(projectId, {
+  tagIds: [tag.id],
+  tagMode: "all", // "any" matches at least one selected tag
+});
+console.log(project.files[0]?.tags);
+
+await client.tags.delete(projectId, tag.id);
+```
+
+Each batch accepts 1–100 file IDs and 1–50 tag IDs. All must belong to the given
+project; invalid batches are rejected without partial changes. Listing requires
+`read`, creation/renaming/assignment requires `write`, and deleting a tag requires
+`delete` API key permission. Tag filters are optional; existing project queries
+continue to return all completed files.
+
+Server deployment requires `npm run db:migrate` and `npm run db:generate` before
+using the new tag endpoints. SDK publishing remains a separate release step.

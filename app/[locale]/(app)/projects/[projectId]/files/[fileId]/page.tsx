@@ -1,3 +1,5 @@
+import { getCurrentUser } from "@/lib/auth/session-auth";
+import { tagSelect } from "@/lib/api/project-tags";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { FileDetailWidget } from "@/widgets/file/ui/file-detail-widget";
@@ -15,11 +17,16 @@ export default async function ProjectFileDetailPage({
 }: ProjectFileDetailPageProps) {
   const { projectId, fileId } = await params;
 
+  const userId = await getCurrentUser();
+  if (!userId) notFound();
   const file = await prisma.file.findFirst({
     where: {
       id: fileId,
       projectId,
+      status: "COMPLETED",
+      project: { userId },
     },
+    include: { tags: { select: tagSelect } },
   });
 
   if (!file) {

@@ -1,5 +1,6 @@
 "use client";
 
+import { TagFilter } from "@/features/tags/project-tags";
 import { useMemo, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { Check, Copy, FileText, HardDrive, Search } from "lucide-react";
@@ -118,7 +119,8 @@ export function ProjectAssetsView({ projectId }: { projectId: string }) {
   const noResults =
     (searchTerm.trim() !== "" ||
       typeFilter !== "ALL" ||
-      formatFilter !== "ALL") &&
+      formatFilter !== "ALL" ||
+      !!params.get("tags")) &&
     filteredFiles.length === 0;
 
   return (
@@ -275,6 +277,8 @@ export function ProjectAssetsView({ projectId }: { projectId: string }) {
           <AppViewToggle value={viewMode} onChange={setViewMode} />
         </div>
       </div>
+
+      <TagFilter projectId={projectId} selected={(params.get("tags") || "").split(",").filter(Boolean)} mode={params.get("tagMode") === "any" ? "any" : "all"} onChange={update} />
 
       {noResults ? (
         <p className="py-12 text-center text-muted-foreground">

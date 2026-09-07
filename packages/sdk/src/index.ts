@@ -47,3 +47,6 @@ export {
   ServerError,
   NetworkError,
 } from "./errors";
+
+export { TagsResource } from "./resources/tags";
+export type { ProjectTag, FileTagsRequest } from "./types/api";

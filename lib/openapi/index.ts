@@ -9,6 +9,7 @@ import "./schemas/projects";
 // 엔드포인트 등록
 import "./endpoints/projects";
 import "./endpoints/files";
+import "./endpoints/tags";
 
 // 생성기 및 레지스트리 export
 export { registry } from "./registry";

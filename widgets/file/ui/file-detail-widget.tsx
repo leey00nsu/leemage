@@ -1,5 +1,6 @@
 "use client";
 
+import { FileTagSection } from "@/features/tags/project-tags";
 import { AppCard } from "@/shared/ui/app/app-card";
 import { CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Badge } from "@/shared/ui/badge";
@@ -54,6 +55,7 @@ export function FileDetailWidget({ file }: FileDetailWidgetProps) {
             <DeleteFileDialog file={file} />
           </CardHeader>
           <CardContent className="space-y-8">
+            <FileTagSection projectId={file.projectId} fileId={file.id} tags={file.tags} />
             <div className="grid md:grid-cols-2 gap-8">
               {/* 비디오 미리보기 */}
               <VideoPreview {...videoPreviewProps} />
@@ -103,6 +105,7 @@ export function FileDetailWidget({ file }: FileDetailWidgetProps) {
             <DeleteFileDialog file={file} />
           </CardHeader>
           <CardContent className="space-y-8">
+            <FileTagSection projectId={file.projectId} fileId={file.id} tags={file.tags} />
             <div className="grid md:grid-cols-2 gap-8">
               {/* 파일 아이콘 표시 */}
               <div className="flex items-center justify-center bg-muted/30 rounded-lg p-12">
@@ -170,6 +173,7 @@ export function FileDetailWidget({ file }: FileDetailWidgetProps) {
           <DeleteFileDialog file={file} />
         </CardHeader>
         <CardContent className="space-y-8">
+            <FileTagSection projectId={file.projectId} fileId={file.id} tags={file.tags} />
           <div className="grid md:grid-cols-2 gap-8">
             <ImagePreview variant={displayVariant} altText={file.name} />
             <div className="space-y-4">

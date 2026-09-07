@@ -1,3 +1,4 @@
+import { tagFilterQuerySchema } from "../schemas/tags";
 import { registry } from "../registry";
 import {
   projectIdParamSchema,
@@ -114,6 +115,7 @@ registry.registerPath({
   security: [{ bearerAuth: [] }],
   request: {
     params: projectIdParamSchema,
+    query: tagFilterQuerySchema,
   },
   responses: {
     200: {

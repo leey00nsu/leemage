@@ -1,5 +1,7 @@
 "use client";
 
+import { TagsDialog } from "@/features/tags/project-tags";
+import { Badge } from "@/shared/ui/badge";
 import { useRef, useState, type RefObject } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { FileWithVariants } from "@/entities/files/model/types";
@@ -139,6 +141,7 @@ export function FileList({
           <span className="text-sm text-muted-foreground" aria-live="polite">
             {t("selected", { count: visibleSelected.length })}
           </span>
+          <TagsDialog projectId={files[0].projectId} fileIds={visibleSelected.map(f => f.id)} disabled={busy} />
           <AlertDialog
             open={dialogOpen}
             onOpenChange={(open) => {
@@ -231,6 +234,10 @@ export function FileList({
                 <span className="text-sm">{formatFileSize(file.size)}</span>
               </AppCardLink>
             )}
+            {!!file.tags?.length && <div className="flex flex-wrap gap-1 px-2 py-2 pointer-events-none">
+              {file.tags.slice(0, 2).map(tag => <Badge key={tag.id} variant="secondary" className="max-w-full"><span className="truncate">{tag.name}</span></Badge>)}
+              {file.tags.length > 2 && <Badge variant="secondary">+{file.tags.length - 2}</Badge>}
+            </div>}
           </div>
         ))}
       </div>

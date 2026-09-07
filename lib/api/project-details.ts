@@ -1,3 +1,5 @@
+import { parseTagFilter } from "@/shared/lib/project-tags";
+import { tagSelect } from "@/lib/api/project-tags";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
@@ -18,7 +20,8 @@ type MessageResponse = z.infer<typeof messageResponseSchema>;
 
 export async function getProjectDetailsHandler(
   projectId: string,
-  userId: string
+  userId: string,
+  query = new URLSearchParams(),
 ): Promise<NextResponse<ProjectDetailsResponse | ErrorResponse>> {
   if (!projectId) {
     return NextResponse.json(
@@ -36,6 +39,9 @@ export async function getProjectDetailsHandler(
     );
   }
 
+  let tagFilter;
+  try { tagFilter = parseTagFilter(query); }
+  catch { return NextResponse.json({ message: "Invalid tag filter." }, { status: 400 }); }
   try {
     const project = await prisma.project.findUnique({
       where: {
@@ -44,9 +50,11 @@ export async function getProjectDetailsHandler(
       include: {
         files: {
           where: {
+            ...tagFilter,
             status: "COMPLETED", // COMPLETED 상태의 파일만 조회
           },
           select: {
+            tags: { select: tagSelect, orderBy: { name: "asc" } },
             id: true,
             name: true,
             mimeType: true,

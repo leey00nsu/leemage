@@ -299,6 +299,19 @@ components:
             format: webp
           - sizeLabel: max800
             format: jpeg
+    ProjectTag:
+      type: object
+      properties:
+        id:
+          type: string
+        projectId:
+          type: string
+        name:
+          type: string
+      required:
+        - id
+        - projectId
+        - name
     FileResponse:
       type: object
       properties:
@@ -329,6 +342,11 @@ components:
           format: uri
           description: URL for non-image files
           example: null
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProjectTag"
+          description: Tags assigned to this file in its project. Included in project file listings.
         thumbnail:
           allOf:
             - $ref: "#/components/schemas/ImageVariantData"
@@ -497,6 +515,41 @@ components:
       type: array
       items:
         $ref: "#/components/schemas/ProjectListItemResponse"
+    TagNameRequest:
+      type: object
+      properties:
+        name:
+          type: string
+      required:
+        - name
+    FileTagsRequest:
+      type: object
+      properties:
+        fileIds:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 128
+          minItems: 1
+          maxItems: 100
+        tagIds:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 128
+          minItems: 1
+          maxItems: 50
+        operation:
+          type: string
+          enum:
+            - add
+            - remove
+      required:
+        - fileIds
+        - tagIds
+        - operation
   parameters: {}
 paths:
   /projects:
@@ -580,6 +633,20 @@ paths:
           example: clq1234abcd
           name: projectId
           in: path
+        - schema:
+            type: string
+            maxLength: 6500
+          required: false
+          name: tags
+          in: query
+        - schema:
+            type: string
+            enum:
+              - all
+              - any
+          required: false
+          name: tagMode
+          in: query
       responses:
         "200":
           description: Project returned successfully.
@@ -835,3 +902,286 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ServerError"
+  /projects/{projectId}/tags:
+    get:
+      tags:
+        - Tags
+      summary: List project tags
+      description: Tags and files must belong to the specified project owned by the caller. Tag names are trimmed, NFC normalized, and unique within a project ignoring case (1–40 characters). Adding an existing assignment is idempotent. Removing tags preserves other assignments. Deleting a tag does not delete files.
+      security:
+        - bearerAuth: []
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: projectId
+          in: path
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProjectTag"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: API key lacks the required method permission
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Project, tag, or file not found or outside the project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Duplicate tag name
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags:
+        - Tags
+      summary: Create a project tag
+      description: Tags and files must belong to the specified project owned by the caller. Tag names are trimmed, NFC normalized, and unique within a project ignoring case (1–40 characters). Adding an existing assignment is idempotent. Removing tags preserves other assignments. Deleting a tag does not delete files.
+      security:
+        - bearerAuth: []
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: projectId
+          in: path
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TagNameRequest"
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectTag"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: API key lacks the required method permission
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Project, tag, or file not found or outside the project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Duplicate tag name
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /projects/{projectId}/tags/{tagId}:
+    put:
+      tags:
+        - Tags
+      summary: Rename a project tag
+      description: Tags and files must belong to the specified project owned by the caller. Tag names are trimmed, NFC normalized, and unique within a project ignoring case (1–40 characters). Adding an existing assignment is idempotent. Removing tags preserves other assignments. Deleting a tag does not delete files.
+      security:
+        - bearerAuth: []
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: projectId
+          in: path
+        - schema:
+            type: string
+          required: true
+          name: tagId
+          in: path
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TagNameRequest"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectTag"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: API key lacks the required method permission
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Project, tag, or file not found or outside the project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Duplicate tag name
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags:
+        - Tags
+      summary: Delete a tag, preserving files
+      description: Tags and files must belong to the specified project owned by the caller. Tag names are trimmed, NFC normalized, and unique within a project ignoring case (1–40 characters). Adding an existing assignment is idempotent. Removing tags preserves other assignments. Deleting a tag does not delete files.
+      security:
+        - bearerAuth: []
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: projectId
+          in: path
+        - schema:
+            type: string
+          required: true
+          name: tagId
+          in: path
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: API key lacks the required method permission
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Project, tag, or file not found or outside the project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Duplicate tag name
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /projects/{projectId}/files/tags:
+    put:
+      tags:
+        - Tags
+      summary: Add or remove tags on up to 100 files atomically
+      description: Tags and files must belong to the specified project owned by the caller. Tag names are trimmed, NFC normalized, and unique within a project ignoring case (1–40 characters). Adding an existing assignment is idempotent. Removing tags preserves other assignments. Deleting a tag does not delete files.
+      security:
+        - bearerAuth: []
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: projectId
+          in: path
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FileTagsRequest"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: API key lacks the required method permission
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Project, tag, or file not found or outside the project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Duplicate tag name
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"

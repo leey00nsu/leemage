@@ -1086,5 +1086,32 @@
     "dropPrompt": "Drop a file here or click to select",
     "replaceFile": "Click or drop a file to replace",
     "dropHint": "One file · Up to 50MB"
+  },
+  "Tags": {
+    "manage": "Manage tags",
+    "editFiles": "Edit tags",
+    "save": "Save",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "deleteTitle": "Delete “{name}”?",
+    "deleteHint": "This tag will be removed from all files in this project. Files will be preserved.",
+    "renameLabel": "Rename {name}",
+    "projectHint": "Manage tags for this project. Names can contain up to 40 characters.",
+    "batchHint": "Choose tags to add to or remove from {count} selected files. Other tags are preserved.",
+    "newName": "New tag name",
+    "create": "Create",
+    "loading": "Loading tags…",
+    "empty": "No tags yet. Create tags to organize your files.",
+    "noTags": "No tags assigned.",
+    "add": "Add selected tags",
+    "remove": "Remove selected tags",
+    "success": "Tags updated.",
+    "duplicate": "A tag with this name already exists.",
+    "error": "Unable to process tags. Please try again.",
+    "filter": "Tags",
+    "clear": "Clear tag filter",
+    "match": "Tag matching",
+    "all": "Match all",
+    "any": "Match any"
   }
 }

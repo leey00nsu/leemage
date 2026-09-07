@@ -33,6 +33,7 @@ model Project {
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
+  tags            ProjectTag[]
   files           File[] // 프로젝트에 속한 파일 목록 (1:N 관계)
 
   @@index([userId]) // 사용자별 프로젝트 조회 성능 향상
@@ -60,6 +61,8 @@ model File {
 
   projectId   String     // 이 파일이 속한 프로젝트의 ID (외래 키)
   project     Project    @relation(fields: [projectId], references: [id], onDelete: Cascade) // N:1 관계 정의, 프로젝트 삭제 시 파일도 삭제
+
+  tags        ProjectTag[] @relation("FileTags")
 
   @@index([status, createdAt]) // 정리 작업용 인덱스
   @@index([projectId]) // 프로젝트별 파일 조회 성능 향상 (Requirement 7.4)
@@ -105,4 +108,16 @@ model ApiLog {
   @@index([projectId])        // 프로젝트별 조회
   @@index([createdAt])        // 날짜별 조회
   @@index([endpoint, method]) // 엔드포인트별 조회
+}
+
+// Tags belong to one project; deleting a tag only removes its file associations.
+model ProjectTag {
+  id             String @id @default(cuid())
+  projectId      String
+  name           String
+  normalizedName String
+  project        Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  files          File[] @relation("FileTags")
+
+  @@unique([projectId, normalizedName])
 }

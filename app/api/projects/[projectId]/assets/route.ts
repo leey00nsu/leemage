@@ -1,3 +1,5 @@
+import { parseTagFilter } from "@/shared/lib/project-tags";
+import { tagSelect } from "@/lib/api/project-tags";
 import { variantBytesSql } from "@/lib/storage/variant-bytes-sql";
 import { NextResponse } from "next/server";
 import { withSessionAuth } from "@/lib/auth/session-auth";
@@ -26,6 +28,9 @@ export const GET = withSessionAuth(
       );
     }
     const query = new URL(request.url).searchParams;
+    let tagFilter;
+    try { tagFilter = parseTagFilter(query); }
+    catch { return NextResponse.json({ message: "Invalid tag filter." }, { status: 400 }); }
     const requestedPage = Math.max(
       1,
       Math.min(1000000, Number(query.get("page")) || 1),
@@ -59,6 +64,7 @@ export const GET = withSessionAuth(
       .map((f) => f.mimeType);
     const where: Prisma.FileWhereInput = {
       ...base,
+      ...tagFilter,
       mimeType: { in: matchingMimes },
       name: {
         contains: (query.get("search") || "").trim(),
@@ -83,6 +89,7 @@ export const GET = withSessionAuth(
       ],
       skip: (page - 1) * pageSize,
       take: pageSize,
+      include: { tags: { select: tagSelect, orderBy: { name: "asc" } } },
     });
     return NextResponse.json({
       ...project,

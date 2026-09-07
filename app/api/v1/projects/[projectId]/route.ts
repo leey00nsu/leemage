@@ -7,7 +7,7 @@ import {
 // GET 핸들러: 프로젝트 상세 조회 (API 키 기반 인증)
 export const GET = withApiKeyAuth(async (_req, context, userId) => {
   const params = (await context.params) as { projectId: string };
-  return getProjectDetailsHandler(params.projectId, userId);
+  return getProjectDetailsHandler(params.projectId, userId, new URL(_req.url).searchParams);
 });
 
 // DELETE 핸들러: 프로젝트 삭제 (API 키 기반 인증)

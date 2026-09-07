@@ -83,3 +83,6 @@ export interface UploadableFile {
   size: number;
   arrayBuffer(): Promise<ArrayBuffer>;
 }
+
+export type ProjectTag = components["schemas"]["ProjectTag"];
+export type FileTagsRequest = components["schemas"]["FileTagsRequest"];
