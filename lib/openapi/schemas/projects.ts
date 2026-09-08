@@ -90,6 +90,21 @@ export const projectResponseSchema = z
 // 프로젝트 목록 아이템 스키마 (파일 개수 포함)
 export const projectListItemResponseSchema = projectResponseSchema
   .extend({
+    recentFiles: z
+      .array(
+        z.object({
+          id: z.string(),
+          name: z.string(),
+          mimeType: z.string(),
+          thumbnailUrl: z.string().nullable(),
+        }),
+      )
+      .max(3)
+      .optional()
+      .openapi({
+        description:
+          "Up to three most recent completed uploads, newest first. Reuses stored image/video previews; null means a file-type icon should be shown.",
+      }),
     lastUploadedAt: z.string().datetime().nullable().optional().openapi({
       description: "Most recent completed file upload; null when empty",
     }),

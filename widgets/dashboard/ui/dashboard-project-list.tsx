@@ -35,7 +35,7 @@ function getCreatedAtMs(project: ProjectForDashboard): number {
 
 function sortProjects<T extends ProjectForDashboard>(
   projects: T[],
-  sortOrder: ProjectSortOrder
+  sortOrder: ProjectSortOrder,
 ): T[] {
   const sorted = [...projects];
 
@@ -65,7 +65,8 @@ export function DashboardProjectList() {
   const { data: projects, isLoading, isError, error } = useGetProjects();
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [storageFilter, setStorageFilter] = useState<StorageProviderFilter>("ALL");
+  const [storageFilter, setStorageFilter] =
+    useState<StorageProviderFilter>("ALL");
   const [sortOrder, setSortOrder] = useState<ProjectSortOrder>("NEWEST");
   const [viewMode, setViewMode] = useState<AppViewMode>("grid");
 
@@ -142,7 +143,9 @@ export function DashboardProjectList() {
           <div className="mr-1 flex items-center gap-2 border-r border-gray-200 pr-3 dark:border-gray-700">
             <AppSelect
               value={storageFilter}
-              onChange={(value) => setStorageFilter(value as StorageProviderFilter)}
+              onChange={(value) =>
+                setStorageFilter(value as StorageProviderFilter)
+              }
               options={[
                 { value: "ALL", label: tProjectFilter("all") },
                 { value: "OCI", label: tStorage("OCI") },
@@ -154,10 +157,22 @@ export function DashboardProjectList() {
               value={sortOrder}
               onChange={(value) => setSortOrder(value as ProjectSortOrder)}
               options={[
-                { value: "NEWEST", label: tProjectAssets("filters.sortNewest") },
-                { value: "OLDEST", label: tProjectAssets("filters.sortOldest") },
-                { value: "NAME_ASC", label: tProjectAssets("filters.sortNameAsc") },
-                { value: "NAME_DESC", label: tProjectAssets("filters.sortNameDesc") },
+                {
+                  value: "NEWEST",
+                  label: tProjectAssets("filters.sortNewest"),
+                },
+                {
+                  value: "OLDEST",
+                  label: tProjectAssets("filters.sortOldest"),
+                },
+                {
+                  value: "NAME_ASC",
+                  label: tProjectAssets("filters.sortNameAsc"),
+                },
+                {
+                  value: "NAME_DESC",
+                  label: tProjectAssets("filters.sortNameDesc"),
+                },
               ]}
               aria-label={tProjectAssets("filters.sortLabel")}
             />
@@ -177,14 +192,21 @@ export function DashboardProjectList() {
           {viewMode === "grid" ? (
             <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
               {filteredProjects.map((project) => (
-                <AppCardLink key={project.id} href={`/projects/${project.id}`} className="block h-full">
+                <AppCardLink
+                  key={project.id}
+                  href={`/projects/${project.id}`}
+                  className="block h-full"
+                >
                   <AppProjectCard
                     name={project.name}
-                    description={project.description || tProjectCard("noDescription")}
+                    description={
+                      project.description || tProjectCard("noDescription")
+                    }
                     storageProvider={project.storageProvider}
                     fileCount={project.fileCount}
                     updatedAt={project.updatedAt}
                     lastUploadedAt={project.lastUploadedAt}
+                    recentFiles={project.recentFiles}
                     className="h-full"
                   />
                 </AppCardLink>
@@ -193,14 +215,21 @@ export function DashboardProjectList() {
           ) : (
             <div className="space-y-3">
               {filteredProjects.map((project) => (
-                <AppCardLink key={project.id} href={`/projects/${project.id}`} className="block">
+                <AppCardLink
+                  key={project.id}
+                  href={`/projects/${project.id}`}
+                  className="block"
+                >
                   <AppProjectCard
                     name={project.name}
-                    description={project.description || tProjectCard("noDescription")}
+                    description={
+                      project.description || tProjectCard("noDescription")
+                    }
                     storageProvider={project.storageProvider}
                     fileCount={project.fileCount}
                     updatedAt={project.updatedAt}
                     lastUploadedAt={project.lastUploadedAt}
+                    recentFiles={project.recentFiles}
                     layout="list"
                   />
                 </AppCardLink>

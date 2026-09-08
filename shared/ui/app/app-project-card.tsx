@@ -1,6 +1,7 @@
 "use client";
 
-import { Folder, FolderOpen } from "lucide-react";
+import { ProjectPreviewStack } from "./project-preview-stack";
+import type { ProjectPreviewFile } from "@/shared/lib/project-preview";
 import { useLocale, useTranslations } from "next-intl";
 
 import { StorageProvider } from "@/lib/storage/types";
@@ -9,6 +10,7 @@ import { StorageProviderBadge } from "@/shared/ui/storage-provider-badge";
 import { AppAssetCard } from "@/shared/ui/app/app-asset-card";
 
 interface AppProjectCardProps {
+  recentFiles?: ProjectPreviewFile[];
   className?: string;
   description?: string | null;
   fileCount?: number;
@@ -49,6 +51,7 @@ function formatUpdatedAt(
 }
 
 export function AppProjectCard({
+  recentFiles,
   className,
   description,
   fileCount = 0,
@@ -60,14 +63,18 @@ export function AppProjectCard({
 }: AppProjectCardProps) {
   const t = useTranslations("ProjectCard");
   const locale = useLocale();
-  const formattedUpload = formatUpdatedAt(lastUploadedAt ?? undefined, locale, layout);
+  const formattedUpload = formatUpdatedAt(
+    lastUploadedAt ?? undefined,
+    locale,
+    layout,
+  );
   const formattedUpdatedAt = formatUpdatedAt(updatedAt, locale, layout);
 
   if (layout === "list") {
     return (
       <AppAssetCard className={cn("flex-row overflow-hidden", className)}>
         <div className="relative h-24 w-24 shrink-0 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-          <FolderOpen className="h-8 w-8 text-slate-400" />
+          <ProjectPreviewStack files={recentFiles} compact />
         </div>
 
         <div className="min-w-0 flex-1 p-3">
@@ -76,7 +83,11 @@ export function AppProjectCard({
               {name}
             </h3>
             {storageProvider ? (
-              <StorageProviderBadge provider={storageProvider} showLabel={false} size="sm" />
+              <StorageProviderBadge
+                provider={storageProvider}
+                showLabel={false}
+                size="sm"
+              />
             ) : null}
           </div>
           <p className="mt-1 line-clamp-1 text-xs text-slate-500 dark:text-slate-400">
@@ -87,7 +98,9 @@ export function AppProjectCard({
               {t("filesCount", { count: fileCount })}
             </span>
             <span className="text-right">
-              <span className="block">{t("lastUploaded", { date: formattedUpload || t("noUploads") })}</span>
+              <span className="block">
+                {t("lastUploaded", { date: formattedUpload || t("noUploads") })}
+              </span>
               {t("lastUpdated", {
                 date: formattedUpdatedAt || t("unknownUpdatedAt"),
               })}
@@ -101,21 +114,30 @@ export function AppProjectCard({
   return (
     <AppAssetCard className={className}>
       <div className="relative aspect-square bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-        <Folder className="h-12 w-12 text-slate-400" />
+        <ProjectPreviewStack files={recentFiles} />
         {storageProvider ? (
-          <div className="absolute right-2 top-2">
-            <StorageProviderBadge provider={storageProvider} showLabel={false} size="sm" />
+          <div className="absolute right-2 top-2 z-10">
+            <StorageProviderBadge
+              provider={storageProvider}
+              showLabel={false}
+              size="sm"
+            />
           </div>
         ) : null}
       </div>
 
       <div className="p-3">
-        <div className="truncate text-sm font-medium text-slate-900 dark:text-white" title={name}>
+        <div
+          className="truncate text-sm font-medium text-slate-900 dark:text-white"
+          title={name}
+        >
           {name}
         </div>
         <div className="mt-1 space-y-0.5 text-[11px] text-slate-500 dark:text-slate-400 font-mono">
           <div>{t("filesCount", { count: fileCount })}</div>
-          <div>{t("lastUploaded", { date: formattedUpload || t("noUploads") })}</div>
+          <div>
+            {t("lastUploaded", { date: formattedUpload || t("noUploads") })}
+          </div>
           <div className="truncate">
             {t("lastUpdated", {
               date: formattedUpdatedAt || t("unknownUpdatedAt"),

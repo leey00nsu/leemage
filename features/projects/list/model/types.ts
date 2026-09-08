@@ -1,3 +1,4 @@
+import type { ProjectPreviewFile } from "@/shared/lib/project-preview";
 export interface ProjectListItem {
   id: string;
   name: string;
@@ -6,6 +7,6 @@ export interface ProjectListItem {
   createdAt: string;
   updatedAt: string;
   fileCount: number;
+  recentFiles?: ProjectPreviewFile[];
   lastUploadedAt?: string | null;
 }
-

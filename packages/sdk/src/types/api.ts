@@ -17,6 +17,7 @@ export type StorageProvider =
 export type ImageFormat = components["schemas"]["VariantOption"]["format"];
 
 // Projects
+export type ProjectListItem = components["schemas"]["ProjectListItemResponse"];
 export type Project = components["schemas"]["ProjectResponse"];
 export type ProjectDetails = components["schemas"]["ProjectDetailsResponse"];
 export type CreateProjectRequest =
@@ -49,7 +50,11 @@ export type SizePreset = "source" | "max300" | "max800" | "max1920";
 /**
  * 이미지 크기 레이블 (프리셋 또는 커스텀 "WIDTHxHEIGHT" 형식)
  */
-export type SizeLabel = SizePreset | "thumbnail" | `max${number}` | `${number}x${number}`;
+export type SizeLabel =
+  | SizePreset
+  | "thumbnail"
+  | `max${number}`
+  | `${number}x${number}`;
 
 /**
  * 파일 업로드 옵션

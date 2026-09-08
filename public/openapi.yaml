@@ -514,6 +514,27 @@ components:
         - $ref: "#/components/schemas/ProjectResponse"
         - type: object
           properties:
+            recentFiles:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  mimeType:
+                    type: string
+                  thumbnailUrl:
+                    type: string
+                    nullable: true
+                required:
+                  - id
+                  - name
+                  - mimeType
+                  - thumbnailUrl
+              maxItems: 3
+              description: Up to three most recent completed uploads, newest first. Reuses stored image/video previews; null means a file-type icon should be shown.
             lastUploadedAt:
               type: string
               nullable: true

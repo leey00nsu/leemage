@@ -15,6 +15,7 @@ export type {
   SizeLabel,
   // Projects
   Project,
+  ProjectListItem,
   ProjectDetails,
   CreateProjectRequest,
   UpdateProjectRequest,

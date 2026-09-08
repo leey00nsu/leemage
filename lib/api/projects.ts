@@ -1,3 +1,4 @@
+import { projectThumbnailUrl } from "@/shared/lib/project-preview";
 import { serverUploadLimit } from "@/lib/api/upload-policy";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
@@ -44,12 +45,23 @@ export async function getProjectsHandler(
         storageProvider: true,
         createdAt: true,
         updatedAt: true,
-        // File rows are updated by confirmation workflows, so this is upload completion time.
+        // Limit previews in the list query; completion time is stable after processing.
         files: {
           where: { status: "COMPLETED" },
-          orderBy: { uploadedAt: "desc" },
-          take: 1,
-          select: { uploadedAt: true, updatedAt: true },
+          orderBy: [
+            { uploadedAt: { sort: "desc", nulls: "last" } },
+            { createdAt: "desc" },
+            { id: "desc" },
+          ],
+          take: 3,
+          select: {
+            id: true,
+            name: true,
+            mimeType: true,
+            variants: true,
+            uploadedAt: true,
+            updatedAt: true,
+          },
         },
         _count: {
           select: {
@@ -70,6 +82,12 @@ export async function getProjectsHandler(
       createdAt: p.createdAt.toISOString(),
       updatedAt: p.updatedAt.toISOString(),
       fileCount: p._count.files,
+      recentFiles: (p.files ?? []).map((file) => ({
+        id: file.id,
+        name: file.name,
+        mimeType: file.mimeType,
+        thumbnailUrl: projectThumbnailUrl(file.variants),
+      })),
       lastUploadedAt:
         (p.files?.[0]?.uploadedAt ?? p.files?.[0]?.updatedAt)?.toISOString() ??
         null,

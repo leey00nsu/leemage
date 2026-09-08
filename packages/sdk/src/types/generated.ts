@@ -1445,6 +1445,13 @@ export interface components {
             updatedAt: string;
         };
         ProjectListItemResponse: components["schemas"]["ProjectResponse"] & {
+            /** @description Up to three most recent completed uploads, newest first. Reuses stored image/video previews; null means a file-type icon should be shown. */
+            recentFiles?: {
+                id: string;
+                name: string;
+                mimeType: string;
+                thumbnailUrl: string | null;
+            }[];
             /**
              * Format: date-time
              * @description Most recent completed file upload; null when empty

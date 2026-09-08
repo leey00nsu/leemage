@@ -1,6 +1,7 @@
 import type { FetchClient } from "../utils/fetch";
 import type {
   Project,
+  ProjectListItem,
   ProjectDetails,
   CreateProjectRequest,
   UpdateProjectRequest,
@@ -23,8 +24,8 @@ export class ProjectsResource {
    * console.log(projects);
    * ```
    */
-  async list(): Promise<Project[]> {
-    return this.client.get<Project[]>("/api/v1/projects");
+  async list(): Promise<ProjectListItem[]> {
+    return this.client.get<ProjectListItem[]>("/api/v1/projects");
   }
 
   /**

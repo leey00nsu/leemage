@@ -19,7 +19,28 @@ it("uses completed-file confirmation dates, and returns null for empty projects"
       ...base,
       id: "p",
       files: [
-        { uploadedAt: uploaded, updatedAt: new Date("2026-09-08T00:00:00Z") },
+        {
+          id: "image",
+          name: "photo.png",
+          mimeType: "image/png",
+          variants: [
+            {
+              label: "thumbnail",
+              format: "webp",
+              url: "https://assets.test/thumb.webp",
+            },
+          ],
+          uploadedAt: uploaded,
+          updatedAt: new Date("2026-09-08T00:00:00Z"),
+        },
+        {
+          id: "audio",
+          name: "song.mp3",
+          mimeType: "audio/mpeg",
+          variants: [],
+          uploadedAt: createdAt,
+          updatedAt: createdAt,
+        },
       ],
     },
     { ...base, id: "empty", files: [], _count: { files: 0 } },
@@ -31,11 +52,26 @@ it("uses completed-file confirmation dates, and returns null for empty projects"
       expect.objectContaining({
         id: "p",
         lastUploadedAt: uploaded.toISOString(),
+        recentFiles: [
+          {
+            id: "image",
+            name: "photo.png",
+            mimeType: "image/png",
+            thumbnailUrl: "https://assets.test/thumb.webp",
+          },
+          {
+            id: "audio",
+            name: "song.mp3",
+            mimeType: "audio/mpeg",
+            thumbnailUrl: null,
+          },
+        ],
       }),
       expect.objectContaining({
         id: "empty",
         lastUploadedAt: null,
         fileCount: 0,
+        recentFiles: [],
       }),
     ]),
   );
@@ -44,9 +80,20 @@ it("uses completed-file confirmation dates, and returns null for empty projects"
       select: expect.objectContaining({
         files: {
           where: { status: "COMPLETED" },
-          orderBy: { uploadedAt: "desc" },
-          take: 1,
-          select: { uploadedAt: true, updatedAt: true },
+          orderBy: [
+            { uploadedAt: { sort: "desc", nulls: "last" } },
+            { createdAt: "desc" },
+            { id: "desc" },
+          ],
+          take: 3,
+          select: {
+            id: true,
+            name: true,
+            mimeType: true,
+            variants: true,
+            uploadedAt: true,
+            updatedAt: true,
+          },
         },
         _count: { select: { files: { where: { status: "COMPLETED" } } } },
       }),

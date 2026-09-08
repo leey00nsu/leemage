@@ -6,6 +6,7 @@ import { StorageProvider } from "@/lib/storage/types";
 import { AppProjectCard } from "@/shared/ui/app/app-project-card";
 
 interface ProjectCardProps {
+  recentFiles?: import("@/shared/lib/project-preview").ProjectPreviewFile[];
   id: string;
   name: string;
   description?: string | null;
@@ -16,6 +17,7 @@ interface ProjectCardProps {
 }
 
 export function ProjectCard({
+  recentFiles,
   id,
   name,
   description,
@@ -30,6 +32,7 @@ export function ProjectCard({
     <AppCardLink href={`/projects/${id}`} className="block h-full">
       <AppProjectCard
         className="h-full"
+        recentFiles={recentFiles}
         name={name}
         description={description || t("noDescription")}
         storageProvider={storageProvider}
