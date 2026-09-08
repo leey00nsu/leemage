@@ -25,6 +25,24 @@ describe("FetchClient", () => {
     vi.restoreAllMocks();
   });
 
+  it("preserves machine-readable upload-limit and quota details", async () => {
+    for (const payload of [
+      {
+        message: "Too large",
+        code: "FILE_SIZE_EXCEEDED",
+        limitBytes: 104857600,
+      },
+      { message: "Quota", code: "QUOTA_EXCEEDED", remaining: 20 },
+    ]) {
+      fetchMock.mockResolvedValue(
+        new Response(JSON.stringify(payload), { status: 413 }),
+      );
+      await expect(
+        client.post("/api/v1/projects/p/files/presign", {}),
+      ).rejects.toMatchObject({ ...payload, status: 413 });
+    }
+  });
+
   it("builds request url, headers, and body", async () => {
     const response = {
       ok: true,
@@ -50,7 +68,7 @@ describe("FetchClient", () => {
           "X-Test": "yes",
         }),
         body: JSON.stringify({ hello: "world" }),
-      })
+      }),
     );
   });
 
@@ -84,7 +102,7 @@ describe("FetchClient", () => {
       });
 
       await expect(client.get(`/status-${status}`)).rejects.toBeInstanceOf(
-        ErrorClass
+        ErrorClass,
       );
     }
   });

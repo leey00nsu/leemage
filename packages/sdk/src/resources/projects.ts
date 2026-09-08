@@ -3,6 +3,7 @@ import type {
   Project,
   ProjectDetails,
   CreateProjectRequest,
+  UpdateProjectRequest,
   MessageResponse,
 } from "../types/api";
 import { encodePathSegment } from "../utils/path";
@@ -37,13 +38,16 @@ export class ProjectsResource {
    * console.log(project.files);
    * ```
    */
-  async get(projectId: string, options: { tagIds?: string[]; tagMode?: "all" | "any" } = {}): Promise<ProjectDetails> {
+  async get(
+    projectId: string,
+    options: { tagIds?: string[]; tagMode?: "all" | "any" } = {},
+  ): Promise<ProjectDetails> {
     const encodedProjectId = encodePathSegment(projectId, "projectId");
     const query = new URLSearchParams();
     if (options.tagIds?.length) query.set("tags", options.tagIds.join(","));
     if (options.tagMode) query.set("tagMode", options.tagMode);
     return this.client.get<ProjectDetails>(
-      `/api/v1/projects/${encodedProjectId}${query.size ? `?${query}` : ""}`
+      `/api/v1/projects/${encodedProjectId}${query.size ? `?${query}` : ""}`,
     );
   }
 
@@ -75,10 +79,20 @@ export class ProjectsResource {
    * await client.projects.delete("clq1234abcd");
    * ```
    */
+  async update(
+    projectId: string,
+    data: UpdateProjectRequest,
+  ): Promise<Project> {
+    return this.client.patch<Project>(
+      `/api/v1/projects/${encodePathSegment(projectId, "projectId")}`,
+      data,
+    );
+  }
+
   async delete(projectId: string): Promise<MessageResponse> {
     const encodedProjectId = encodePathSegment(projectId, "projectId");
     return this.client.delete<MessageResponse>(
-      `/api/v1/projects/${encodedProjectId}`
+      `/api/v1/projects/${encodedProjectId}`,
     );
   }
 }

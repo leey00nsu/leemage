@@ -1,4 +1,5 @@
 "use client";
+import { VideoProcessingStatus } from "@/entities/files/ui/video/processing-status";
 
 import { TagsDialog } from "@/features/tags/project-tags";
 import { Badge } from "@/shared/ui/badge";
@@ -128,11 +129,7 @@ export function FileList({
             anchor.current = null;
           }}
         >
-          {t(
-            visibleSelected.length > 0
-              ? "clearSelection"
-              : "selectAll",
-          )}
+          {t(visibleSelected.length > 0 ? "clearSelection" : "selectAll")}
         </AppButton>
         <span className="order-3 w-full text-xs text-muted-foreground sm:order-none sm:w-auto">
           {t("selectionHint")}
@@ -141,7 +138,11 @@ export function FileList({
           <span className="text-sm text-muted-foreground" aria-live="polite">
             {t("selected", { count: visibleSelected.length })}
           </span>
-          <TagsDialog projectId={files[0].projectId} fileIds={visibleSelected.map(f => f.id)} disabled={busy} />
+          <TagsDialog
+            projectId={files[0].projectId}
+            fileIds={visibleSelected.map((f) => f.id)}
+            disabled={busy}
+          />
           <AlertDialog
             open={dialogOpen}
             onOpenChange={(open) => {
@@ -198,7 +199,11 @@ export function FileList({
             className={`relative ${viewMode === "grid" ? "rounded-lg" : "rounded-xl"}`}
           >
             {selected.has(file.id) && (
-              <span aria-hidden="true" data-slot="card-selection-ring" className="pointer-events-none absolute inset-0 z-20 rounded-[inherit] border-2 border-primary" />
+              <span
+                aria-hidden="true"
+                data-slot="card-selection-ring"
+                className="pointer-events-none absolute inset-0 z-20 rounded-[inherit] border-2 border-primary"
+              />
             )}
             <Checkbox
               checked={selected.has(file.id)}
@@ -234,10 +239,25 @@ export function FileList({
                 <span className="text-sm">{formatFileSize(file.size)}</span>
               </AppCardLink>
             )}
-            {!!file.tags?.length && <div className="flex flex-wrap gap-1 px-2 py-2 pointer-events-none">
-              {file.tags.slice(0, 2).map(tag => <Badge key={tag.id} variant="secondary" className="max-w-full"><span className="truncate">{tag.name}</span></Badge>)}
-              {file.tags.length > 2 && <Badge variant="secondary">+{file.tags.length - 2}</Badge>}
-            </div>}
+            <div className="px-2">
+              <VideoProcessingStatus status={file.processingStatus} />
+            </div>
+            {!!file.tags?.length && (
+              <div className="flex flex-wrap gap-1 px-2 py-2 pointer-events-none">
+                {file.tags.slice(0, 2).map((tag) => (
+                  <Badge
+                    key={tag.id}
+                    variant="secondary"
+                    className="max-w-full"
+                  >
+                    <span className="truncate">{tag.name}</span>
+                  </Badge>
+                ))}
+                {file.tags.length > 2 && (
+                  <Badge variant="secondary">+{file.tags.length - 2}</Badge>
+                )}
+              </div>
+            )}
           </div>
         ))}
       </div>

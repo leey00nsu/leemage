@@ -257,3 +257,16 @@ continue to return all completed files.
 
 Server deployment requires `npm run db:migrate` and `npm run db:generate` before
 using the new tag endpoints. SDK publishing remains a separate release step.
+
+### 프로젝트 업로드 제한과 비동기 영상 썸네일
+
+`projects.create()` 및 `projects.update()`에서 `maxUploadBytes`(파일당 바이트 제한)와
+`videoThumbnailEnabled`를 설정할 수 있습니다. 기존 프로젝트 기본값은 50 MiB이며 서버 상한과
+스토리지 쿼터도 적용됩니다. 제한 초과 시 `error.code`는 `FILE_SIZE_EXCEEDED` 또는
+`QUOTA_EXCEEDED`입니다.
+
+영상 업로드 응답은 원본이 등록되면 반환됩니다. 썸네일은 별도 서버 워커에서 생성되므로
+`files.get(projectId, fileId)`로 `processingStatus`를 확인하세요.
+`QUEUED`/`RUNNING`이면 잠시 뒤 다시 조회하고, `READY`이면 `thumbnail`을 사용할 수 있습니다.
+`FAILED`/`SKIPPED`에서는 기다리지 않아도 됩니다. 원본은 계속 사용할 수 있습니다.
+이미지 변환과 썸네일은 기존처럼 업로드 응답 전에 생성됩니다.

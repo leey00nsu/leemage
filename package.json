@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "npm run openapi:generate && next dev",
+    "dev": "npm run openapi:generate && node scripts/run-app.mjs dev",
     "build": "npm run openapi:generate && next build",
-    "start": "npm run db:deploy && next start",
+    "start": "npm run db:deploy && node scripts/run-app.mjs start",
     "lint": "next lint",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -14,11 +14,12 @@
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate deploy",
     "db:deploy": "prisma migrate deploy && prisma generate",
-    "start:production": "npm run db:deploy && next start",
+    "start:production": "npm run start --",
     "openapi:generate": "npx tsx scripts/generate-openapi.ts",
     "root:hash": "node scripts/generate-root-password-hash.js",
     "sdk:sync": "cd packages/sdk && npm run sync",
-    "prepare": "husky"
+    "prepare": "husky",
+    "worker:video": "tsx scripts/video-worker.ts"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^7.3.4",
@@ -69,7 +70,8 @@
     "sonner": "^2.0.3",
     "tailwind-merge": "^3.2.0",
     "yaml": "^2.8.2",
-    "zod": "^3.24.3"
+    "zod": "^3.24.3",
+    "tsx": "^4.21.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -84,7 +86,6 @@
     "husky": "^9.1.7",
     "prisma": "^6.7.0",
     "tailwindcss": "^4",
-    "tsx": "^4.21.0",
     "tw-animate-css": "^1.2.9",
     "typescript": "^5",
     "vitest": "^4.0.15"

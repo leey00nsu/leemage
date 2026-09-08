@@ -1,6 +1,7 @@
 import { registry } from "../registry";
 import {
   fileIdParamSchema,
+  fileResponseSchema,
   presignRequestSchema,
   presignResponseSchema,
   confirmRequestSchema,
@@ -23,7 +24,7 @@ registry.registerPath({
   tags: ["Files"],
   summary: "Generate presigned URL",
   description:
-    "Generate a presigned URL for file upload. Clients can use this URL to upload files directly to OCI.",
+    "Generate a presigned URL for file upload. Clients upload directly to the project storage provider (OCI/R2). The project file limit and server ceiling apply.",
   security: [{ bearerAuth: [] }],
   request: {
     params: projectIdParamSchema,
@@ -87,7 +88,7 @@ registry.registerPath({
   tags: ["Files"],
   summary: "Confirm upload",
   description:
-    "Call this after direct upload to OCI to create a file record in the database. For image files, variants can be provided to request transformation.",
+    "Confirm after direct upload to OCI/R2. Image thumbnails and variants are processed synchronously. Videos return immediately after registration; a separate worker generates thumbnails asynchronously. Poll GET file for processingStatus.",
   security: [{ bearerAuth: [] }],
   request: {
     params: projectIdParamSchema,
@@ -234,5 +235,21 @@ registry.registerPath({
         },
       },
     },
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/projects/{projectId}/files/{fileId}",
+  tags: ["Files"],
+  summary: "Get a file and video processing status",
+  security: [{ bearerAuth: [] }],
+  request: { params: projectIdParamSchema.merge(fileIdParamSchema) },
+  responses: {
+    200: {
+      description: "File including current variants and processingStatus",
+      content: { "application/json": { schema: fileResponseSchema } },
+    },
+    404: { description: "File not found" },
   },
 });

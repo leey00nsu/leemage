@@ -5,6 +5,9 @@ import { registry } from "../registry";
 // 기본 에러 응답 스키마
 export const errorResponseSchema = z
   .object({
+    code: z.string().optional(),
+    limitBytes: z.number().optional(),
+    remaining: z.number().optional(),
     message: z.string().openapi({
       description: "Error message",
       example: "An error occurred while processing the request.",
@@ -88,20 +91,14 @@ export const messageResponseSchema = z
 
 // 페이지네이션 파라미터 스키마
 export const paginationQuerySchema = z.object({
-  page: z
-    .string()
-    .optional()
-    .openapi({
-      description: "Page number (starting from 1)",
-      example: "1",
-    }),
-  limit: z
-    .string()
-    .optional()
-    .openapi({
-      description: "Number of items per page",
-      example: "20",
-    }),
+  page: z.string().optional().openapi({
+    description: "Page number (starting from 1)",
+    example: "1",
+  }),
+  limit: z.string().optional().openapi({
+    description: "Number of items per page",
+    example: "20",
+  }),
 });
 
 // 스키마 등록

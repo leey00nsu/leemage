@@ -26,7 +26,7 @@ export async function getProjectDetailsHandler(
   if (!projectId) {
     return NextResponse.json(
       { message: "Project ID is required." },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -35,13 +35,19 @@ export async function getProjectDetailsHandler(
   if (!ownershipResult.authorized) {
     return NextResponse.json(
       { message: "Resource not found." },
-      { status: 404 }
+      { status: 404 },
     );
   }
 
   let tagFilter;
-  try { tagFilter = parseTagFilter(query); }
-  catch { return NextResponse.json({ message: "Invalid tag filter." }, { status: 400 }); }
+  try {
+    tagFilter = parseTagFilter(query);
+  } catch {
+    return NextResponse.json(
+      { message: "Invalid tag filter." },
+      { status: 400 },
+    );
+  }
   try {
     const project = await prisma.project.findUnique({
       where: {
@@ -58,6 +64,7 @@ export async function getProjectDetailsHandler(
             id: true,
             name: true,
             mimeType: true,
+            processingStatus: true,
             isImage: true,
             size: true,
             url: true,
@@ -76,12 +83,13 @@ export async function getProjectDetailsHandler(
     if (!project) {
       return NextResponse.json(
         { message: "Project not found." },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     // API 응답에서 files를 변환하고 Date를 ISO 문자열로 변환
     const { files: projectFiles, userId: _userId, ...projectData } = project;
+    void _userId;
     const response: ProjectDetailsResponse = {
       ...projectData,
       storageProvider: fromPrismaStorageProvider(projectData.storageProvider),
@@ -89,7 +97,10 @@ export async function getProjectDetailsHandler(
       updatedAt: projectData.updatedAt.toISOString(),
       files: projectFiles.map((file) => ({
         ...file,
-        thumbnail: (file.variants as unknown as ImageVariantData[]).find(v => v.label === "thumbnail") ?? null,
+        thumbnail:
+          (file.variants as unknown as ImageVariantData[]).find(
+            (v) => v.label === "thumbnail",
+          ) ?? null,
         createdAt: file.createdAt.toISOString(),
         updatedAt: file.updatedAt.toISOString(),
         variants: file.variants as unknown as ImageVariantData[],
@@ -101,19 +112,19 @@ export async function getProjectDetailsHandler(
     console.error(`Fetch project ${projectId} API error:`, error);
     return NextResponse.json(
       { message: "An error occurred while fetching the project." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function deleteProjectHandler(
   projectId: string,
-  userId: string
+  userId: string,
 ): Promise<NextResponse<MessageResponse | ErrorResponse>> {
   if (!projectId) {
     return NextResponse.json(
       { message: "Project ID is required." },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -122,11 +133,12 @@ export async function deleteProjectHandler(
   if (!ownershipResult.authorized) {
     return NextResponse.json(
       { message: "Resource not found." },
-      { status: 404 }
+      { status: 404 },
     );
   }
 
   try {
+    await prisma.videoJob.deleteMany({ where: { file: { projectId } } });
     const projectToDelete = await prisma.project.findUnique({
       where: { id: projectId },
       include: {
@@ -139,12 +151,14 @@ export async function deleteProjectHandler(
     if (!projectToDelete) {
       return NextResponse.json(
         { message: "Project to delete not found." },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     // 프로젝트의 스토리지 프로바이더에 맞는 어댑터 가져오기
-    const storageProvider = fromPrismaStorageProvider(projectToDelete.storageProvider);
+    const storageProvider = fromPrismaStorageProvider(
+      projectToDelete.storageProvider,
+    );
     const storageAdapter = await StorageFactory.getAdapter(storageProvider);
 
     // 스토리지 객체 삭제 로직
@@ -152,9 +166,11 @@ export async function deleteProjectHandler(
     projectToDelete.files.forEach((file) => {
       // 원본 파일 삭제
       if (file.objectName) {
-        objectDeletionPromises.push(storageAdapter.deleteObject(file.objectName));
+        objectDeletionPromises.push(
+          storageAdapter.deleteObject(file.objectName),
+        );
       }
-      
+
       // variant 파일들 삭제
       const variants = file.variants as unknown as ImageVariantData[];
       variants.forEach((variant) => {
@@ -166,12 +182,14 @@ export async function deleteProjectHandler(
             // 마지막 두 부분이 projectId/filename 형태
             const objectName = pathParts.slice(-2).join("/");
             if (objectName) {
-              objectDeletionPromises.push(storageAdapter.deleteObject(objectName));
+              objectDeletionPromises.push(
+                storageAdapter.deleteObject(objectName),
+              );
             }
           } catch (e) {
             console.error(
               `Error preparing deletion for variant URL ${variant.url}:`,
-              e
+              e,
             );
           }
         }
@@ -183,7 +201,7 @@ export async function deleteProjectHandler(
       if (result.status === "rejected") {
         console.error(
           `Failed to delete storage object (index ${index}):`,
-          result.reason
+          result.reason,
         );
       }
     });
@@ -195,14 +213,17 @@ export async function deleteProjectHandler(
     });
 
     return NextResponse.json(
-      { message: "Project and all related files (all versions) deleted successfully." },
-      { status: 200 }
+      {
+        message:
+          "Project and all related files (all versions) deleted successfully.",
+      },
+      { status: 200 },
     );
   } catch (error) {
     console.error(`Delete project ${projectId} API error:`, error);
     return NextResponse.json(
       { message: "An error occurred while deleting the project." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

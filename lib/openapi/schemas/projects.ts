@@ -1,16 +1,15 @@
+import { projectUploadFields } from "@/shared/lib/upload-policy";
 import "@/lib/openapi/setup";
 import { z } from "zod";
 import { registry } from "../registry";
 import { fileResponseSchema } from "./files";
 
 // 스토리지 프로바이더 스키마
-export const storageProviderSchema = z
-  .enum(["OCI", "R2"])
-  .openapi({
-    description:
-      "Storage provider type. Allowed values: OCI (Oracle Cloud Infrastructure Object Storage), R2 (Cloudflare R2)",
-    example: "OCI",
-  });
+export const storageProviderSchema = z.enum(["OCI", "R2"]).openapi({
+  description:
+    "Storage provider type. Allowed values: OCI (Oracle Cloud Infrastructure Object Storage), R2 (Cloudflare R2)",
+  example: "OCI",
+});
 
 // 프로젝트 ID 파라미터 스키마
 export const projectIdParamSchema = z.object({
@@ -25,6 +24,7 @@ export const projectIdParamSchema = z.object({
 // 프로젝트 생성 요청 스키마 (API 핸들러에서도 사용)
 export const createProjectRequestSchema = z
   .object({
+    ...projectUploadFields,
     name: z
       .string()
       .min(3, { message: "Project name must be at least 3 characters." })
@@ -41,12 +41,10 @@ export const createProjectRequestSchema = z
         description: "Project description (max 200 characters)",
         example: "File collection used for the website",
       }),
-    storageProvider: storageProviderSchema
-      .default("OCI")
-      .openapi({
-        description: "Storage provider (default: OCI). Allowed values: OCI, R2",
-        example: "OCI",
-      }),
+    storageProvider: storageProviderSchema.default("OCI").openapi({
+      description: "Storage provider (default: OCI). Allowed values: OCI, R2",
+      example: "OCI",
+    }),
   })
   .openapi("CreateProjectRequest", {
     example: {
@@ -59,6 +57,7 @@ export const createProjectRequestSchema = z
 // 프로젝트 응답 스키마
 export const projectResponseSchema = z
   .object({
+    ...projectUploadFields,
     id: z.string().openapi({
       description: "Project ID",
       example: "clq1234abcd",
@@ -67,13 +66,10 @@ export const projectResponseSchema = z
       description: "Project name",
       example: "Website Assets",
     }),
-    description: z
-      .string()
-      .nullable()
-      .openapi({
-        description: "Project description",
-        example: "File collection used for the website",
-      }),
+    description: z.string().nullable().openapi({
+      description: "Project description",
+      example: "File collection used for the website",
+    }),
     storageProvider: storageProviderSchema.openapi({
       description: "Storage provider",
       example: "OCI",
@@ -94,7 +90,9 @@ export const projectResponseSchema = z
 // 프로젝트 목록 아이템 스키마 (파일 개수 포함)
 export const projectListItemResponseSchema = projectResponseSchema
   .extend({
-    lastUploadedAt: z.string().datetime().nullable().optional().openapi({ description: "Most recent completed file upload; null when empty" }),
+    lastUploadedAt: z.string().datetime().nullable().optional().openapi({
+      description: "Most recent completed file upload; null when empty",
+    }),
     fileCount: z.number().int().nonnegative().openapi({
       description: "Number of files in the project",
       example: 12,
@@ -119,6 +117,7 @@ export const projectListResponseSchema = z
 // 프로젝트 수정 요청 스키마
 export const updateProjectRequestSchema = z
   .object({
+    ...projectUploadFields,
     name: z
       .string()
       .min(1, { message: "Project name is required." })

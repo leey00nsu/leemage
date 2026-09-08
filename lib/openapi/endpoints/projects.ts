@@ -3,6 +3,7 @@ import { registry } from "../registry";
 import {
   projectIdParamSchema,
   createProjectRequestSchema,
+  updateProjectRequestSchema,
   projectResponseSchema,
   projectDetailsResponseSchema,
   projectListResponseSchema,
@@ -202,5 +203,31 @@ registry.registerPath({
         },
       },
     },
+  },
+});
+
+registry.registerPath({
+  method: "patch",
+  path: "/projects/{projectId}",
+  tags: ["Projects"],
+  summary: "Update project and upload policy",
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: projectIdParamSchema,
+    body: {
+      required: true,
+      content: { "application/json": { schema: updateProjectRequestSchema } },
+    },
+  },
+  responses: {
+    200: {
+      description: "Updated project",
+      content: { "application/json": { schema: projectResponseSchema } },
+    },
+    400: {
+      description: "Invalid settings",
+      content: { "application/json": { schema: badRequestErrorSchema } },
+    },
+    404: { description: "Project not found" },
   },
 });

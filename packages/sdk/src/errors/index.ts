@@ -5,12 +5,15 @@ import type { ErrorResponse } from "../types/api";
  */
 export class LeemageError extends Error {
   readonly status: number;
+  code?: string;
+  limitBytes?: number;
+  remaining?: number;
   readonly errors?: Record<string, string[]>;
 
   constructor(
     message: string,
     status: number,
-    errors?: Record<string, string[]>
+    errors?: Record<string, string[]>,
   ) {
     super(message);
     this.name = "LeemageError";
@@ -19,6 +22,17 @@ export class LeemageError extends Error {
   }
 
   static fromResponse(response: ErrorResponse, status: number): LeemageError {
+    const error = this.createFromResponse(response, status);
+    error.code = response.code;
+    error.limitBytes = response.limitBytes;
+    error.remaining = response.remaining;
+    return error;
+  }
+
+  private static createFromResponse(
+    response: ErrorResponse,
+    status: number,
+  ): LeemageError {
     switch (status) {
       case 400:
         return new ValidationError(response.message, status, response.errors);
@@ -26,13 +40,13 @@ export class LeemageError extends Error {
         return new AuthenticationError(
           response.message,
           status,
-          response.errors
+          response.errors,
         );
       case 403:
         return new PermissionDeniedError(
           response.message,
           status,
-          response.errors
+          response.errors,
         );
       case 404:
         return new NotFoundError(response.message, status, response.errors);
@@ -55,7 +69,7 @@ export class AuthenticationError extends LeemageError {
   constructor(
     message = "인증에 실패했습니다. API 키를 확인해주세요.",
     status = 401,
-    errors?: Record<string, string[]>
+    errors?: Record<string, string[]>,
   ) {
     super(message, status, errors);
     this.name = "AuthenticationError";
@@ -69,7 +83,7 @@ export class NotFoundError extends LeemageError {
   constructor(
     message = "리소스를 찾을 수 없습니다.",
     status = 404,
-    errors?: Record<string, string[]>
+    errors?: Record<string, string[]>,
   ) {
     super(message, status, errors);
     this.name = "NotFoundError";
@@ -83,7 +97,7 @@ export class PermissionDeniedError extends LeemageError {
   constructor(
     message = "요청 권한이 없습니다.",
     status = 403,
-    errors?: Record<string, string[]>
+    errors?: Record<string, string[]>,
   ) {
     super(message, status, errors);
     this.name = "PermissionDeniedError";
@@ -97,7 +111,7 @@ export class ValidationError extends LeemageError {
   constructor(
     message = "잘못된 요청입니다.",
     status = 400,
-    errors?: Record<string, string[]>
+    errors?: Record<string, string[]>,
   ) {
     super(message, status, errors);
     this.name = "ValidationError";
@@ -114,7 +128,7 @@ export class RateLimitError extends LeemageError {
     message = "요청 한도를 초과했습니다. 잠시 후 다시 시도해주세요.",
     status = 429,
     errors?: Record<string, string[]>,
-    retryAfter?: number
+    retryAfter?: number,
   ) {
     super(message, status, errors);
     this.name = "RateLimitError";
@@ -129,7 +143,7 @@ export class FileTooLargeError extends LeemageError {
   constructor(
     message = "파일 크기가 제한을 초과했습니다.",
     status = 413,
-    errors?: Record<string, string[]>
+    errors?: Record<string, string[]>,
   ) {
     super(message, status, errors);
     this.name = "FileTooLargeError";
@@ -143,7 +157,7 @@ export class ServerError extends LeemageError {
   constructor(
     message = "서버 오류가 발생했습니다.",
     status = 500,
-    errors?: Record<string, string[]>
+    errors?: Record<string, string[]>,
   ) {
     super(message, status, errors);
     this.name = "ServerError";

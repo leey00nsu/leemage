@@ -24,14 +24,20 @@ export class FilesResource {
    * @param projectId - 프로젝트 ID
    * @param data - Presign 요청 데이터
    */
+  async get(projectId: string, fileId: string): Promise<FileResponse> {
+    return this.client.get<FileResponse>(
+      `/api/v1/projects/${encodePathSegment(projectId, "projectId")}/files/${encodePathSegment(fileId, "fileId")}`,
+    );
+  }
+
   async presign(
     projectId: string,
-    data: PresignRequest
+    data: PresignRequest,
   ): Promise<PresignResponse> {
     const encodedProjectId = encodePathSegment(projectId, "projectId");
     return this.client.post<PresignResponse>(
       `/api/v1/projects/${encodedProjectId}/files/presign`,
-      data
+      data,
     );
   }
 
@@ -43,12 +49,12 @@ export class FilesResource {
    */
   async confirm(
     projectId: string,
-    data: ConfirmRequest
+    data: ConfirmRequest,
   ): Promise<ConfirmResponse> {
     const encodedProjectId = encodePathSegment(projectId, "projectId");
     return this.client.post<ConfirmResponse>(
       `/api/v1/projects/${encodedProjectId}/files/confirm`,
-      data
+      data,
     );
   }
 
@@ -67,7 +73,7 @@ export class FilesResource {
     const encodedProjectId = encodePathSegment(projectId, "projectId");
     const encodedFileId = encodePathSegment(fileId, "fileId");
     return this.client.delete<MessageResponse>(
-      `/api/v1/projects/${encodedProjectId}/files/${encodedFileId}`
+      `/api/v1/projects/${encodedProjectId}/files/${encodedFileId}`,
     );
   }
 
@@ -114,7 +120,7 @@ export class FilesResource {
   async upload(
     projectId: string,
     file: UploadableFile,
-    options: UploadOptions = {}
+    options: UploadOptions = {},
   ): Promise<FileResponse> {
     const { variants, onProgress } = options;
 
@@ -145,7 +151,7 @@ export class FilesResource {
 
       if (!uploadResponse.ok) {
         throw new NetworkError(
-          `파일 업로드에 실패했습니다: ${uploadResponse.statusText}`
+          `파일 업로드에 실패했습니다: ${uploadResponse.statusText}`,
         );
       }
     } catch (error) {
@@ -153,7 +159,7 @@ export class FilesResource {
         throw error;
       }
       throw new NetworkError(
-        error instanceof Error ? error.message : "파일 업로드에 실패했습니다."
+        error instanceof Error ? error.message : "파일 업로드에 실패했습니다.",
       );
     }
 

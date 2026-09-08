@@ -24,25 +24,39 @@ export const fileIdParamSchema = z.object({
 });
 
 // 사이즈 레이블 스키마 (프리셋 또는 커스텀 해상도 "WIDTHxHEIGHT" 형식)
-const sizeLabelSchema = z.union([
-  z.enum(AVAILABLE_SIZES),
-  z.literal("thumbnail"),
-  z.string().regex(/^max[1-9]\d{0,4}$/).refine(v => Number(v.slice(3)) <= 10000),
-  z
-    .string()
-    .regex(/^\d+x\d+$/, "Custom resolution must use WIDTHxHEIGHT format (e.g. 1200x800)")
-    .refine(v => v.split("x").every(n => Number(n) >= 1 && Number(n) <= 10000), "Dimensions must be between 1 and 10000"),
-]).openapi({
-  description:
-    "Image size label. Presets: source (original), max300 (width 300px), max800 (width 800px), max1920 (width 1920px), thumbnail (WebP inside 480x480), maxN (width 1–10000px), or custom resolution (WIDTHxHEIGHT, each 1–10000px).",
-  example: "source",
-});
+const sizeLabelSchema = z
+  .union([
+    z.enum(AVAILABLE_SIZES),
+    z.literal("thumbnail"),
+    z
+      .string()
+      .regex(/^max[1-9]\d{0,4}$/)
+      .refine((v) => Number(v.slice(3)) <= 10000),
+    z
+      .string()
+      .regex(
+        /^\d+x\d+$/,
+        "Custom resolution must use WIDTHxHEIGHT format (e.g. 1200x800)",
+      )
+      .refine(
+        (v) => v.split("x").every((n) => Number(n) >= 1 && Number(n) <= 10000),
+        "Dimensions must be between 1 and 10000",
+      ),
+  ])
+  .openapi({
+    description:
+      "Image size label. Presets: source (original), max300 (width 300px), max800 (width 800px), max1920 (width 1920px), thumbnail (WebP inside 480x480), maxN (width 1–10000px), or custom resolution (WIDTHxHEIGHT, each 1–10000px).",
+    example: "source",
+  });
 
 // Variant 옵션 스키마
 export const variantOptionSchema = z
   .object({
     sizeLabel: sizeLabelSchema,
-    fit: z.enum(["inside", "cover"]).optional().openapi({ description: "Custom sizes: inside preserves aspect ratio within both bounds; cover center-crops to exact dimensions. Default inside. Thumbnail is always inside." }),
+    fit: z.enum(["inside", "cover"]).optional().openapi({
+      description:
+        "Custom sizes: inside preserves aspect ratio within both bounds; cover center-crops to exact dimensions. Default inside. Thumbnail is always inside.",
+    }),
     format: z.enum(AVAILABLE_FORMATS).openapi({
       description: "Image format",
       example: "webp",
@@ -179,13 +193,9 @@ export const confirmRequestSchema = z
       description: "File size (bytes)",
       example: 102400,
     }),
-    variants: z
-      .array(variantOptionSchema)
-      .max(20)
-      .optional()
-      .openapi({
-        description: "(Image only) Array of image variant options to generate",
-      }),
+    variants: z.array(variantOptionSchema).max(20).optional().openapi({
+      description: "(Image only) Array of image variant options to generate",
+    }),
   })
   .openapi("ConfirmRequest", {
     example: {
@@ -204,6 +214,10 @@ export const confirmRequestSchema = z
 // 파일 응답 스키마
 export const fileResponseSchema = z
   .object({
+    processingStatus: z.string().optional().openapi({
+      description:
+        "Video processing: NONE, QUEUED, RUNNING, READY, FAILED, or SKIPPED. Original is available while queued/running or after failure.",
+    }),
     id: z.string().openapi({
       description: "File ID",
       example: "file5678efgh",
@@ -224,16 +238,19 @@ export const fileResponseSchema = z
       description: "File size (bytes)",
       example: 102400,
     }),
-    url: z
-      .string()
-      .nullable()
-      .openapi({
-        description: "URL for non-image files",
-        format: "uri",
-        example: null,
-      }),
-    tags: z.array(projectTagSchema).optional().openapi({ description: "Tags assigned to this file in its project. Included in project file listings." }),
-    thumbnail: imageVariantDataSchema.nullable().optional().openapi({ description: "Shared WebP preview, fits within 480x480 without enlargement. References an existing variant; not a separate stored copy." }),
+    url: z.string().nullable().openapi({
+      description: "URL for non-image files",
+      format: "uri",
+      example: null,
+    }),
+    tags: z.array(projectTagSchema).optional().openapi({
+      description:
+        "Tags assigned to this file in its project. Included in project file listings.",
+    }),
+    thumbnail: imageVariantDataSchema.nullable().optional().openapi({
+      description:
+        "Shared image preview (WebP inside 480x480) or asynchronously generated video preview (JPEG inside 800x800). Null while video processing is pending, disabled or failed.",
+    }),
     variants: z.array(imageVariantDataSchema).openapi({
       description: "Image variants list (image files only)",
     }),
@@ -262,12 +279,9 @@ export const confirmResponseSchema = z
       example: "File upload complete",
     }),
     file: fileResponseSchema,
-    variants: z
-      .array(imageVariantDataSchema)
-      .optional()
-      .openapi({
-        description: "Generated image variants",
-      }),
+    variants: z.array(imageVariantDataSchema).optional().openapi({
+      description: "Generated image variants",
+    }),
   })
   .openapi("ConfirmResponse");
 

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { uploadLimitError } from "@/lib/api/upload-policy";
 import { prisma } from "@/lib/prisma";
 import { StorageFactory } from "@/lib/storage";
 import { fromPrismaStorageProvider } from "@/lib/storage/utils";
@@ -34,19 +35,24 @@ async function authorizeProjectAccess(
   return null;
 }
 
-async function getProjectStorageProvider(
-  projectId: string,
-): Promise<{ storageProvider: ReturnType<typeof fromPrismaStorageProvider> } | null> {
+async function getProjectStorageProvider(projectId: string) {
   const project = await prisma.project.findUnique({
     where: { id: projectId },
-    select: { storageProvider: true },
+    select: {
+      storageProvider: true,
+      maxUploadBytes: true,
+      videoThumbnailEnabled: true,
+    },
   });
 
   if (!project) {
     return null;
   }
 
-  return { storageProvider: fromPrismaStorageProvider(project.storageProvider) };
+  return {
+    ...project,
+    storageProvider: fromPrismaStorageProvider(project.storageProvider),
+  };
 }
 
 async function validateConfirmPayload(request: NextRequest) {
@@ -72,7 +78,10 @@ async function validateConfirmPayload(request: NextRequest) {
   };
 }
 
-function validateFileInput(fileName: string, contentType: string): NextResponse | null {
+function validateFileInput(
+  fileName: string,
+  contentType: string,
+): NextResponse | null {
   const fileNameValidation = validateFileName(fileName);
   if (!fileNameValidation.valid) {
     return NextResponse.json(
@@ -86,26 +95,6 @@ function validateFileInput(fileName: string, contentType: string): NextResponse 
   if (!validateContentTypeExtension(contentType, fileName)) {
     return NextResponse.json(
       { message: "File type does not match the extension." },
-      { status: 400 },
-    );
-  }
-
-  return null;
-}
-
-async function ensurePendingFile(fileId: string, projectId: string) {
-  const pendingFile = await prisma.file.findFirst({
-    where: {
-      id: fileId,
-      projectId,
-      status: "PENDING",
-    },
-    select: { id: true },
-  });
-
-  if (!pendingFile) {
-    return NextResponse.json(
-      { message: "Invalid file ID or file already processed." },
       { status: 400 },
     );
   }
@@ -148,19 +137,51 @@ export async function confirmHandler(
       return payload.error as NextResponse;
     }
 
-    const { fileId, objectName, fileName, contentType, fileSize, variants } = payload.data;
+    const { fileId, objectName, fileName, contentType, fileSize, variants } =
+      payload.data;
 
     const invalidInputResponse = validateFileInput(fileName, contentType);
     if (invalidInputResponse) {
       return invalidInputResponse;
     }
 
-    const pendingFileResponse = await ensurePendingFile(fileId, projectId);
-    if (pendingFileResponse) {
-      return pendingFileResponse;
+    const pending = await prisma.file.findFirst({
+      where: { id: fileId, projectId, status: "PENDING" },
+    });
+    if (
+      !pending ||
+      pending.objectName !== objectName ||
+      pending.size !== fileSize ||
+      pending.mimeType !== contentType ||
+      pending.name !== fileName
+    ) {
+      return NextResponse.json(
+        { message: "Upload does not match a pending presigned request." },
+        { status: 400 },
+      );
     }
 
-    const storageAdapter = await StorageFactory.getAdapter(project.storageProvider);
+    const storageAdapter = await StorageFactory.getAdapter(
+      project.storageProvider,
+    );
+
+    const declaredSizeError = uploadLimitError(
+      fileSize,
+      project.maxUploadBytes,
+    );
+    if (declaredSizeError) return declaredSizeError;
+
+    const actualSize = await storageAdapter.getObjectSize(objectName);
+    const actualSizeError = uploadLimitError(
+      actualSize,
+      project.maxUploadBytes,
+    );
+    if (actualSizeError) return actualSizeError;
+    if (actualSize !== fileSize)
+      return NextResponse.json(
+        { message: "Uploaded file size mismatch." },
+        { status: 400 },
+      );
 
     if (isImageMimeType(contentType)) {
       return handleImageConfirm({
@@ -177,6 +198,7 @@ export async function confirmHandler(
 
     if (isVideoMimeType(contentType)) {
       return handleVideoConfirm({
+        videoThumbnailEnabled: project.videoThumbnailEnabled,
         projectId,
         fileId,
         objectName,
@@ -198,7 +220,10 @@ export async function confirmHandler(
   } catch (error) {
     console.error("Confirm API error:", error);
 
-    if (error instanceof Error && error.message.toLowerCase().includes("download")) {
+    if (
+      error instanceof Error &&
+      error.message.toLowerCase().includes("download")
+    ) {
       return NextResponse.json(
         { message: "Uploaded file not found." },
         { status: 404 },

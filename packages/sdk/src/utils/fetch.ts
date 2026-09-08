@@ -39,7 +39,7 @@ export class FetchClient {
     const isHttp = parsedBaseUrl.protocol === "http:";
     if (!isHttps && !(options.allowInsecureHttp && isHttp)) {
       throw new Error(
-        "보안을 위해 baseUrl은 https 프로토콜이어야 합니다. 로컬 개발 환경에서는 allowInsecureHttp 옵션을 사용할 수 있습니다."
+        "보안을 위해 baseUrl은 https 프로토콜이어야 합니다. 로컬 개발 환경에서는 allowInsecureHttp 옵션을 사용할 수 있습니다.",
       );
     }
 
@@ -81,7 +81,7 @@ export class FetchClient {
           throw new PermissionDeniedError(
             errorData.message,
             response.status,
-            errorData.errors
+            errorData.errors,
           );
         }
 
@@ -90,7 +90,7 @@ export class FetchClient {
             errorData.message,
             response.status,
             errorData.errors,
-            retryAfter
+            retryAfter,
           );
         }
 
@@ -145,7 +145,7 @@ export class FetchClient {
 
   private createRequestHeaders(
     body: unknown,
-    headers: Record<string, string>
+    headers: Record<string, string>,
   ): Record<string, string> {
     const normalizedHeaders: Record<string, string> = {
       Authorization: `Bearer ${this.apiKey}`,
@@ -153,7 +153,7 @@ export class FetchClient {
     };
 
     const hasContentTypeHeader = Object.keys(normalizedHeaders).some(
-      (key) => key.toLowerCase() === "content-type"
+      (key) => key.toLowerCase() === "content-type",
     );
 
     if (body !== undefined && !hasContentTypeHeader) {
@@ -178,6 +178,9 @@ export class FetchClient {
           return {
             message: parsedJson.message,
             errors: parsedJson.errors,
+            code: parsedJson.code,
+            limitBytes: parsedJson.limitBytes,
+            remaining: parsedJson.remaining,
           };
         }
       } catch {
@@ -195,6 +198,9 @@ export class FetchClient {
         return {
           message: parsed.message,
           errors: parsed.errors,
+          code: parsed.code,
+          limitBytes: parsed.limitBytes,
+          remaining: parsed.remaining,
         };
       }
     } catch {
@@ -222,6 +228,10 @@ export class FetchClient {
 
   post<T>(path: string, body?: unknown): Promise<T> {
     return this.request<T>(path, { method: "POST", body });
+  }
+
+  patch<T>(path: string, body?: unknown): Promise<T> {
+    return this.request<T>(path, { method: "PATCH", body });
   }
 
   put<T>(path: string, body?: unknown): Promise<T> {

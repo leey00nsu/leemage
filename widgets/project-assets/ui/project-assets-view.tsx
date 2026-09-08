@@ -176,6 +176,8 @@ export function ProjectAssetsView({ projectId }: { projectId: string }) {
 
         <div className="flex flex-wrap items-center gap-2 justify-start sm:justify-end">
           <EditProjectDialog
+            currentMaxUploadBytes={project.maxUploadBytes}
+            currentVideoThumbnailEnabled={project.videoThumbnailEnabled}
             projectId={project.id}
             currentName={project.name}
             currentDescription={project.description}
@@ -278,7 +280,12 @@ export function ProjectAssetsView({ projectId }: { projectId: string }) {
         </div>
       </div>
 
-      <TagFilter projectId={projectId} selected={(params.get("tags") || "").split(",").filter(Boolean)} mode={params.get("tagMode") === "any" ? "any" : "all"} onChange={update} />
+      <TagFilter
+        projectId={projectId}
+        selected={(params.get("tags") || "").split(",").filter(Boolean)}
+        mode={params.get("tagMode") === "any" ? "any" : "all"}
+        onChange={update}
+      />
 
       {noResults ? (
         <p className="py-12 text-center text-muted-foreground">

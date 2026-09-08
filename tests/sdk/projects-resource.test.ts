@@ -7,6 +7,7 @@ describe("ProjectsResource", () => {
   it("calls client endpoints with correct paths", async () => {
     const client = {
       get: vi.fn().mockResolvedValue([{ id: "project-1" }]),
+      patch: vi.fn().mockResolvedValue({ id: "project-123" }),
       post: vi.fn().mockResolvedValue({ id: "project-2" }),
       delete: vi.fn().mockResolvedValue({ message: "ok" }),
       put: vi.fn(),
@@ -29,9 +30,16 @@ describe("ProjectsResource", () => {
     await resource.create(payload);
     expect(client.post).toHaveBeenCalledWith("/api/v1/projects", payload);
 
+    await resource.update("project-123", {
+      maxUploadBytes: 100 * 1024 * 1024,
+      videoThumbnailEnabled: false,
+    });
+    expect(client.patch).toHaveBeenCalledWith("/api/v1/projects/project-123", {
+      maxUploadBytes: 104857600,
+      videoThumbnailEnabled: false,
+    });
+
     await resource.delete("project-123");
-    expect(client.delete).toHaveBeenCalledWith(
-      "/api/v1/projects/project-123"
-    );
+    expect(client.delete).toHaveBeenCalledWith("/api/v1/projects/project-123");
   });
 });

@@ -22,6 +22,12 @@ components:
     ErrorResponse:
       type: object
       properties:
+        code:
+          type: string
+        limitBytes:
+          type: number
+        remaining:
+          type: number
         message:
           type: string
           description: Error message
@@ -315,6 +321,9 @@ components:
     FileResponse:
       type: object
       properties:
+        processingStatus:
+          type: string
+          description: "Video processing: NONE, QUEUED, RUNNING, READY, FAILED, or SKIPPED. Original is available while queued/running or after failure."
         id:
           type: string
           description: File ID
@@ -351,7 +360,7 @@ components:
           allOf:
             - $ref: "#/components/schemas/ImageVariantData"
             - nullable: true
-              description: Shared WebP preview, fits within 480x480 without enlargement. References an existing variant; not a separate stored copy.
+              description: Shared image preview (WebP inside 480x480) or asynchronously generated video preview (JPEG inside 800x800). Null while video processing is pending, disabled or failed.
         variants:
           type: array
           items:
@@ -402,6 +411,12 @@ components:
     CreateProjectRequest:
       type: object
       properties:
+        maxUploadBytes:
+          type: integer
+          minimum: 1048576
+          maximum: 1073741824
+        videoThumbnailEnabled:
+          type: boolean
         name:
           type: string
           minLength: 3
@@ -430,6 +445,12 @@ components:
     UpdateProjectRequest:
       type: object
       properties:
+        maxUploadBytes:
+          type: integer
+          minimum: 1048576
+          maximum: 1073741824
+        videoThumbnailEnabled:
+          type: boolean
         name:
           type: string
           minLength: 1
@@ -447,6 +468,12 @@ components:
     ProjectResponse:
       type: object
       properties:
+        maxUploadBytes:
+          type: integer
+          minimum: 1048576
+          maximum: 1073741824
+        videoThumbnailEnabled:
+          type: boolean
         id:
           type: string
           description: Project ID
@@ -714,12 +741,47 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ServerError"
+    patch:
+      tags:
+        - Projects
+      summary: Update project and upload policy
+      security:
+        - bearerAuth: []
+      parameters:
+        - schema:
+            type: string
+          required: true
+          description: Project ID
+          example: clq1234abcd
+          name: projectId
+          in: path
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProjectRequest"
+      responses:
+        "200":
+          description: Updated project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectResponse"
+        "400":
+          description: Invalid settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequestError"
+        "404":
+          description: Project not found
   /projects/{projectId}/files/presign:
     post:
       tags:
         - Files
       summary: Generate presigned URL
-      description: Generate a presigned URL for file upload. Clients can use this URL to upload files directly to OCI.
+      description: Generate a presigned URL for file upload. Clients upload directly to the project storage provider (OCI/R2). The project file limit and server ceiling apply.
       security:
         - bearerAuth: []
       parameters:
@@ -772,7 +834,7 @@ paths:
       tags:
         - Files
       summary: Confirm upload
-      description: Call this after direct upload to OCI to create a file record in the database. For image files, variants can be provided to request transformation.
+      description: Confirm after direct upload to OCI/R2. Image thumbnails and variants are processed synchronously. Videos return immediately after registration; a separate worker generates thumbnails asynchronously. Poll GET file for processingStatus.
       security:
         - bearerAuth: []
       parameters:
@@ -902,6 +964,36 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ServerError"
+    get:
+      tags:
+        - Files
+      summary: Get a file and video processing status
+      security:
+        - bearerAuth: []
+      parameters:
+        - schema:
+            type: string
+          required: true
+          description: Project ID
+          example: clq1234abcd
+          name: projectId
+          in: path
+        - schema:
+            type: string
+          required: true
+          description: File ID
+          example: file5678efgh
+          name: fileId
+          in: path
+      responses:
+        "200":
+          description: File including current variants and processingStatus
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileResponse"
+        "404":
+          description: File not found
   /projects/{projectId}/tags:
     get:
       tags:

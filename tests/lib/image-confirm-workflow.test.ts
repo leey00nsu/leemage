@@ -2,6 +2,8 @@ import { beforeEach, expect, it, vi } from "vitest";
 import sharp from "sharp";
 import { NextRequest } from "next/server";
 const mocks = vi.hoisted(() => ({
+  pending: vi.fn(),
+  head: vi.fn(),
   update: vi.fn(),
   download: vi.fn(),
   upload: vi.fn(),
@@ -11,7 +13,7 @@ vi.mock("@/lib/prisma", () => ({
   prisma: {
     project: { findUnique: vi.fn(async () => ({ storageProvider: "R2" })) },
     file: {
-      findFirst: vi.fn(async () => ({ id: "f" })),
+      findFirst: mocks.pending,
       update: mocks.update,
       delete: vi.fn(),
     },
@@ -27,6 +29,7 @@ import { confirmHandler } from "@/lib/api/confirm";
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.adapter.mockResolvedValue({
+    getObjectSize: mocks.head,
     getObjectUrl: () => "https://example.com/source.png",
     downloadObject: mocks.download,
     uploadObject: mocks.upload,
@@ -40,7 +43,22 @@ it("confirms a Korean-named image without transform options as an image with a b
   })
     .png()
     .toBuffer();
+  mocks.head.mockResolvedValue(original.length);
+  mocks.pending.mockResolvedValue({
+    id: "f",
+    objectName: "p/f.png",
+    name: "사진.png",
+    mimeType: "image/png",
+    size: original.length,
+  });
   mocks.download.mockResolvedValue(original);
+  mocks.pending.mockResolvedValue({
+    id: "f",
+    objectName: "p/f.png",
+    name: "한글 이미지.png",
+    mimeType: "image/png",
+    size: original.length,
+  });
   const request = new NextRequest("http://localhost/api/confirm", {
     method: "POST",
     body: JSON.stringify({
@@ -77,6 +95,14 @@ async function confirmImage(variants: unknown[], width = 1600, height = 1200) {
   })
     .png()
     .toBuffer();
+  mocks.head.mockResolvedValue(original.length);
+  mocks.pending.mockResolvedValue({
+    id: "f",
+    objectName: "p/f.png",
+    name: "사진.png",
+    mimeType: "image/png",
+    size: original.length,
+  });
   mocks.download.mockResolvedValue(original);
   mocks.upload.mockImplementation(
     async (name) => `https://example.com/${name}`,

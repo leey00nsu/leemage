@@ -248,7 +248,53 @@ export interface paths {
         };
         options?: never;
         head?: never;
-        patch?: never;
+        /** Update project and upload policy */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /**
+                     * @description Project ID
+                     * @example clq1234abcd
+                     */
+                    projectId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateProjectRequest"];
+                };
+            };
+            responses: {
+                /** @description Updated project */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProjectResponse"];
+                    };
+                };
+                /** @description Invalid settings */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BadRequestError"];
+                    };
+                };
+                /** @description Project not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
         trace?: never;
     };
     "/projects/{projectId}/files/presign": {
@@ -262,7 +308,7 @@ export interface paths {
         put?: never;
         /**
          * Generate presigned URL
-         * @description Generate a presigned URL for file upload. Clients can use this URL to upload files directly to OCI.
+         * @description Generate a presigned URL for file upload. Clients upload directly to the project storage provider (OCI/R2). The project file limit and server ceiling apply.
          */
         post: {
             parameters: {
@@ -347,7 +393,7 @@ export interface paths {
         put?: never;
         /**
          * Confirm upload
-         * @description Call this after direct upload to OCI to create a file record in the database. For image files, variants can be provided to request transformation.
+         * @description Confirm after direct upload to OCI/R2. Image thumbnails and variants are processed synchronously. Videos return immediately after registration; a separate worker generates thumbnails asynchronously. Poll GET file for processingStatus.
          */
         post: {
             parameters: {
@@ -464,7 +510,45 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Get a file and video processing status */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /**
+                     * @description Project ID
+                     * @example clq1234abcd
+                     */
+                    projectId: string;
+                    /**
+                     * @description File ID
+                     * @example file5678efgh
+                     */
+                    fileId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description File including current variants and processingStatus */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["FileResponse"];
+                    };
+                };
+                /** @description File not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
         put?: never;
         post?: never;
         /**
@@ -965,6 +1049,9 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         ErrorResponse: {
+            code?: string;
+            limitBytes?: number;
+            remaining?: number;
             /**
              * @description Error message
              * @example An error occurred while processing the request.
@@ -1206,6 +1293,8 @@ export interface components {
             name: string;
         };
         FileResponse: {
+            /** @description Video processing: NONE, QUEUED, RUNNING, READY, FAILED, or SKIPPED. Original is available while queued/running or after failure. */
+            processingStatus?: string;
             /**
              * @description File ID
              * @example file5678efgh
@@ -1278,6 +1367,8 @@ export interface components {
          *     }
          */
         CreateProjectRequest: {
+            maxUploadBytes?: number;
+            videoThumbnailEnabled?: boolean;
             /**
              * @description Project name (3-50 characters)
              * @example Website Assets
@@ -1303,6 +1394,8 @@ export interface components {
          *     }
          */
         UpdateProjectRequest: {
+            maxUploadBytes?: number;
+            videoThumbnailEnabled?: boolean;
             /**
              * @description Project name (1-50 characters)
              * @example Updated Project Name
@@ -1315,6 +1408,8 @@ export interface components {
             description?: string;
         };
         ProjectResponse: {
+            maxUploadBytes?: number;
+            videoThumbnailEnabled?: boolean;
             /**
              * @description Project ID
              * @example clq1234abcd

@@ -1,10 +1,14 @@
 /**
  * OCI Object Storage Adapter
- * 
+ *
  * Wraps the existing OCI storage functionality into the StorageAdapter interface.
  */
 
-import { StorageAdapter, CreatePresignedUrlOptions, PresignedUrlResult } from "../adapter";
+import {
+  StorageAdapter,
+  CreatePresignedUrlOptions,
+  PresignedUrlResult,
+} from "../adapter";
 import { StorageProvider } from "../types";
 import { createStorageError, StorageErrorCode } from "../errors";
 
@@ -23,7 +27,9 @@ export class OCIStorageAdapter implements StorageAdapter {
     );
   }
 
-  async createPresignedUploadUrl(options: CreatePresignedUrlOptions): Promise<PresignedUrlResult> {
+  async createPresignedUploadUrl(
+    options: CreatePresignedUrlOptions,
+  ): Promise<PresignedUrlResult> {
     if (!this.isConfigured()) {
       throw createStorageError(StorageErrorCode.PROVIDER_NOT_CONFIGURED);
     }
@@ -42,6 +48,48 @@ export class OCIStorageAdapter implements StorageAdapter {
     };
   }
 
+  private async readContext() {
+    const { getObjectStorageClient, getBucketName, getOCINamespace } =
+      await import("@/lib/oci");
+    const client = getObjectStorageClient();
+    const bucketName = getBucketName();
+    const namespaceName = getOCINamespace();
+    if (!client || !bucketName || !namespaceName)
+      throw createStorageError(StorageErrorCode.PROVIDER_NOT_CONFIGURED);
+    return { client, bucketName, namespaceName };
+  }
+
+  async getObjectSize(objectName: string) {
+    const { client, ...location } = await this.readContext();
+    const response = await client.headObject({ ...location, objectName });
+    return response.contentLength;
+  }
+
+  async createReadAccess(objectName: string) {
+    const { client, ...location } = await this.readContext();
+    const { models } = await import("oci-objectstorage");
+    const response = await client.createPreauthenticatedRequest({
+      ...location,
+      createPreauthenticatedRequestDetails: {
+        name: `video-${crypto.randomUUID()}`,
+        objectName,
+        accessType:
+          models.CreatePreauthenticatedRequestDetails.AccessType.ObjectRead,
+        timeExpires: new Date(Date.now() + 300_000),
+      },
+    });
+    const par = response.preauthenticatedRequest;
+    return {
+      url: `https://objectstorage.${process.env.OCI_REGION}.oraclecloud.com${par.accessUri}`,
+      release: async () => {
+        await client.deletePreauthenticatedRequest({
+          ...location,
+          parId: par.id,
+        });
+      },
+    };
+  }
+
   async downloadObject(objectName: string): Promise<Buffer> {
     if (!this.isConfigured()) {
       throw createStorageError(StorageErrorCode.PROVIDER_NOT_CONFIGURED);
@@ -51,7 +99,11 @@ export class OCIStorageAdapter implements StorageAdapter {
     return downloadObject(objectName);
   }
 
-  async uploadObject(objectName: string, buffer: Buffer, contentType: string): Promise<string> {
+  async uploadObject(
+    objectName: string,
+    buffer: Buffer,
+    contentType: string,
+  ): Promise<string> {
     if (!this.isConfigured()) {
       throw createStorageError(StorageErrorCode.PROVIDER_NOT_CONFIGURED);
     }

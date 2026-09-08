@@ -19,6 +19,19 @@ describe("FilesResource", () => {
     vi.restoreAllMocks();
   });
 
+  it("reads processing status and thumbnails from the file endpoint", async () => {
+    const value = {
+      id: "f",
+      processingStatus: "READY",
+      thumbnail: { url: "https://assets.test/thumb.jpg" },
+    };
+    const client = {
+      get: vi.fn().mockResolvedValue(value),
+    } as unknown as FetchClient;
+    expect(await new FilesResource(client).get("p", "f")).toEqual(value);
+    expect(client.get).toHaveBeenCalledWith("/api/v1/projects/p/files/f");
+  });
+
   it("uploads a file through presign -> upload -> confirm flow", async () => {
     const projectId = "project-123";
     const presignResult = {
@@ -77,7 +90,7 @@ describe("FilesResource", () => {
         fileName: file.name,
         contentType: file.type,
         fileSize: file.size,
-      }
+      },
     );
 
     expect(fetchMock).toHaveBeenCalledWith(
@@ -88,7 +101,7 @@ describe("FilesResource", () => {
           "Content-Type": file.type,
         },
         body: fileBuffer,
-      })
+      }),
     );
 
     expect(client.post).toHaveBeenNthCalledWith(
@@ -101,7 +114,7 @@ describe("FilesResource", () => {
         contentType: file.type,
         fileSize: file.size,
         variants: [{ sizeLabel: "max800", format: "webp" }],
-      }
+      },
     );
 
     expect(onProgress.mock.calls.map((call) => call[0])).toEqual([
@@ -146,7 +159,7 @@ describe("FilesResource", () => {
     const resource = new FilesResource(client);
 
     await expect(
-      resource.upload(projectId, file, { onProgress })
+      resource.upload(projectId, file, { onProgress }),
     ).rejects.toBeInstanceOf(NetworkError);
 
     expect(client.post).toHaveBeenCalledTimes(1);

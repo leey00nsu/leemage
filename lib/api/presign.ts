@@ -1,14 +1,11 @@
+import { uploadLimitError } from "@/lib/api/upload-policy";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { StorageFactory } from "@/lib/storage";
 import { fromPrismaStorageProvider } from "@/lib/storage/utils";
 import cuid from "cuid";
 import { z } from "zod";
-import {
-  DEFAULT_MAX_FILE_SIZE,
-  getFileExtension,
-  isImageMimeType,
-} from "@/shared/lib/file-utils";
+import { getFileExtension, isImageMimeType } from "@/shared/lib/file-utils";
 import { presignRequestSchema } from "@/lib/openapi/schemas/files";
 import { verifyProjectOwnership } from "@/lib/auth/ownership";
 import {
@@ -60,7 +57,7 @@ export async function presignHandler(
     // 프로젝트 조회하여 스토리지 프로바이더 확인
     const project = await prisma.project.findUnique({
       where: { id: projectId },
-      select: { storageProvider: true },
+      select: { storageProvider: true, maxUploadBytes: true },
     });
 
     if (!project) {
@@ -91,8 +88,7 @@ export async function presignHandler(
     if (!fileNameValidation.valid) {
       return NextResponse.json(
         {
-          message:
-            fileNameValidation.errors[0] || "Invalid file name.",
+          message: fileNameValidation.errors[0] || "Invalid file name.",
         },
         { status: 400 },
       );
@@ -107,12 +103,8 @@ export async function presignHandler(
     }
 
     // 파일 크기 검증
-    if (fileSize > DEFAULT_MAX_FILE_SIZE) {
-      return NextResponse.json(
-        { message: "File size exceeds the limit (50MB)." },
-        { status: 413 },
-      );
-    }
+    const sizeError = uploadLimitError(fileSize, project.maxUploadBytes);
+    if (sizeError) return sizeError;
 
     // 스토리지 한도 체크 (최적화된 버전 사용)
     const quotaCheckResult = await checkStorageQuotaOptimized(
@@ -141,7 +133,10 @@ export async function presignHandler(
         (width === undefined && height !== undefined))
     ) {
       return NextResponse.json(
-        { message: "For image uploads, width and height must be provided together." },
+        {
+          message:
+            "For image uploads, width and height must be provided together.",
+        },
         { status: 400 },
       );
     }

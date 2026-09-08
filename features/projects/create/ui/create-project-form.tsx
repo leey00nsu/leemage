@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/shared/ui/button";
@@ -24,6 +24,7 @@ import {
 import { useCreateProject } from "../model/create";
 import { useAvailableStorageProviders } from "../model/storage-providers";
 import { toast } from "sonner";
+import { UploadPolicyFields } from "@/features/projects/ui/upload-policy-fields";
 import { useTranslations } from "next-intl";
 import { StorageProvider } from "@/lib/storage/types";
 
@@ -46,15 +47,16 @@ export function CreateProjectForm({
   // i18n 스키마 생성
   const schema = useMemo(
     () => createCreateProjectSchema((key) => tValidation(key)),
-    [tValidation]
+    [tValidation],
   );
 
-  const {
-    data: availableProvidersData,
-    isLoading: isLoadingProviders,
-  } = useAvailableStorageProviders();
+  const { data: availableProvidersData, isLoading: isLoadingProviders } =
+    useAvailableStorageProviders();
 
-  const availableProviders = availableProvidersData?.providers ?? [];
+  const availableProviders = useMemo(
+    () => availableProvidersData?.providers ?? [],
+    [availableProvidersData],
+  );
 
   const {
     register,
@@ -68,7 +70,15 @@ export function CreateProjectForm({
       name: "",
       description: "",
       storageProvider: StorageProvider.OCI,
+      maxUploadBytes: 50 * 1024 * 1024,
+      videoThumbnailEnabled: true,
     },
+  });
+
+  const maxUploadBytes = useWatch({ control, name: "maxUploadBytes" });
+  const videoThumbnailEnabled = useWatch({
+    control,
+    name: "videoThumbnailEnabled",
   });
 
   // 사용 가능한 프로바이더가 로드되면 첫 번째 프로바이더를 기본값으로 설정
@@ -104,7 +114,9 @@ export function CreateProjectForm({
     <>
       {createError && (
         <p className="rounded bg-red-100 p-3 text-sm text-red-500">
-          {createError instanceof Error ? createError.message : t("unknownError")}
+          {createError instanceof Error
+            ? createError.message
+            : t("unknownError")}
         </p>
       )}
       <div className="grid gap-2">
@@ -129,7 +141,9 @@ export function CreateProjectForm({
           disabled={isCreating}
         />
         {errors.description && (
-          <p className="mt-1 text-xs text-red-500">{errors.description.message}</p>
+          <p className="mt-1 text-xs text-red-500">
+            {errors.description.message}
+          </p>
         )}
       </div>
       <div className="grid gap-2">
@@ -178,6 +192,20 @@ export function CreateProjectForm({
           </p>
         )}
       </div>
+      <UploadPolicyFields
+        maxUploadBytes={maxUploadBytes}
+        videoThumbnailEnabled={videoThumbnailEnabled}
+        onLimitChange={(v) =>
+          setValue("maxUploadBytes", v, { shouldValidate: true })
+        }
+        onThumbnailChange={(v) => setValue("videoThumbnailEnabled", v)}
+        disabled={isCreating}
+      />
+      {errors.maxUploadBytes && (
+        <p className="text-xs text-destructive">
+          {errors.maxUploadBytes.message}
+        </p>
+      )}
     </>
   );
 
@@ -193,7 +221,9 @@ export function CreateProjectForm({
       </Button>
       <Button
         type="submit"
-        disabled={isCreating || isLoadingProviders || availableProviders.length === 0}
+        disabled={
+          isCreating || isLoadingProviders || availableProviders.length === 0
+        }
       >
         {isCreating ? t("creatingButton") : t("createButton")}
       </Button>

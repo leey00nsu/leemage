@@ -64,6 +64,7 @@ export async function handleImageConfirm({
         url: objectUrl,
         objectName,
         status: "COMPLETED",
+        uploadedAt: new Date(),
         variants: [],
       },
     });
@@ -169,6 +170,7 @@ export async function handleImageConfirm({
       url: objectUrl,
       objectName,
       status: "COMPLETED",
+      uploadedAt: new Date(),
       variants: allVariants as Prisma.JsonArray,
     },
   });

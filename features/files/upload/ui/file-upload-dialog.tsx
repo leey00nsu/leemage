@@ -1,5 +1,6 @@
 "use client";
 
+import { useUploadPolicy } from "@/features/projects/model/upload-policy";
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -37,6 +38,8 @@ export function FileUploadDialog({
   const t = useTranslations("FileUploadDialog");
   const o = useTranslations("UploadOptions");
   const [open, setOpen] = useState(false);
+  const policy = useUploadPolicy(projectId, open);
+  const maxFileSize = policy.data?.maxUploadBytes ?? DEFAULT_MAX_FILE_SIZE;
   const [file, setFile] = useState<File | null>(null);
   const [variants, setVariants] = useState<ImageTransformRequest[]>([]);
   const [dimensions, setDimensions] = useState<{
@@ -78,9 +81,10 @@ export function FileUploadDialog({
     }
   }, [isImage, file, dimensions, variants]);
   const fileValid =
-    !!file &&
-    createFileSizeSchema(DEFAULT_MAX_FILE_SIZE).safeParse(file).success;
+    !!file && createFileSizeSchema(maxFileSize).safeParse(file).success;
   const invalid =
+    !policy.data ||
+    policy.isError ||
     !fileValid ||
     plan.invalid ||
     (isImage && variants.length > 0 && !dimensions);
@@ -118,7 +122,13 @@ export function FileUploadDialog({
             data-slot="upload-scroll-area"
             className="min-h-0 flex-auto space-y-5 overflow-y-auto overscroll-contain px-6 py-5"
           >
+            {policy.isError && (
+              <p role="alert" className="text-sm text-destructive">
+                {o("policyError")}
+              </p>
+            )}
             <FileInput
+              maxFileSize={maxFileSize}
               selectedFile={file}
               onChange={(value) => {
                 setFile(value);
@@ -132,7 +142,7 @@ export function FileUploadDialog({
             />
             {file && !fileValid && (
               <p role="alert" className="text-sm text-destructive">
-                {o("fileLimit")}
+                {o("fileLimit", { limit: maxFileSize / (1024 * 1024) })}
               </p>
             )}
             {isImage && (

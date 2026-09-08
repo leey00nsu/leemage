@@ -8,6 +8,14 @@ export const useGetProjectDetails = (projectId: string, query = "") => {
     queryFn: ({ signal }) => getProjectDetails(projectId, query, signal),
     placeholderData: (previous) =>
       previous?.id === projectId ? previous : undefined,
+    refetchInterval: (query) =>
+      query.state.data?.files.some(
+        (file) =>
+          file.processingStatus === "QUEUED" ||
+          file.processingStatus === "RUNNING",
+      )
+        ? 3000
+        : false,
     enabled: !!projectId,
   });
 };

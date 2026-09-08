@@ -1,5 +1,7 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
+import { VideoProcessingStatus } from "@/entities/files/ui/video/processing-status";
 import { FileTagSection } from "@/features/tags/project-tags";
 import { AppCard } from "@/shared/ui/app/app-card";
 import { CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
@@ -13,7 +15,10 @@ import { FileActions } from "@/entities/files/ui/file-actions";
 import { ImagePreview } from "@/entities/files/ui/image/image-preview";
 import { ImageInfo } from "@/entities/files/ui/image/image-info";
 import { ImageVariantList } from "@/entities/files/ui/image/image-variant-list";
-import { VideoPreview, getVideoPreviewProps } from "@/entities/files/ui/video/video-preview";
+import {
+  VideoPreview,
+  getVideoPreviewProps,
+} from "@/entities/files/ui/video/video-preview";
 import { DeleteFileDialog } from "@/features/files/delete/ui/delete-file-dialog";
 import { useTranslations } from "next-intl";
 import { isVideoMimeType } from "@/shared/lib/file-utils";
@@ -22,7 +27,26 @@ interface FileDetailWidgetProps {
   file: FileWithVariants;
 }
 
-export function FileDetailWidget({ file }: FileDetailWidgetProps) {
+export function FileDetailWidget({ file: initialFile }: FileDetailWidgetProps) {
+  const { data: currentFile } = useQuery({
+    queryKey: ["file-processing", initialFile.id],
+    initialData: initialFile,
+    enabled: isVideoMimeType(initialFile.mimeType),
+    refetchInterval: (query) =>
+      ["QUEUED", "RUNNING"].includes(query.state.data?.processingStatus ?? "")
+        ? 3000
+        : false,
+    queryFn: async () => {
+      const response = await fetch(
+        `/api/projects/${initialFile.projectId}/files/${initialFile.id}`,
+      );
+      if (!response.ok) throw new Error("File unavailable");
+      return response.json() as Promise<FileWithVariants>;
+    },
+  });
+  const file = isVideoMimeType(initialFile.mimeType)
+    ? (currentFile ?? initialFile)
+    : initialFile;
   const t = useTranslations("FileDetailsWidget");
 
   // variants가 비어있으면 비이미지로 처리 (기존 데이터 호환)
@@ -35,7 +59,7 @@ export function FileDetailWidget({ file }: FileDetailWidgetProps) {
     const videoPreviewProps = getVideoPreviewProps(
       file.variants,
       file.url || "",
-      file.name
+      file.name,
     );
     // 원본 비디오 정보 (해상도 포함)
     const sourceVariant = findSourceVariant(file.variants || []);
@@ -55,7 +79,12 @@ export function FileDetailWidget({ file }: FileDetailWidgetProps) {
             <DeleteFileDialog file={file} />
           </CardHeader>
           <CardContent className="space-y-8">
-            <FileTagSection projectId={file.projectId} fileId={file.id} tags={file.tags} />
+            <VideoProcessingStatus status={file.processingStatus} />
+            <FileTagSection
+              projectId={file.projectId}
+              fileId={file.id}
+              tags={file.tags}
+            />
             <div className="grid md:grid-cols-2 gap-8">
               {/* 비디오 미리보기 */}
               <VideoPreview {...videoPreviewProps} />
@@ -69,7 +98,14 @@ export function FileDetailWidget({ file }: FileDetailWidgetProps) {
                   createdAt={file.createdAt}
                   updatedAt={file.updatedAt}
                   url={file.url}
-                  resolution={sourceVariant ? { width: sourceVariant.width, height: sourceVariant.height } : undefined}
+                  resolution={
+                    sourceVariant
+                      ? {
+                          width: sourceVariant.width,
+                          height: sourceVariant.height,
+                        }
+                      : undefined
+                  }
                 />
 
                 {/* 다운로드/열기 버튼 */}
@@ -105,7 +141,11 @@ export function FileDetailWidget({ file }: FileDetailWidgetProps) {
             <DeleteFileDialog file={file} />
           </CardHeader>
           <CardContent className="space-y-8">
-            <FileTagSection projectId={file.projectId} fileId={file.id} tags={file.tags} />
+            <FileTagSection
+              projectId={file.projectId}
+              fileId={file.id}
+              tags={file.tags}
+            />
             <div className="grid md:grid-cols-2 gap-8">
               {/* 파일 아이콘 표시 */}
               <div className="flex items-center justify-center bg-muted/30 rounded-lg p-12">
@@ -140,9 +180,7 @@ export function FileDetailWidget({ file }: FileDetailWidgetProps) {
   }
 
   // 이미지 파일인 경우 - 원본(source)을 기본 표시
-  const displayVariant =
-    findSourceVariant(file.variants) ||
-    file.variants[0];
+  const displayVariant = findSourceVariant(file.variants) || file.variants[0];
 
   if (!displayVariant) {
     return (
@@ -173,7 +211,11 @@ export function FileDetailWidget({ file }: FileDetailWidgetProps) {
           <DeleteFileDialog file={file} />
         </CardHeader>
         <CardContent className="space-y-8">
-            <FileTagSection projectId={file.projectId} fileId={file.id} tags={file.tags} />
+          <FileTagSection
+            projectId={file.projectId}
+            fileId={file.id}
+            tags={file.tags}
+          />
           <div className="grid md:grid-cols-2 gap-8">
             <ImagePreview variant={displayVariant} altText={file.name} />
             <div className="space-y-4">

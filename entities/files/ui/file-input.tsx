@@ -11,6 +11,7 @@ import { formatFileSize } from "@/shared/lib/file-utils";
 import { cn } from "@/shared/lib/utils";
 
 interface FileInputProps {
+  maxFileSize?: number;
   onChange: (file: File | null) => void;
   selectedFile: File | null;
   disabled?: boolean;
@@ -22,6 +23,7 @@ interface FileInputProps {
 }
 
 export function FileInput({
+  maxFileSize = 50 * 1024 * 1024,
   onChange,
   selectedFile,
   disabled = false,
@@ -91,7 +93,7 @@ export function FileInput({
         <span className="text-xs text-muted-foreground">
           {selectedFile
             ? `${formatFileSize(selectedFile.size)} · ${t("replaceFile")}`
-            : t("dropHint")}
+            : t("dropHint", { limit: maxFileSize / (1024 * 1024) })}
         </span>
       </button>
       {selectedFile && showPreview && (

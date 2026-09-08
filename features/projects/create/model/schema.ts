@@ -1,5 +1,9 @@
+import { projectUploadFields } from "@/shared/lib/upload-policy";
 import { z } from "zod";
-import { createProjectRequestSchema, storageProviderSchema } from "@/lib/openapi/schemas/projects";
+import {
+  createProjectRequestSchema,
+  storageProviderSchema,
+} from "@/lib/openapi/schemas/projects";
 
 // 번역 함수 타입
 type TranslationFunction = (key: string) => string;
@@ -7,6 +11,7 @@ type TranslationFunction = (key: string) => string;
 // 스키마 팩토리 함수 - 번역 함수를 받아서 스키마 생성
 export const createCreateProjectSchema = (t: TranslationFunction) =>
   z.object({
+    ...projectUploadFields,
     name: z
       .string()
       .min(3, { message: t("project.nameMin") })

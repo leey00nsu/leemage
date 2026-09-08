@@ -15,7 +15,13 @@ it("uses completed-file confirmation dates, and returns null for empty projects"
     _count: { files: 1 },
   };
   findMany.mockResolvedValue([
-    { ...base, id: "p", files: [{ updatedAt: uploaded }] },
+    {
+      ...base,
+      id: "p",
+      files: [
+        { uploadedAt: uploaded, updatedAt: new Date("2026-09-08T00:00:00Z") },
+      ],
+    },
     { ...base, id: "empty", files: [], _count: { files: 0 } },
   ]);
   const response = await getProjectsHandler("owner");
@@ -38,9 +44,9 @@ it("uses completed-file confirmation dates, and returns null for empty projects"
       select: expect.objectContaining({
         files: {
           where: { status: "COMPLETED" },
-          orderBy: { updatedAt: "desc" },
+          orderBy: { uploadedAt: "desc" },
           take: 1,
-          select: { updatedAt: true },
+          select: { uploadedAt: true, updatedAt: true },
         },
         _count: { select: { files: { where: { status: "COMPLETED" } } } },
       }),

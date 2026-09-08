@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 
 import {
@@ -25,16 +25,16 @@ export function CreateProjectDialog({
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const t = useTranslations("CreateProjectForm");
 
-  useEffect(() => {
-    if (defaultOpen) {
-      setIsOpen(true);
-    }
-  }, [defaultOpen]);
+  const [previousDefaultOpen, setPreviousDefaultOpen] = useState(defaultOpen);
+  if (previousDefaultOpen !== defaultOpen) {
+    setPreviousDefaultOpen(defaultOpen);
+    if (defaultOpen) setIsOpen(true);
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-2xl max-h-[calc(100dvh-2rem)] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>{t("description")}</DialogDescription>

@@ -569,7 +569,9 @@
   },
   "FileDetail": {
     "openInNewTab": "Open in new tab",
-    "thumbnailInfo": "Thumbnail"
+    "thumbnailInfo": "Thumbnail",
+    "videoPlaybackError": "Unable to play this video. Check file access and browser codec support, or try opening it in a new tab.",
+    "videoUrlMissing": "No video URL is available."
   },
   "FileInfo": {
     "title": "Details",
@@ -1064,7 +1066,7 @@
     "original": "Keep 1 original file",
     "thumbnail": "Shared thumbnail — up to 480×480px · WebP",
     "sharedHint": "Preserves aspect ratio without upscaling. Reuse the same thumbnail in Leemage and your website.",
-    "fileLimit": "Files must be 50MB or smaller.",
+    "fileLimit": "Choose a file up to {limit} MiB.",
     "invalid": "Enter dimensions from 1 to 10,000px. Crop dimensions cannot exceed the original.",
     "dimensionsUnknown": "The server can inspect images this browser cannot preview. Upload without extra versions; unsupported formats retain the original only.",
     "planned": "Files to store",
@@ -1084,7 +1086,8 @@
     "includedSummary": "The original and a shared WebP thumbnail (up to 480×480px) are saved together.",
     "dropPrompt": "Drop a file here or click to select",
     "replaceFile": "Click or drop a file to replace",
-    "dropHint": "One file · Up to 50MB"
+    "dropHint": "One file · up to {limit} MiB",
+    "policyError": "Could not load upload settings. Close and reopen this dialog to retry."
   },
   "Tags": {
     "manage": "Manage tags",
@@ -1112,5 +1115,17 @@
     "match": "Tag matching",
     "all": "Match all",
     "any": "Match any"
+  },
+  "UploadPolicy": {
+    "limitLabel": "Upload limit per file (MiB)",
+    "limitHelp": "Server maximum: {limit} MiB. Applies to all file types.",
+    "limitLoading": "Loading server limit.",
+    "thumbnailLabel": "Generate video thumbnails",
+    "thumbnailHelp": "Generate in the background after new video uploads."
+  },
+  "VideoProcessing": {
+    "QUEUED": "Thumbnail queued",
+    "RUNNING": "Generating thumbnail",
+    "FAILED": "Thumbnail failed · original is available"
   }
 }

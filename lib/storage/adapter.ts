@@ -1,6 +1,6 @@
 /**
  * Storage Adapter Interface
- * 
+ *
  * Defines the contract that all storage provider implementations must follow.
  */
 
@@ -21,10 +21,17 @@ export interface PresignedUrlResult {
 export interface StorageAdapter {
   readonly provider: StorageProvider;
 
+  createReadAccess(
+    objectName: string,
+  ): Promise<{ url: string; release?: () => Promise<void> }>;
+  getObjectSize(objectName: string): Promise<number>;
+
   /**
    * Creates a presigned URL for uploading a file directly to storage.
    */
-  createPresignedUploadUrl(options: CreatePresignedUrlOptions): Promise<PresignedUrlResult>;
+  createPresignedUploadUrl(
+    options: CreatePresignedUrlOptions,
+  ): Promise<PresignedUrlResult>;
 
   /**
    * Downloads an object from storage and returns its contents as a Buffer.
@@ -34,7 +41,11 @@ export interface StorageAdapter {
   /**
    * Uploads a file to storage and returns the object URL.
    */
-  uploadObject(objectName: string, buffer: Buffer, contentType: string): Promise<string>;
+  uploadObject(
+    objectName: string,
+    buffer: Buffer,
+    contentType: string,
+  ): Promise<string>;
 
   /**
    * Deletes an object from storage.

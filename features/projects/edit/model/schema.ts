@@ -1,3 +1,4 @@
+import { projectUploadFields } from "@/shared/lib/upload-policy";
 import { z } from "zod";
 
 // 번역 함수 타입
@@ -6,6 +7,7 @@ type TranslationFunction = (key: string) => string;
 // 스키마 팩토리 함수 - 번역 함수를 받아서 스키마 생성
 export const createEditProjectSchema = (t: TranslationFunction) =>
   z.object({
+    ...projectUploadFields,
     name: z
       .string()
       .min(1, { message: t("project.nameRequired") })
@@ -18,6 +20,7 @@ export const createEditProjectSchema = (t: TranslationFunction) =>
 
 // 기본 스키마 (서버 사이드 또는 폴백용)
 export const editProjectSchema = z.object({
+  ...projectUploadFields,
   name: z
     .string()
     .min(1, { message: "프로젝트 이름은 필수입니다." })

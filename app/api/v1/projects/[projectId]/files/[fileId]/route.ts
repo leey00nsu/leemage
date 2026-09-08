@@ -1,3 +1,4 @@
+import { getFileHandler } from "@/lib/api/file-get";
 import { withApiKeyAuth } from "@/lib/auth/api-key-auth";
 import { deleteFileHandler } from "@/lib/api/file-delete";
 
@@ -8,4 +9,12 @@ export const DELETE = withApiKeyAuth(async (_req, context, userId) => {
     fileId: string;
   };
   return deleteFileHandler(params.fileId, params.projectId, userId);
+});
+
+export const GET = withApiKeyAuth(async (_req, context, userId) => {
+  const { projectId, fileId } = (await context.params) as {
+    projectId: string;
+    fileId: string;
+  };
+  return getFileHandler(fileId, projectId, userId);
 });

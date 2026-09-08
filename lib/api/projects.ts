@@ -1,3 +1,4 @@
+import { serverUploadLimit } from "@/lib/api/upload-policy";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import {
@@ -9,8 +10,14 @@ import {
 import { errorResponseSchema } from "@/lib/openapi/schemas/common";
 import { prisma } from "@/lib/prisma";
 import { StorageProvider, StorageFactory } from "@/lib/storage";
-import { toPrismaStorageProvider, fromPrismaStorageProvider } from "@/lib/storage/utils";
-import { verifyProjectOwnership, OWNERSHIP_ERROR_CODES } from "@/lib/auth/ownership";
+import {
+  toPrismaStorageProvider,
+  fromPrismaStorageProvider,
+} from "@/lib/storage/utils";
+import {
+  verifyProjectOwnership,
+  OWNERSHIP_ERROR_CODES,
+} from "@/lib/auth/ownership";
 
 // 응답 타입 추론
 type ProjectListResponse = z.infer<typeof projectListResponseSchema>;
@@ -18,7 +25,7 @@ type ProjectResponse = z.infer<typeof projectResponseSchema>;
 type ErrorResponse = z.infer<typeof errorResponseSchema>;
 
 export async function getProjectsHandler(
-  userId: string
+  userId: string,
 ): Promise<NextResponse<ProjectListResponse | ErrorResponse>> {
   try {
     const projects = await prisma.project.findMany({
@@ -31,6 +38,8 @@ export async function getProjectsHandler(
       select: {
         id: true,
         name: true,
+        maxUploadBytes: true,
+        videoThumbnailEnabled: true,
         description: true,
         storageProvider: true,
         createdAt: true,
@@ -38,9 +47,9 @@ export async function getProjectsHandler(
         // File rows are updated by confirmation workflows, so this is upload completion time.
         files: {
           where: { status: "COMPLETED" },
-          orderBy: { updatedAt: "desc" },
+          orderBy: { uploadedAt: "desc" },
           take: 1,
-          select: { updatedAt: true },
+          select: { uploadedAt: true, updatedAt: true },
         },
         _count: {
           select: {
@@ -54,12 +63,16 @@ export async function getProjectsHandler(
     const response: ProjectListResponse = projects.map((p) => ({
       id: p.id,
       name: p.name,
+      maxUploadBytes: p.maxUploadBytes,
+      videoThumbnailEnabled: p.videoThumbnailEnabled,
       description: p.description,
       storageProvider: fromPrismaStorageProvider(p.storageProvider),
       createdAt: p.createdAt.toISOString(),
       updatedAt: p.updatedAt.toISOString(),
       fileCount: p._count.files,
-      lastUploadedAt: p.files?.[0]?.updatedAt.toISOString() ?? null,
+      lastUploadedAt:
+        (p.files?.[0]?.uploadedAt ?? p.files?.[0]?.updatedAt)?.toISOString() ??
+        null,
     }));
 
     return NextResponse.json(response);
@@ -67,14 +80,14 @@ export async function getProjectsHandler(
     console.error("Fetch projects API error:", error);
     return NextResponse.json(
       { message: "An error occurred while fetching projects." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function createProjectHandler(
   req: NextRequest,
-  userId: string
+  userId: string,
 ): Promise<NextResponse<ProjectResponse | ErrorResponse>> {
   try {
     const body = await req.json();
@@ -86,20 +99,37 @@ export async function createProjectHandler(
           message: "Invalid request format.",
           errors: validationResult.error.flatten().fieldErrors,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    const { name, description, storageProvider } = validationResult.data;
+    const {
+      name,
+      description,
+      storageProvider,
+      maxUploadBytes,
+      videoThumbnailEnabled,
+    } = validationResult.data;
+    if (maxUploadBytes !== undefined && maxUploadBytes > serverUploadLimit())
+      return NextResponse.json(
+        {
+          message: "Project limit exceeds the server maximum.",
+          limitBytes: serverUploadLimit(),
+        },
+        { status: 400 },
+      );
 
     // 선택된 스토리지 프로바이더가 사용 가능한지 확인
-    const provider = (storageProvider || StorageProvider.OCI) as StorageProvider;
+    const provider = (storageProvider ||
+      StorageProvider.OCI) as StorageProvider;
     const isAvailable = await StorageFactory.isProviderAvailable(provider);
-    
+
     if (!isAvailable) {
       return NextResponse.json(
-        { message: `Selected storage provider (${provider}) is not configured.` },
-        { status: 400 }
+        {
+          message: `Selected storage provider (${provider}) is not configured.`,
+        },
+        { status: 400 },
       );
     }
 
@@ -107,6 +137,8 @@ export async function createProjectHandler(
       data: {
         name,
         description,
+        maxUploadBytes,
+        videoThumbnailEnabled,
         userId, // 프로젝트 소유자 저장
         storageProvider: toPrismaStorageProvider(provider),
       },
@@ -125,16 +157,15 @@ export async function createProjectHandler(
     console.error("Project creation API error:", error);
     return NextResponse.json(
       { message: "An error occurred while creating the project." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
-
 export async function updateProjectHandler(
   req: NextRequest,
   projectId: string,
-  userId: string
+  userId: string,
 ): Promise<NextResponse<ProjectResponse | ErrorResponse>> {
   try {
     // 소유권 검증 (Requirement 3.3)
@@ -142,7 +173,12 @@ export async function updateProjectHandler(
     if (!ownershipResult.authorized) {
       return NextResponse.json(
         { message: "Resource not found." },
-        { status: ownershipResult.reason === OWNERSHIP_ERROR_CODES.NOT_FOUND ? 404 : 403 }
+        {
+          status:
+            ownershipResult.reason === OWNERSHIP_ERROR_CODES.NOT_FOUND
+              ? 404
+              : 403,
+        },
       );
     }
 
@@ -155,22 +191,40 @@ export async function updateProjectHandler(
           message: "Invalid request format.",
           errors: validationResult.error.flatten().fieldErrors,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    const { name, description } = validationResult.data;
+    const { name, description, maxUploadBytes, videoThumbnailEnabled } =
+      validationResult.data;
+    if (maxUploadBytes !== undefined && maxUploadBytes > serverUploadLimit())
+      return NextResponse.json(
+        {
+          message: "Project limit exceeds the server maximum.",
+          limitBytes: serverUploadLimit(),
+        },
+        { status: 400 },
+      );
 
     // 이름이 제공되었지만 공백만 있는 경우 거부
     if (name !== undefined && name.trim().length === 0) {
       return NextResponse.json(
         { message: "Project name is required." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // 업데이트할 데이터 구성
-    const updateData: { name?: string; description?: string } = {};
+    const updateData: {
+      name?: string;
+      description?: string;
+      maxUploadBytes?: number;
+      videoThumbnailEnabled?: boolean;
+    } = {};
+    if (maxUploadBytes !== undefined)
+      updateData.maxUploadBytes = maxUploadBytes;
+    if (videoThumbnailEnabled !== undefined)
+      updateData.videoThumbnailEnabled = videoThumbnailEnabled;
     if (name !== undefined) {
       updateData.name = name.trim();
     }
@@ -183,17 +237,19 @@ export async function updateProjectHandler(
       const existingProject = await prisma.project.findUnique({
         where: { id: projectId },
       });
-      
+
       if (!existingProject) {
         return NextResponse.json(
           { message: "Project not found." },
-          { status: 404 }
+          { status: 404 },
         );
       }
 
       const response: ProjectResponse = {
         ...existingProject,
-        storageProvider: fromPrismaStorageProvider(existingProject.storageProvider),
+        storageProvider: fromPrismaStorageProvider(
+          existingProject.storageProvider,
+        ),
         createdAt: existingProject.createdAt.toISOString(),
         updatedAt: existingProject.updatedAt.toISOString(),
       };
@@ -207,7 +263,9 @@ export async function updateProjectHandler(
 
     const response: ProjectResponse = {
       ...updatedProject,
-      storageProvider: fromPrismaStorageProvider(updatedProject.storageProvider),
+      storageProvider: fromPrismaStorageProvider(
+        updatedProject.storageProvider,
+      ),
       createdAt: updatedProject.createdAt.toISOString(),
       updatedAt: updatedProject.updatedAt.toISOString(),
     };
@@ -217,7 +275,7 @@ export async function updateProjectHandler(
     console.error("Project update API error:", error);
     return NextResponse.json(
       { message: "An error occurred while updating the project." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -32,6 +32,7 @@ export async function handleOtherConfirm({
       url: objectUrl,
       objectName,
       status: "COMPLETED",
+      uploadedAt: new Date(),
       variants: [],
     },
   });

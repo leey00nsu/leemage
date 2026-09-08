@@ -1,10 +1,14 @@
 /**
  * Cloudflare R2 Storage Adapter
- * 
+ *
  * Implements the StorageAdapter interface using AWS SDK S3-compatible API.
  */
 
-import { StorageAdapter, CreatePresignedUrlOptions, PresignedUrlResult } from "../adapter";
+import {
+  StorageAdapter,
+  CreatePresignedUrlOptions,
+  PresignedUrlResult,
+} from "../adapter";
 import { StorageProvider } from "../types";
 import { createStorageError, StorageErrorCode } from "../errors";
 
@@ -16,7 +20,7 @@ let DeleteObjectCommand: typeof import("@aws-sdk/client-s3").DeleteObjectCommand
 let getSignedUrl: typeof import("@aws-sdk/s3-request-presigner").getSignedUrl;
 
 async function loadS3Dependencies() {
-  if (!S3Client) {
+  if (!S3Client || !getSignedUrl) {
     const s3Module = await import("@aws-sdk/client-s3");
     S3Client = s3Module.S3Client;
     PutObjectCommand = s3Module.PutObjectCommand;
@@ -30,7 +34,9 @@ async function loadS3Dependencies() {
 
 export class CloudflareR2Adapter implements StorageAdapter {
   readonly provider = StorageProvider.R2;
-  private client: InstanceType<typeof import("@aws-sdk/client-s3").S3Client> | null = null;
+  private client: InstanceType<
+    typeof import("@aws-sdk/client-s3").S3Client
+  > | null = null;
 
   isConfigured(): boolean {
     return !!(
@@ -65,7 +71,9 @@ export class CloudflareR2Adapter implements StorageAdapter {
     return process.env.R2_BUCKET_NAME!;
   }
 
-  async createPresignedUploadUrl(options: CreatePresignedUrlOptions): Promise<PresignedUrlResult> {
+  async createPresignedUploadUrl(
+    options: CreatePresignedUrlOptions,
+  ): Promise<PresignedUrlResult> {
     await loadS3Dependencies();
     const client = await this.getClient();
     const bucketName = this.getBucketName();
@@ -89,6 +97,27 @@ export class CloudflareR2Adapter implements StorageAdapter {
       objectUrl: this.getObjectUrl(options.objectName),
       expiresAt,
     };
+  }
+
+  async createReadAccess(objectName: string) {
+    const client = await this.getClient();
+    const url = await getSignedUrl(
+      client,
+      new GetObjectCommand({ Bucket: this.getBucketName(), Key: objectName }),
+      { expiresIn: 300 },
+    );
+    return { url };
+  }
+
+  async getObjectSize(objectName: string) {
+    const { HeadObjectCommand } = await import("@aws-sdk/client-s3");
+    const client = await this.getClient();
+    const response = await client.send(
+      new HeadObjectCommand({ Bucket: this.getBucketName(), Key: objectName }),
+    );
+    if (response.ContentLength === undefined)
+      throw new Error("Missing object size");
+    return response.ContentLength;
   }
 
   async downloadObject(objectName: string): Promise<Buffer> {
@@ -117,7 +146,11 @@ export class CloudflareR2Adapter implements StorageAdapter {
     return Buffer.concat(chunks);
   }
 
-  async uploadObject(objectName: string, buffer: Buffer, contentType: string): Promise<string> {
+  async uploadObject(
+    objectName: string,
+    buffer: Buffer,
+    contentType: string,
+  ): Promise<string> {
     await loadS3Dependencies();
     const client = await this.getClient();
     const bucketName = this.getBucketName();
@@ -149,10 +182,12 @@ export class CloudflareR2Adapter implements StorageAdapter {
 
   getObjectUrl(objectName: string): string {
     const publicUrl = process.env.R2_PUBLIC_URL;
-    
+
     if (publicUrl) {
       // 커스텀 도메인 또는 r2.dev 퍼블릭 URL 사용
-      const baseUrl = publicUrl.endsWith('/') ? publicUrl.slice(0, -1) : publicUrl;
+      const baseUrl = publicUrl.endsWith("/")
+        ? publicUrl.slice(0, -1)
+        : publicUrl;
       return `${baseUrl}/${objectName}`;
     }
 

@@ -34,6 +34,8 @@ model Project {
   updatedAt       DateTime        @updatedAt
 
   tags            ProjectTag[]
+  maxUploadBytes Int @default(52428800)
+  videoThumbnailEnabled Boolean @default(true)
   files           File[] // 프로젝트에 속한 파일 목록 (1:N 관계)
 
   @@index([userId]) // 사용자별 프로젝트 조회 성능 향상
@@ -62,6 +64,9 @@ model File {
   projectId   String     // 이 파일이 속한 프로젝트의 ID (외래 키)
   project     Project    @relation(fields: [projectId], references: [id], onDelete: Cascade) // N:1 관계 정의, 프로젝트 삭제 시 파일도 삭제
 
+  uploadedAt DateTime?
+  processingStatus String @default("NONE")
+  videoJob VideoJob?
   tags        ProjectTag[] @relation("FileTags")
 
   @@index([status, createdAt]) // 정리 작업용 인덱스
@@ -120,4 +125,19 @@ model ProjectTag {
   files          File[] @relation("FileTags")
 
   @@unique([projectId, normalizedName])
+}
+
+// Durable video queue. Lease token fences late workers; file deletion cascades.
+model VideoJob {
+  id String @id
+  file File @relation(fields: [id], references: [id], onDelete: Cascade)
+  status String @default("QUEUED")
+  attempts Int @default(0)
+  availableAt DateTime @default(now())
+  leaseUntil DateTime?
+  leaseToken String?
+  lastError String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([status, availableAt])
 }
