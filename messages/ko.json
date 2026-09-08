@@ -343,9 +343,8 @@
         "copyButton": "복사",
         "copySuccess": "API 키를 클립보드에 복사했습니다.",
         "copyError": "API 키 복사에 실패했습니다.",
-        "acknowledge": "이 키를 안전한 위치에 저장했습니다.",
-        "doneButton": "완료",
-        "doneLoading": "저장 중..."
+        "activeDescription": "키가 생성되어 바로 사용할 수 있습니다. 닫아도 생성된 키는 유지됩니다.",
+        "closeButton": "닫기"
       },
       "actions": {
         "edit": "수정",

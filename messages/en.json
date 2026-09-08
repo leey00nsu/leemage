@@ -343,9 +343,8 @@
         "copyButton": "Copy",
         "copySuccess": "API key copied to clipboard.",
         "copyError": "Failed to copy API key.",
-        "acknowledge": "I have saved this key in a secure location.",
-        "doneButton": "Done",
-        "doneLoading": "Saving..."
+        "activeDescription": "Your key is active and ready to use. Closing this dialog will keep the key active.",
+        "closeButton": "Close"
       },
       "actions": {
         "edit": "Edit",

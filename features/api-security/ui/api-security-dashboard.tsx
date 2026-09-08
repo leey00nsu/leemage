@@ -77,8 +77,7 @@ export function ApiSecurityDashboard() {
   const [createPermissions, setCreatePermissions] = useState<ApiKeyPermission[]>(
     DEFAULT_API_KEY_PERMISSIONS,
   );
-  const [draftApiKey, setDraftApiKey] = useState<string | null>(null);
-  const [isGeneratedKeySaved, setIsGeneratedKeySaved] = useState(false);
+  const [generatedApiKey, setGeneratedApiKey] = useState<string | null>(null);
 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editTargetId, setEditTargetId] = useState<string | null>(null);
@@ -91,8 +90,7 @@ export function ApiSecurityDashboard() {
     setIsCreateDialogOpen(false);
     setCreateName("");
     setCreatePermissions(DEFAULT_API_KEY_PERMISSIONS);
-    setDraftApiKey(null);
-    setIsGeneratedKeySaved(false);
+    setGeneratedApiKey(null);
   };
 
   const { data: apiKeys, isLoading, error: queryError } = useListApiKeys();
@@ -103,8 +101,8 @@ export function ApiSecurityDashboard() {
     error: createError,
   } = useGenerateApiKey({
     onSuccessCallback: (newApiKey) => {
-      setDraftApiKey(newApiKey);
-      setIsGeneratedKeySaved(false);
+      setGeneratedApiKey(newApiKey);
+      toast.success(t("keys.generateSuccessToast"));
     },
     onErrorCallback: (err) => {
       toast.error(
@@ -189,8 +187,7 @@ export function ApiSecurityDashboard() {
   const handleOpenCreateDialog = () => {
     setCreateName("");
     setCreatePermissions(DEFAULT_API_KEY_PERMISSIONS);
-    setDraftApiKey(null);
-    setIsGeneratedKeySaved(false);
+    setGeneratedApiKey(null);
     setIsCreateDialogOpen(true);
   };
 
@@ -209,29 +206,23 @@ export function ApiSecurityDashboard() {
   };
 
   const handleCopyGeneratedKey = async () => {
-    if (!draftApiKey) {
+    if (!generatedApiKey) {
       return;
     }
 
     try {
-      await navigator.clipboard.writeText(draftApiKey);
+      await navigator.clipboard.writeText(generatedApiKey);
       toast.success(t("keys.revealModal.copySuccess"));
     } catch {
       toast.error(t("keys.revealModal.copyError"));
     }
   };
 
-  const handleConfirmGeneratedKey = () => {
-    if (!draftApiKey) {
-      createApiKey({
-        name: createName,
-        permissions: createPermissions,
-      });
-      return;
-    }
-
-    resetCreateModalState();
-    toast.success(t("keys.generateSuccessToast"));
+  const handleCreateKey = () => {
+    createApiKey({
+      name: createName,
+      permissions: createPermissions,
+    });
   };
 
   const handleRevoke = (apiKeyId: string) => {
@@ -561,13 +552,13 @@ export function ApiSecurityDashboard() {
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {draftApiKey
+              {generatedApiKey
                 ? t("keys.revealModal.title")
                 : t("keys.createModal.title")}
             </DialogTitle>
             <DialogDescription>
-              {draftApiKey
-                ? t("keys.revealModal.warningDescription")
+              {generatedApiKey
+                ? t("keys.revealModal.activeDescription")
                 : t("keys.createModal.description")}
             </DialogDescription>
           </DialogHeader>
@@ -601,7 +592,7 @@ export function ApiSecurityDashboard() {
                 placeholder={t("keys.createModal.namePlaceholder")}
                 maxLength={MAX_API_KEY_NAME_LENGTH}
                 autoFocus
-                disabled={isCreatingApiKey || Boolean(draftApiKey)}
+                disabled={isCreatingApiKey || Boolean(generatedApiKey)}
               />
             </div>
 
@@ -625,7 +616,7 @@ export function ApiSecurityDashboard() {
                     </span>
                     <Checkbox
                       checked={createPermissions.includes(permission)}
-                      disabled={isCreatingApiKey || Boolean(draftApiKey)}
+                      disabled={isCreatingApiKey || Boolean(generatedApiKey)}
                       onCheckedChange={(checked) =>
                         handleCreatePermissionChange(permission, checked === true)
                       }
@@ -635,64 +626,53 @@ export function ApiSecurityDashboard() {
               </div>
             </div>
 
-            {draftApiKey && (
+            {generatedApiKey && (
               <div className="space-y-2">
                 <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                   {t("keys.revealModal.secretLabel")}
                 </label>
                 <div className="flex items-stretch gap-2">
                   <div className="min-w-0 flex-1 break-all rounded-lg border border-gray-200 bg-gray-50 p-3 font-mono text-sm leading-relaxed text-slate-700 dark:border-gray-700 dark:bg-gray-800 dark:text-slate-200">
-                    {draftApiKey}
+                    {generatedApiKey}
                   </div>
                   <AppButton
                     variant="outline"
                     className="h-auto px-3"
                     onClick={handleCopyGeneratedKey}
                     aria-label={t("keys.revealModal.copyButton")}
-                    disabled={!draftApiKey}
+                    disabled={!generatedApiKey}
                   >
                     <Copy className="h-4 w-4" />
                   </AppButton>
                 </div>
               </div>
             )}
-
-            {draftApiKey && (
-              <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
-                <Checkbox
-                  checked={isGeneratedKeySaved}
-                  disabled={isCreatingApiKey}
-                  onCheckedChange={(checked) =>
-                    setIsGeneratedKeySaved(checked === true)
-                  }
-                />
-                {t("keys.revealModal.acknowledge")}
-              </label>
-            )}
           </div>
 
           <DialogFooter>
-            <AppButton
-              variant="outline"
-              onClick={resetCreateModalState}
-              disabled={isCreatingApiKey}
-            >
-              {t("keys.actions.cancel")}
-            </AppButton>
-            <AppButton
-              onClick={handleConfirmGeneratedKey}
-              disabled={
-                isCreatingApiKey ||
-                createPermissions.length === 0 ||
-                (draftApiKey ? !isGeneratedKeySaved : false)
-              }
-            >
-              {isCreatingApiKey
-                ? t("keys.createModal.creating")
-                : draftApiKey
-                  ? t("keys.revealModal.doneButton")
-                  : t("keys.createModal.createButton")}
-            </AppButton>
+            {generatedApiKey ? (
+              <AppButton onClick={resetCreateModalState}>
+                {t("keys.revealModal.closeButton")}
+              </AppButton>
+            ) : (
+              <>
+                <AppButton
+                  variant="outline"
+                  onClick={resetCreateModalState}
+                  disabled={isCreatingApiKey}
+                >
+                  {t("keys.actions.cancel")}
+                </AppButton>
+                <AppButton
+                  onClick={handleCreateKey}
+                  disabled={isCreatingApiKey || createPermissions.length === 0}
+                >
+                  {isCreatingApiKey
+                    ? t("keys.createModal.creating")
+                    : t("keys.createModal.createButton")}
+                </AppButton>
+              </>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
