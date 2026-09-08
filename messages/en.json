@@ -858,7 +858,9 @@
         "updatedAt": "Updated at (ISO 8601)"
       },
       "project": {
-        "storageProvider": "Storage Provider"
+        "storageProvider": "Storage Provider",
+        "maxUploadBytes": "Upload limit per file in bytes. Defaults to 50 MiB; also subject to the server ceiling.",
+        "videoThumbnailEnabled": "Whether to automatically generate thumbnails for new videos in the background. Defaults to true."
       },
       "file": {
         "mimeType": "MIME Type",

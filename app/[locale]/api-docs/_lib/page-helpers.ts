@@ -1,3 +1,4 @@
+import { createApiDocsTranslator } from "@/entities/api-docs/model/translation";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { getApiDocsData } from "@/entities/api-docs/model/data";
@@ -34,15 +35,7 @@ export function normalizeLocale(value: string): ApiDocsLocale {
 
 async function loadApiDocs(locale: ApiDocsLocale) {
   const t = await getTranslations({ locale });
-  const safeT = (key: string): string => {
-    try {
-      return t(key);
-    } catch {
-      return key;
-    }
-  };
-
-  return getApiDocsData(locale, safeT);
+  return getApiDocsData(locale, createApiDocsTranslator(t));
 }
 
 function getStaticDocI18nKeys(activeItemKey: ActiveItemKey): {

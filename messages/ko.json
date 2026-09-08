@@ -858,7 +858,9 @@
         "updatedAt": "수정 일시 (ISO 8601)"
       },
       "project": {
-        "storageProvider": "스토리지 프로바이더"
+        "storageProvider": "스토리지 프로바이더",
+        "maxUploadBytes": "파일당 업로드 제한(바이트). 기본 50 MiB이며 서버 상한도 적용됩니다.",
+        "videoThumbnailEnabled": "새 영상의 썸네일을 백그라운드에서 자동 생성할지 여부. 기본값은 true입니다."
       },
       "file": {
         "mimeType": "MIME 타입",
