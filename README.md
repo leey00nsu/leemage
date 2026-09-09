@@ -26,11 +26,7 @@
 </p>
 
 <p align="center">
-  <img src="public/readme-captures/file-detail-image.png" alt="Leemage File Detail" width="800" />
-</p>
-
-<p align="center">
-  <img src="public/readme-captures/monitoring-30d.png" alt="Leemage Monitoring Dashboard" width="800" />
+  <img src="public/readme-captures/monitoring-7d.png" alt="Leemage Monitoring Dashboard" width="800" />
 </p>
 
 ---
