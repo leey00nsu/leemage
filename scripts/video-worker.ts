@@ -4,7 +4,13 @@ loadEnvConfig(process.cwd(), process.env.NODE_ENV !== "production");
 async function main() {
   const { claimVideoJob, executeVideoJob } = await import("../lib/video/queue");
   const { claimImageJob, executeImageJob } = await import("../lib/image/queue");
+  const { claimObjectCleanupJob, executeObjectCleanupJob } = await import(
+    "../lib/storage/cleanup-queue"
+  );
   const { prisma } = await import("../lib/prisma");
+  const { cleanupOrphanFiles, cleanupFailedFiles } = await import(
+    "../lib/api/cleanup-orphans"
+  );
   let stopping = false;
   process.on("SIGTERM", () => {
     stopping = true;
@@ -21,29 +27,47 @@ async function main() {
     ? Math.max(1, Math.min(8, configured))
     : 2;
   console.info(`Media worker started (concurrency=${concurrency})`);
-  let preferImage = true;
+  const queueRunners = [
+    async () => {
+      const job = await claimImageJob();
+      if (!job) return false;
+      await executeImageJob(job);
+      return true;
+    },
+    async () => {
+      const job = await claimVideoJob();
+      if (!job) return false;
+      await executeVideoJob(job);
+      return true;
+    },
+    async () => {
+      const job = await claimObjectCleanupJob();
+      if (!job) return false;
+      await executeObjectCleanupJob(job);
+      return true;
+    },
+  ];
+  let nextQueue = 0;
+  let nextMaintenanceAt = 0;
   const loop = async () => {
     while (!stopping) {
       try {
-        const imageFirst = preferImage;
-        preferImage = !preferImage;
-        const imageJob = imageFirst ? await claimImageJob() : null;
-        if (imageJob) {
-          await executeImageJob(imageJob);
-          continue;
+        if (Date.now() >= nextMaintenanceAt) {
+          nextMaintenanceAt = Date.now() + 5 * 60 * 1000;
+          await cleanupOrphanFiles(30);
+          await cleanupFailedFiles(7);
         }
-        const videoJob = await claimVideoJob();
-        if (videoJob) {
-          await executeVideoJob(videoJob);
-          continue;
-        }
-        if (!imageFirst) {
-          const fallbackImageJob = await claimImageJob();
-          if (fallbackImageJob) {
-            await executeImageJob(fallbackImageJob);
-            continue;
+        const start = nextQueue++ % queueRunners.length;
+        let handled = false;
+        for (let offset = 0; offset < queueRunners.length; offset += 1) {
+          const runQueue =
+            queueRunners[(start + offset) % queueRunners.length];
+          if (await runQueue()) {
+            handled = true;
+            break;
           }
         }
+        if (handled) continue;
       } catch {
         console.error("Media worker database operation failed; retrying");
       }

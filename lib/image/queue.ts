@@ -1,7 +1,11 @@
 import { randomUUID } from "node:crypto";
 import sharp from "sharp";
 import { prisma } from "@/lib/prisma";
-import { Prisma, type ImageJob } from "@/lib/generated/prisma";
+import {
+  Prisma,
+  type ImageJob,
+  type StorageProvider,
+} from "@/lib/generated/prisma";
 import { StorageFactory, fromPrismaStorageProvider } from "@/lib/storage";
 import {
   getReservedStorageBytes,
@@ -14,6 +18,7 @@ import type {
   ImageVariantData,
   VariantOption,
 } from "@/lib/api/confirm/types";
+import { enqueueStorageObjects } from "@/lib/storage/cleanup-queue";
 
 const MAX_ATTEMPTS = 3;
 const MAX_IMAGE_BYTES = 50 * 1024 * 1024;
@@ -87,6 +92,7 @@ export async function executeImageJob(job: ImageJob): Promise<void> {
   let adapter: Awaited<ReturnType<typeof StorageFactory.getAdapter>> | null =
     null;
   let sourceObjectName: string | null = null;
+  let cleanupProvider: StorageProvider | null = null;
   let permanentFailure = false;
   const heartbeat = setInterval(() => {
     void prisma.imageJob
@@ -104,6 +110,7 @@ export async function executeImageJob(job: ImageJob): Promise<void> {
     });
     if (!file?.objectName || !file.url) return;
     sourceObjectName = file.objectName;
+    cleanupProvider = file.project.storageProvider;
     adapter = await StorageFactory.getAdapter(
       fromPrismaStorageProvider(file.project.storageProvider),
     );
@@ -279,11 +286,20 @@ export async function executeImageJob(job: ImageJob): Promise<void> {
   } finally {
     clearInterval(heartbeat);
     if (adapter) {
-      await Promise.allSettled(
-        uploadedObjects.map((objectName) => adapter!.deleteObject(objectName)),
-      );
+      const cleanupObjects = [...uploadedObjects];
       if (permanentFailure && sourceObjectName) {
-        await adapter.deleteObject(sourceObjectName).catch(() => {});
+        cleanupObjects.push(sourceObjectName);
+      }
+      const results = await Promise.allSettled(
+        cleanupObjects.map((objectName) => adapter!.deleteObject(objectName)),
+      );
+      const failed = cleanupObjects.filter(
+        (_, index) => results[index]?.status === "rejected",
+      );
+      if (cleanupProvider && failed.length > 0) {
+        await enqueueStorageObjects(cleanupProvider, failed).catch(() => {
+          console.error("Failed to queue image object cleanup", job.id);
+        });
       }
     }
   }

@@ -143,6 +143,12 @@ export async function deleteObject(objectName: string): Promise<void> {
     await client.deleteObject(deleteObjectRequest);
     console.log(`Successfully deleted OCI object: ${objectName}`);
   } catch (error) {
+    const statusCode =
+      typeof error === "object" && error !== null && "statusCode" in error
+        ? Number(error.statusCode)
+        : undefined;
+    // Deletion is intentionally idempotent for durable cleanup retries.
+    if (statusCode === 404) return;
     console.error(`Error deleting OCI object ${objectName}:`, error);
     // 특정 OCI 오류 코드에 따라 다른 처리 가능 (예: 객체 못 찾음 등)
     throw new Error(`OCI 객체 삭제 중 오류 발생: ${objectName}`);

@@ -1,5 +1,34 @@
 import { prisma } from "@/lib/prisma";
-import { deleteObject } from "@/lib/oci";
+import { Prisma } from "@/lib/generated/prisma";
+import { enqueueOwnedObjects } from "@/lib/storage/cleanup-queue";
+
+async function cleanupFiles(
+  status: "PENDING" | "FAILED",
+  cutoff: Date,
+  lockName: string,
+) {
+  return prisma.$transaction(async (tx) => {
+    const lock = await tx.$queryRaw<{ locked: boolean }[]>(Prisma.sql`
+      SELECT pg_try_advisory_xact_lock(hashtext(${lockName})) AS locked
+    `);
+    if (!lock[0]?.locked) return 0;
+
+    const files = await tx.file.findMany({
+      where: { status, createdAt: { lt: cutoff } },
+      orderBy: { createdAt: "asc" },
+      take: 100,
+      select: { id: true },
+    });
+    if (files.length === 0) return 0;
+
+    const fileIds = files.map((file) => file.id);
+    await enqueueOwnedObjects(tx, { fileIds });
+    const result = await tx.file.deleteMany({
+      where: { id: { in: fileIds }, status, createdAt: { lt: cutoff } },
+    });
+    return result.count;
+  });
+}
 
 /**
  * 고아 오브젝트 정리
@@ -14,57 +43,13 @@ export async function cleanupOrphanFiles(
   const cutoffTime = new Date();
   cutoffTime.setMinutes(cutoffTime.getMinutes() - olderThanMinutes);
 
-  const errors: string[] = [];
-
   try {
-    // 오래된 PENDING 레코드 조회
-    const orphanFiles = await prisma.file.findMany({
-      where: {
-        status: "PENDING",
-        createdAt: {
-          lt: cutoffTime,
-        },
-      },
-      select: {
-        id: true,
-        objectName: true,
-      },
-    });
-
-    if (orphanFiles.length === 0) {
-      console.log("No orphan files to clean up.");
-      return { deletedCount: 0, errors: [] };
-    }
-
-    console.log(`Found ${orphanFiles.length} orphan files to clean up.`);
-
-    // OCI 객체 삭제
-    for (const file of orphanFiles) {
-      if (file.objectName) {
-        try {
-          await deleteObject(file.objectName);
-          console.log(`Deleted OCI object: ${file.objectName}`);
-        } catch (error) {
-          const errorMsg = `Failed to delete OCI object ${file.objectName}: ${error}`;
-          console.error(errorMsg);
-          errors.push(errorMsg);
-        }
-      }
-    }
-
-    // DB 레코드 삭제 (또는 FAILED 상태로 변경)
-    const deleteResult = await prisma.file.deleteMany({
-      where: {
-        id: {
-          in: orphanFiles.map((f) => f.id),
-        },
-        status: "PENDING",
-      },
-    });
-
-    console.log(`Deleted ${deleteResult.count} orphan file records.`);
-
-    return { deletedCount: deleteResult.count, errors };
+    const deletedCount = await cleanupFiles(
+      "PENDING",
+      cutoffTime,
+      "maintenance:pending-files",
+    );
+    return { deletedCount, errors: [] };
   } catch (error) {
     console.error("Error during orphan cleanup:", error);
     throw error;
@@ -84,18 +69,12 @@ export async function cleanupFailedFiles(
   cutoffTime.setDate(cutoffTime.getDate() - olderThanDays);
 
   try {
-    const deleteResult = await prisma.file.deleteMany({
-      where: {
-        status: "FAILED",
-        createdAt: {
-          lt: cutoffTime,
-        },
-      },
-    });
-
-    console.log(`Deleted ${deleteResult.count} failed file records.`);
-
-    return { deletedCount: deleteResult.count };
+    const deletedCount = await cleanupFiles(
+      "FAILED",
+      cutoffTime,
+      "maintenance:failed-files",
+    );
+    return { deletedCount };
   } catch (error) {
     console.error("Error during failed files cleanup:", error);
     throw error;

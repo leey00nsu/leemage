@@ -3,7 +3,6 @@ import { tagSelect } from "@/lib/api/project-tags";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { StorageFactory } from "@/lib/storage";
 import { fromPrismaStorageProvider } from "@/lib/storage/utils";
 import { projectDetailsResponseSchema } from "@/lib/openapi/schemas/projects";
 import {
@@ -12,6 +11,7 @@ import {
 } from "@/lib/openapi/schemas/common";
 import { ImageVariantData } from "@/entities/files/model/types";
 import { verifyProjectOwnership } from "@/lib/auth/ownership";
+import { enqueueOwnedObjects } from "@/lib/storage/cleanup-queue";
 
 // 응답 타입 추론
 type ProjectDetailsResponse = z.infer<typeof projectDetailsResponseSchema>;
@@ -139,94 +139,28 @@ export async function deleteProjectHandler(
     );
   }
 
-  // 소유권 검증 (Requirement 3.3)
-  const ownershipResult = await verifyProjectOwnership(userId, projectId);
-  if (!ownershipResult.authorized) {
-    return NextResponse.json(
-      { message: "Resource not found." },
-      { status: 404 },
-    );
-  }
-
   try {
-    await prisma.videoJob.deleteMany({ where: { file: { projectId } } });
-    const projectToDelete = await prisma.project.findUnique({
-      where: { id: projectId },
-      include: {
-        files: {
-          select: { id: true, name: true, variants: true, objectName: true },
-        },
-      },
-    });
+    const deleted = await prisma.$transaction(async (tx) => {
+      const project = await tx.project.findFirst({
+        where: { id: projectId, userId },
+        select: { id: true },
+      });
+      if (!project) return false;
 
-    if (!projectToDelete) {
+      await enqueueOwnedObjects(tx, { projectId });
+      const result = await tx.project.deleteMany({ where: { id: projectId, userId } });
+      return result.count === 1;
+    });
+    if (!deleted) {
       return NextResponse.json(
-        { message: "Project to delete not found." },
+        { message: "Resource not found." },
         { status: 404 },
       );
     }
 
-    // 프로젝트의 스토리지 프로바이더에 맞는 어댑터 가져오기
-    const storageProvider = fromPrismaStorageProvider(
-      projectToDelete.storageProvider,
-    );
-    const storageAdapter = await StorageFactory.getAdapter(storageProvider);
-
-    // 스토리지 객체 삭제 로직
-    const objectDeletionPromises: Promise<void>[] = [];
-    projectToDelete.files.forEach((file) => {
-      // 원본 파일 삭제
-      if (file.objectName) {
-        objectDeletionPromises.push(
-          storageAdapter.deleteObject(file.objectName),
-        );
-      }
-
-      // variant 파일들 삭제
-      const variants = file.variants as unknown as ImageVariantData[];
-      variants.forEach((variant) => {
-        if (typeof variant?.url === "string") {
-          try {
-            // URL에서 객체 이름 추출 (프로바이더별로 다를 수 있음)
-            const url = new URL(variant.url);
-            const pathParts = url.pathname.split("/");
-            // 마지막 두 부분이 projectId/filename 형태
-            const objectName = pathParts.slice(-2).join("/");
-            if (objectName) {
-              objectDeletionPromises.push(
-                storageAdapter.deleteObject(objectName),
-              );
-            }
-          } catch (e) {
-            console.error(
-              `Error preparing deletion for variant URL ${variant.url}:`,
-              e,
-            );
-          }
-        }
-      });
-    });
-
-    const deletionResults = await Promise.allSettled(objectDeletionPromises);
-    deletionResults.forEach((result, index) => {
-      if (result.status === "rejected") {
-        console.error(
-          `Failed to delete storage object (index ${index}):`,
-          result.reason,
-        );
-      }
-    });
-
-    await prisma.project.delete({
-      where: {
-        id: projectId,
-      },
-    });
-
     return NextResponse.json(
       {
-        message:
-          "Project and all related files (all versions) deleted successfully.",
+        message: "Project deleted successfully. Storage cleanup was queued.",
       },
       { status: 200 },
     );

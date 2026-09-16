@@ -1,10 +1,15 @@
 import { randomUUID } from "node:crypto";
 import sharp from "sharp";
 import { prisma } from "@/lib/prisma";
-import { Prisma, type VideoJob } from "@/lib/generated/prisma";
+import {
+  Prisma,
+  type StorageProvider,
+  type VideoJob,
+} from "@/lib/generated/prisma";
 import { StorageFactory, fromPrismaStorageProvider } from "@/lib/storage";
 import { invalidateAllStorageCaches } from "@/lib/api/storage-quota";
 import { processRemoteVideo } from "./remote";
+import { enqueueStorageObjects } from "@/lib/storage/cleanup-queue";
 
 const MAX_ATTEMPTS = 3;
 
@@ -63,6 +68,8 @@ export async function claimVideoJob(): Promise<VideoJob | null> {
 
 export async function executeVideoJob(job: VideoJob): Promise<void> {
   let cleanup: (() => Promise<void>) | undefined;
+  let cleanupObject: string | undefined;
+  let cleanupProvider: StorageProvider | undefined;
   let release: (() => Promise<void>) | undefined;
   const ownership = {
     id: job.id,
@@ -108,6 +115,8 @@ export async function executeVideoJob(job: VideoJob): Promise<void> {
     const thumbnailObject = `${file.projectId}/${file.id}-thumbnail-${job.leaseToken}.jpg`;
     // Fence output objects too: an expired worker must never overwrite a newer result.
     cleanup = () => adapter.deleteObject(thumbnailObject);
+    cleanupObject = thumbnailObject;
+    cleanupProvider = file.project.storageProvider;
     const thumbnailUrl = await adapter.uploadObject(
       thumbnailObject,
       result.thumbnail,
@@ -178,6 +187,11 @@ export async function executeVideoJob(job: VideoJob): Promise<void> {
     clearInterval(heartbeat);
     await cleanup?.().catch(() => {
       console.warn("Video output cleanup failed", job.id);
+      if (cleanupObject && cleanupProvider) {
+        void enqueueStorageObjects(cleanupProvider, [cleanupObject]).catch(() => {
+          console.error("Failed to queue video object cleanup", job.id);
+        });
+      }
     });
     await release?.().catch(() => {
       console.warn("Video read access cleanup failed", job.id);
