@@ -12,6 +12,13 @@ import {
 } from "@/shared/config/api-key-permissions";
 import type { ValidatedApiKey } from "@/lib/auth/api-key-auth/types";
 import { getClientIp } from "@/lib/http/client-ip";
+import {
+  hashApiKey,
+  isSha256ApiKeyHash,
+  matchesSha256ApiKey,
+} from "@/lib/auth/api-key-auth/hash";
+
+const LAST_USED_WRITE_INTERVAL_MS = 5 * 60 * 1000;
 
 function extractBearerToken(request: NextRequest): string | null {
   const authorizationHeader = request.headers.get("Authorization");
@@ -80,6 +87,7 @@ export async function validateApiKey(
         name: true,
         prefix: true,
         permissions: true,
+        lastUsedAt: true,
       },
     });
 
@@ -93,20 +101,43 @@ export async function validateApiKey(
     }
 
     for (const apiKeyData of apiKeyCandidates) {
-      const isValid = await bcrypt.compare(providedApiKey, apiKeyData.keyHash);
+      const usesSha256 = isSha256ApiKeyHash(apiKeyData.keyHash);
+      const isValid = usesSha256
+        ? matchesSha256ApiKey(providedApiKey, apiKeyData.keyHash)
+        : await bcrypt.compare(providedApiKey, apiKeyData.keyHash);
       if (!isValid) {
         continue;
       }
 
-      try {
-        await prisma.apiKey.update({
-          where: { id: apiKeyData.id },
-          data: { lastUsedAt: new Date() },
-        });
-      } catch (updateError) {
-        authLogger.error("Failed to update API key lastUsedAt", {
-          error: String(updateError),
-        });
+      const lastUsedCutoff = new Date(
+        now.getTime() - LAST_USED_WRITE_INTERVAL_MS,
+      );
+      if (
+        !usesSha256 ||
+        !apiKeyData.lastUsedAt ||
+        apiKeyData.lastUsedAt < lastUsedCutoff
+      ) {
+        try {
+          await prisma.apiKey.updateMany({
+            where: usesSha256
+              ? {
+                  id: apiKeyData.id,
+                  OR: [
+                    { lastUsedAt: null },
+                    { lastUsedAt: { lt: lastUsedCutoff } },
+                  ],
+                }
+              : { id: apiKeyData.id, keyHash: apiKeyData.keyHash },
+            data: {
+              lastUsedAt: now,
+              ...(!usesSha256 && { keyHash: hashApiKey(providedApiKey) }),
+            },
+          });
+        } catch (updateError) {
+          authLogger.error("Failed to refresh API key metadata", {
+            error: String(updateError),
+          });
+        }
       }
 
       authLogger.security({

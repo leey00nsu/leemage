@@ -3,13 +3,12 @@
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth/session-auth";
 import { Prisma } from "@/lib/generated/prisma";
-import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import {
   API_KEY_LOOKUP_PREFIX_LENGTH,
   API_KEY_PREFIX,
-  SALT_ROUNDS,
 } from "@/shared/config/api-key";
+import { hashApiKey } from "@/lib/auth/api-key-auth/hash";
 import {
   API_KEY_PERMISSIONS,
   DEFAULT_API_KEY_PERMISSIONS,
@@ -42,7 +41,7 @@ export async function generateApiKey(input?: GenerateApiKeyInput): Promise<strin
   const newApiKey = `${API_KEY_PREFIX}${crypto.randomBytes(24).toString("hex")}`;
 
   const keyLookupPrefix = newApiKey.slice(0, API_KEY_LOOKUP_PREFIX_LENGTH);
-  const keyHash = await bcrypt.hash(newApiKey, SALT_ROUNDS);
+  const keyHash = hashApiKey(newApiKey);
   const name = input?.name?.trim();
   const resolvedName =
     name && name.length > 0 ? name : `API Key ${keyCount + 1}`;
