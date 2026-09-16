@@ -29,6 +29,11 @@ export async function getProjectDetailsHandler(
       { status: 400 },
     );
   }
+  const requestedPage = Math.max(1, Math.min(10_000, Number(query.get("page")) || 1));
+  const requestedPageSize = Number(query.get("pageSize"));
+  const pageSize = [25, 50, 100].includes(requestedPageSize)
+    ? requestedPageSize
+    : 50;
 
   // 소유권 검증 (Requirement 3.1)
   const ownershipResult = await verifyProjectOwnership(userId, projectId);
@@ -49,36 +54,18 @@ export async function getProjectDetailsHandler(
     );
   }
   try {
-    const project = await prisma.project.findUnique({
-      where: {
-        id: projectId,
-      },
-      include: {
-        files: {
-          where: {
-            ...tagFilter,
-            status: "COMPLETED", // COMPLETED 상태의 파일만 조회
-          },
-          select: {
-            tags: { select: tagSelect, orderBy: { name: "asc" } },
-            id: true,
-            name: true,
-            mimeType: true,
-            processingStatus: true,
-            isImage: true,
-            size: true,
-            url: true,
-            variants: true,
-            createdAt: true,
-            updatedAt: true,
-            projectId: true,
-          },
-          orderBy: {
-            createdAt: "desc",
-          },
-        },
-      },
-    });
+    const filesWhere = {
+      projectId,
+      ...tagFilter,
+      status: "COMPLETED" as const,
+    };
+    const [project, total] = await Promise.all([
+      prisma.project.findUnique({
+        where: { id: projectId },
+        omit: { userId: true },
+      }),
+      prisma.file.count({ where: filesWhere }),
+    ]);
 
     if (!project) {
       return NextResponse.json(
@@ -87,14 +74,38 @@ export async function getProjectDetailsHandler(
       );
     }
 
-    // API 응답에서 files를 변환하고 Date를 ISO 문자열로 변환
-    const { files: projectFiles, userId: _userId, ...projectData } = project;
-    void _userId;
+    const pageCount = Math.max(1, Math.ceil(total / pageSize));
+    const page = Math.min(requestedPage, pageCount);
+    const projectFiles = await prisma.file.findMany({
+      where: filesWhere,
+      select: {
+        tags: { select: tagSelect, orderBy: { name: "asc" } },
+        id: true,
+        name: true,
+        mimeType: true,
+        processingStatus: true,
+        isImage: true,
+        size: true,
+        url: true,
+        variants: true,
+        createdAt: true,
+        updatedAt: true,
+        projectId: true,
+      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    });
+
     const response: ProjectDetailsResponse = {
-      ...projectData,
-      storageProvider: fromPrismaStorageProvider(projectData.storageProvider),
-      createdAt: projectData.createdAt.toISOString(),
-      updatedAt: projectData.updatedAt.toISOString(),
+      ...project,
+      storageProvider: fromPrismaStorageProvider(project.storageProvider),
+      createdAt: project.createdAt.toISOString(),
+      updatedAt: project.updatedAt.toISOString(),
+      total,
+      page,
+      pageCount,
+      pageSize,
       files: projectFiles.map((file) => ({
         ...file,
         thumbnail:

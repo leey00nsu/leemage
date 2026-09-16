@@ -131,6 +131,8 @@ export interface paths {
                 query?: {
                     tags?: string;
                     tagMode?: "all" | "any";
+                    page?: number;
+                    pageSize?: number;
                 };
                 header?: never;
                 path: {
@@ -1466,6 +1468,10 @@ export interface components {
         ProjectDetailsResponse: components["schemas"]["ProjectResponse"] & {
             /** @description List of files in the project */
             files: components["schemas"]["FileResponse"][];
+            total: number;
+            page: number;
+            pageCount: number;
+            pageSize: number;
         };
         ProjectListResponse: components["schemas"]["ProjectListItemResponse"][];
         TagNameRequest: {

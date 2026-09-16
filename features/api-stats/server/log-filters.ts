@@ -201,3 +201,91 @@ export function buildStatsWhere({ userId, params }: BuildLogFiltersInput): Stats
         : periodWhere,
   };
 }
+
+function sqlActorFilter(logActors: string[]): Prisma.Sql | null {
+  const actors = logActors
+    .map((actor): Prisma.Sql | null => {
+      if (actor === "ui") {
+        return Prisma.sql`(
+          metadata->>'authSource' = 'ui'
+          OR (
+            endpoint NOT LIKE '/api/v1/%'
+            AND metadata->>'authSource' IS DISTINCT FROM 'apiKey'
+          )
+        )`;
+      }
+
+      if (!actor.startsWith("apiKey:")) return null;
+      const apiKeyId = actor.slice("apiKey:".length).trim();
+      if (apiKeyId === "unknown") {
+        return Prisma.sql`(
+          (metadata->>'authSource' = 'apiKey' OR endpoint LIKE '/api/v1/%')
+          AND COALESCE(metadata->>'apiKeyId', '') = ''
+        )`;
+      }
+      return apiKeyId
+        ? Prisma.sql`metadata->>'apiKeyId' = ${apiKeyId}`
+        : null;
+    })
+    .filter((condition): condition is Prisma.Sql => condition !== null);
+
+  return actors.length > 0
+    ? Prisma.sql`(${Prisma.join(actors, " OR ")})`
+    : null;
+}
+
+/** Parameterized SQL equivalent of buildStatsWhere for database-side aggregates. */
+export function buildStatsSqlWhere(
+  { userId, params }: BuildLogFiltersInput,
+  includeMethod = true,
+): Prisma.Sql {
+  const conditions: Prisma.Sql[] = [
+    Prisma.sql`"userId" = ${userId}`,
+    Prisma.sql`"createdAt" >= ${params.startDate}`,
+    Prisma.sql`"createdAt" <= ${params.endDate}`,
+  ];
+
+  if (params.projectIds.length > 0) {
+    conditions.push(
+      Prisma.sql`"projectId" IN (${Prisma.join(params.projectIds)})`,
+    );
+  }
+  if (params.logStatus === "success") {
+    conditions.push(Prisma.sql`"statusCode" >= 200 AND "statusCode" < 400`);
+  } else if (params.logStatus === "error") {
+    conditions.push(Prisma.sql`("statusCode" < 200 OR "statusCode" >= 400)`);
+  }
+  if (params.logSearch) {
+    conditions.push(Prisma.sql`endpoint ILIKE ${`%${params.logSearch}%`}`);
+  }
+  if (params.logStatusCodeClasses.length > 0) {
+    const ranges = params.logStatusCodeClasses.map((statusClass) => {
+      const range = STATUS_CODE_CLASS_TO_RANGE[statusClass];
+      return Prisma.sql`("statusCode" >= ${range.gte} AND "statusCode" <= ${range.lte})`;
+    });
+    conditions.push(Prisma.sql`(${Prisma.join(ranges, " OR ")})`);
+  }
+
+  const latencyMin = Number(params.logLatencyMinMsRaw);
+  const latencyMax = Number(params.logLatencyMaxMsRaw);
+  if (params.logLatencyMinMsRaw !== null && Number.isFinite(latencyMin)) {
+    conditions.push(Prisma.sql`"durationMs" >= ${Math.max(0, Math.floor(latencyMin))}`);
+  }
+  if (params.logLatencyMaxMsRaw !== null && Number.isFinite(latencyMax)) {
+    conditions.push(Prisma.sql`"durationMs" <= ${Math.max(0, Math.floor(latencyMax))}`);
+  }
+  if (params.logMetadataKeyword) {
+    conditions.push(
+      Prisma.sql`metadata::text ILIKE ${`%${params.logMetadataKeyword}%`}`,
+    );
+  }
+  const actorFilter = sqlActorFilter(params.logActors);
+  if (actorFilter) conditions.push(actorFilter);
+  if (includeMethod && params.logMethods.length > 0) {
+    conditions.push(
+      Prisma.sql`method IN (${Prisma.join(params.logMethods)})`,
+    );
+  }
+
+  return Prisma.sql`${Prisma.join(conditions, " AND ")}`;
+}

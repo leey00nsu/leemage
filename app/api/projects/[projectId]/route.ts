@@ -12,7 +12,11 @@ export const GET = withSessionAuth(async (
 ) => {
   const { projectId } = await params;
   const userId = request.session.username!;
-  return getProjectDetailsHandler(projectId, userId);
+  return getProjectDetailsHandler(
+    projectId,
+    userId,
+    new URL(request.url).searchParams,
+  );
 });
 
 // DELETE 핸들러: 특정 프로젝트 및 관련 OCI 이미지(모든 variants) 삭제 (세션 기반 인증)

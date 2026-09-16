@@ -8,13 +8,8 @@ import { prisma } from "@/lib/prisma";
 import { getSessionDefault } from "@/lib/session";
 import { buildStatsWhere } from "@/features/api-stats/server/log-filters";
 import { parseStatsQueryParams } from "@/features/api-stats/server/query-params";
-import {
-  buildByTime,
-  mapMethodStats,
-  mapApiLogs,
-  mapEndpointStats,
-  mapStatusStats,
-} from "@/features/api-stats/server/response-mapper";
+import { mapApiLogs } from "@/features/api-stats/server/response-mapper";
+import { queryStatsAggregates } from "@/features/api-stats/server/stats-query";
 
 export async function GET(request: NextRequest) {
   const session = await getSessionDefault();
@@ -27,51 +22,13 @@ export async function GET(request: NextRequest) {
   const params = parseStatsQueryParams(request);
 
   try {
-    const { logsWhere, methodAvailabilityWhere } = buildStatsWhere({
+    const { logsWhere } = buildStatsWhere({
       userId,
       params,
     });
 
-    const [
-      totalCalls,
-      successCalls,
-      avgDuration,
-      byEndpoint,
-      byMethod,
-      timeLogs,
-      byStatus,
-      logs,
-    ] = await Promise.all([
-      prisma.apiLog.count({ where: logsWhere }),
-      prisma.apiLog.count({
-        where: { ...logsWhere, statusCode: { lt: 400 } },
-      }),
-      prisma.apiLog.aggregate({
-        where: logsWhere,
-        _avg: { durationMs: true },
-      }),
-      prisma.apiLog.groupBy({
-        by: ["endpoint", "method"],
-        where: logsWhere,
-        _count: { id: true },
-        orderBy: { _count: { id: "desc" } },
-        take: 10,
-      }),
-      prisma.apiLog.groupBy({
-        by: ["method"],
-        where: methodAvailabilityWhere,
-        _count: { id: true },
-      }),
-      prisma.apiLog.findMany({
-        where: logsWhere,
-        select: { createdAt: true, statusCode: true },
-      }),
-      prisma.apiLog.groupBy({
-        by: ["statusCode"],
-        where: logsWhere,
-        _count: { id: true },
-        orderBy: { statusCode: "asc" },
-      }),
+    const [aggregates, logs] = await Promise.all([
+      queryStatsAggregates(userId, params),
       prisma.apiLog.findMany({
         where: logsWhere,
         orderBy: { createdAt: "desc" },
@@ -89,7 +46,7 @@ export async function GET(request: NextRequest) {
         },
       }),
     ]);
-    const totalFilteredLogs = totalCalls;
+    const totalFilteredLogs = aggregates.totalCalls;
 
     const totalPages = Math.max(
       1,
@@ -98,14 +55,17 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       summary: {
-        totalCalls,
-        successRate: totalCalls > 0 ? (successCalls / totalCalls) * 100 : 0,
-        avgResponseTime: Math.round(avgDuration._avg.durationMs || 0),
+        totalCalls: aggregates.totalCalls,
+        successRate:
+          aggregates.totalCalls > 0
+            ? (aggregates.successCalls / aggregates.totalCalls) * 100
+            : 0,
+        avgResponseTime: aggregates.avgDuration,
       },
-      byEndpoint: mapEndpointStats(byEndpoint),
-      methodCounts: mapMethodStats(byMethod),
-      byTime: buildByTime(timeLogs),
-      byStatus: mapStatusStats(byStatus),
+      byEndpoint: aggregates.byEndpoint,
+      methodCounts: aggregates.methodCounts,
+      byTime: aggregates.byTime,
+      byStatus: aggregates.byStatus,
       logsPage: {
         page: params.logPage,
         pageSize: params.logPageSize,

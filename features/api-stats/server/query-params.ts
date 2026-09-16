@@ -86,12 +86,23 @@ function parseDateRange(
 ): { startDate: Date; endDate: Date } {
   const now = new Date();
 
-  const startDate = startDateParam
+  let startDate = startDateParam
     ? new Date(startDateParam)
     : new Date(now.getFullYear(), now.getMonth(), 1);
-  const endDate = endDateParam
+  let endDate = endDateParam
     ? new Date(endDateParam)
     : new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+
+  if (!Number.isFinite(startDate.getTime()) || !Number.isFinite(endDate.getTime())) {
+    startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+  }
+  if (startDate > endDate) [startDate, endDate] = [endDate, startDate];
+
+  const maxRangeMs = 366 * 24 * 60 * 60 * 1000;
+  if (endDate.getTime() - startDate.getTime() > maxRangeMs) {
+    startDate = new Date(endDate.getTime() - maxRangeMs);
+  }
 
   return { startDate, endDate };
 }
@@ -112,7 +123,7 @@ export function parseStatsQueryParams(request: NextRequest): StatsQueryParams {
         : parseListParam(searchParams.get("projectId")),
     startDate,
     endDate,
-    logPage: parsePositiveInt(searchParams.get("logPage"), 1, 100_000),
+    logPage: parsePositiveInt(searchParams.get("logPage"), 1, 1_000),
     logPageSize: parsePositiveInt(searchParams.get("logPageSize"), 100, 200),
     logStatus: searchParams.get("logStatus"),
     logMethods: parseMethods(

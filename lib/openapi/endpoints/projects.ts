@@ -1,4 +1,5 @@
 import { tagFilterQuerySchema } from "../schemas/tags";
+import { z } from "zod";
 import { registry } from "../registry";
 import {
   projectIdParamSchema,
@@ -116,7 +117,10 @@ registry.registerPath({
   security: [{ bearerAuth: [] }],
   request: {
     params: projectIdParamSchema,
-    query: tagFilterQuerySchema,
+    query: tagFilterQuerySchema.extend({
+      page: z.coerce.number().int().positive().max(10_000).optional(),
+      pageSize: z.coerce.number().int().refine((value) => [25, 50, 100].includes(value)).optional(),
+    }),
   },
   responses: {
     200: {

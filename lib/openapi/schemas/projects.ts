@@ -121,6 +121,10 @@ export const projectDetailsResponseSchema = projectResponseSchema
     files: z.array(fileResponseSchema).openapi({
       description: "List of files in the project",
     }),
+    total: z.number().int().nonnegative(),
+    page: z.number().int().positive(),
+    pageCount: z.number().int().positive(),
+    pageSize: z.number().int().positive(),
   })
   .openapi("ProjectDetailsResponse");
 

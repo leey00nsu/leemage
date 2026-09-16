@@ -22,6 +22,11 @@ describe("ProjectsResource", () => {
     await resource.get("project-123");
     expect(client.get).toHaveBeenCalledWith("/api/v1/projects/project-123");
 
+    await resource.get("project-123", { page: 2, pageSize: 25 });
+    expect(client.get).toHaveBeenCalledWith(
+      "/api/v1/projects/project-123?page=2&pageSize=25",
+    );
+
     const payload: CreateProjectRequest = {
       name: "Demo",
       description: "Test",

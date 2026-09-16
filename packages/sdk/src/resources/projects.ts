@@ -41,12 +41,19 @@ export class ProjectsResource {
    */
   async get(
     projectId: string,
-    options: { tagIds?: string[]; tagMode?: "all" | "any" } = {},
+    options: {
+      tagIds?: string[];
+      tagMode?: "all" | "any";
+      page?: number;
+      pageSize?: 25 | 50 | 100;
+    } = {},
   ): Promise<ProjectDetails> {
     const encodedProjectId = encodePathSegment(projectId, "projectId");
     const query = new URLSearchParams();
     if (options.tagIds?.length) query.set("tags", options.tagIds.join(","));
     if (options.tagMode) query.set("tagMode", options.tagMode);
+    if (options.page) query.set("page", String(options.page));
+    if (options.pageSize) query.set("pageSize", String(options.pageSize));
     return this.client.get<ProjectDetails>(
       `/api/v1/projects/${encodedProjectId}${query.size ? `?${query}` : ""}`,
     );

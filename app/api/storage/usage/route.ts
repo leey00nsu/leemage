@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/lib/generated/prisma";
 import { withSessionAuth, AuthenticatedRequest } from "@/lib/auth/session-auth";
 import {
   calculateUsagePercentage,
   getUsageStatus,
 } from "@/shared/lib/storage-quota-utils";
-import { getStoredFileBytes } from "@/shared/lib/file-storage-size";
+import { variantBytesSql } from "@/lib/storage/variant-bytes-sql";
 
 export interface StorageProviderUsage {
   provider: "OCI" | "R2";
@@ -31,19 +32,26 @@ export const GET = withSessionAuth(async (req: AuthenticatedRequest) => {
   try {
     const userId = req.session.username!;
 
-    // 프로바이더별 프로젝트와 파일 정보 조회
-    const projects = await prisma.project.findMany({
-      where: {
-        userId,
-      },
-      select: {
-        storageProvider: true,
-        files: {
-          select: { size: true, variants: true, url: true, objectName: true },
-          where: { status: "COMPLETED" },
-        },
-      },
-    });
+    const usageRows = await prisma.$queryRaw<
+      Array<{
+        provider: "OCI" | "R2";
+        bytes: bigint;
+        projects: bigint;
+        files: bigint;
+      }>
+    >(Prisma.sql`
+      SELECT
+        "Project"."storageProvider" AS provider,
+        COUNT(DISTINCT "Project".id)::bigint AS projects,
+        COUNT("File".id)::bigint AS files,
+        COALESCE(SUM("File".size::bigint + ${variantBytesSql}), 0)::bigint AS bytes
+      FROM "Project"
+      LEFT JOIN "File"
+        ON "File"."projectId" = "Project".id
+        AND "File".status = 'COMPLETED'
+      WHERE "Project"."userId" = ${userId}
+      GROUP BY "Project"."storageProvider"
+    `);
 
     // quota 정보 조회
     const quotas = await prisma.storageQuota.findMany();
@@ -51,43 +59,22 @@ export const GET = withSessionAuth(async (req: AuthenticatedRequest) => {
       quotas.map((q) => [q.provider, Number(q.quotaBytes)])
     );
 
-    // 프로바이더별 집계
-    const usageMap = new Map<string, Omit<StorageProviderUsage, "quota" | "percentage" | "status">>();
-
-    for (const project of projects) {
-      const provider = project.storageProvider as "OCI" | "R2";
-      const existing = usageMap.get(provider) || {
-        provider,
-        bytes: 0,
-        projects: 0,
-        files: 0,
-      };
-
-      existing.projects += 1;
-      existing.files += project.files.length;
-
-      // 원본 파일 크기 + variants 크기 합산
-      for (const file of project.files) {
-        existing.bytes += getStoredFileBytes(file);
-      }
-
-      usageMap.set(provider, existing);
-    }
-
     // quota 및 percentage 추가
-    const providers: StorageProviderUsage[] = Array.from(usageMap.values()).map(
-      (usage) => {
-        const quota = quotaMap.get(usage.provider);
-        const percentage = calculateUsagePercentage(usage.bytes, quota);
+    const providers: StorageProviderUsage[] = usageRows.map((row) => {
+        const bytes = Number(row.bytes);
+        const quota = quotaMap.get(row.provider);
+        const percentage = calculateUsagePercentage(bytes, quota);
         const status = getUsageStatus(percentage);
         return {
-          ...usage,
+          provider: row.provider,
+          bytes,
+          projects: Number(row.projects),
+          files: Number(row.files),
           quota,
           percentage,
           status,
         };
-      }
-    );
+      });
 
     // 전체 합계 계산
     const total = providers.reduce(

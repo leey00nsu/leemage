@@ -557,8 +557,27 @@ components:
               items:
                 $ref: "#/components/schemas/FileResponse"
               description: List of files in the project
+            total:
+              type: integer
+              minimum: 0
+            page:
+              type: integer
+              minimum: 0
+              exclusiveMinimum: true
+            pageCount:
+              type: integer
+              minimum: 0
+              exclusiveMinimum: true
+            pageSize:
+              type: integer
+              minimum: 0
+              exclusiveMinimum: true
           required:
             - files
+            - total
+            - page
+            - pageCount
+            - pageSize
     ProjectListResponse:
       type: array
       items:
@@ -694,6 +713,19 @@ paths:
               - any
           required: false
           name: tagMode
+          in: query
+        - schema:
+            type: integer
+            minimum: 0
+            exclusiveMinimum: true
+            maximum: 10000
+          required: false
+          name: page
+          in: query
+        - schema:
+            type: integer
+          required: false
+          name: pageSize
           in: query
       responses:
         "200":
