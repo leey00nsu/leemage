@@ -35,6 +35,68 @@ const usageCache = new Map<StorageProvider, CacheEntry>();
  */
 const DEFAULT_CACHE_TTL_MS = 5 * 60 * 1000;
 
+export async function lockStorageQuota(
+  tx: Prisma.TransactionClient,
+  provider: StorageProvider,
+) {
+  await tx.$executeRaw(
+    Prisma.sql`SELECT pg_advisory_xact_lock(hashtext(${`storage-quota:${provider}`}))`,
+  );
+}
+
+export type PendingUploadReservation =
+  | { allowed: true }
+  | {
+      allowed: false;
+      message: string;
+      remaining: number;
+      currentUsage: number;
+      quota: number;
+    };
+
+/**
+ * Reserves upload bytes by creating the PENDING row under a provider lock.
+ * PENDING source bytes are included so concurrent presign calls cannot both
+ * consume the same remaining quota.
+ */
+export async function reservePendingUpload(
+  provider: StorageProvider,
+  file: Prisma.FileUncheckedCreateInput,
+): Promise<PendingUploadReservation> {
+  return prisma.$transaction(async (tx) => {
+    await lockStorageQuota(tx, provider);
+    const quota = await tx.storageQuota.findUnique({ where: { provider } });
+
+    if (quota && Number(quota.quotaBytes) > 0) {
+      const rows = await tx.$queryRaw<{ bytes: bigint }[]>(Prisma.sql`
+        SELECT COALESCE(SUM(
+          "File".size::bigint + CASE WHEN "File".status = 'COMPLETED'
+            THEN ${variantBytesSql} ELSE 0 END
+        ), 0)::bigint AS bytes
+        FROM "File"
+        INNER JOIN "Project" ON "Project".id = "File"."projectId"
+        WHERE "File".status IN ('PENDING', 'COMPLETED')
+          AND "Project"."storageProvider" = ${provider}::"StorageProvider"
+      `);
+      const currentUsage = Number(rows[0]?.bytes ?? 0);
+      const quotaBytes = Number(quota.quotaBytes);
+      const remaining = quotaBytes - currentUsage;
+      if (currentUsage + Number(file.size ?? 0) > quotaBytes) {
+        return {
+          allowed: false,
+          message: `Storage quota exceeded. Remaining: ${formatBytes(remaining)}`,
+          remaining,
+          currentUsage,
+          quota: quotaBytes,
+        };
+      }
+    }
+
+    await tx.file.create({ data: file });
+    return { allowed: true };
+  });
+}
+
 /**
  * Calculates storage usage using database aggregation.
  * This is more efficient than loading all records into memory.

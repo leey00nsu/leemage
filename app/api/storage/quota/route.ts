@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { withSessionAuth } from "@/lib/auth/session-auth";
 import { StorageProvider } from "@/lib/generated/prisma";
 import { validateQuota } from "@/shared/lib/storage-quota-utils";
+import { lockStorageQuota } from "@/lib/api/storage-quota";
 
 // GET: 모든 quota 조회 (세션 기반 인증)
 export const GET = withSessionAuth(async () => {
@@ -48,13 +49,17 @@ export const PUT = withSessionAuth(async (req: NextRequest) => {
 
     // Upsert quota (round to integer for BigInt)
     const quotaBytesInt = Math.round(quotaBytes);
-    const quota = await prisma.storageQuota.upsert({
-      where: { provider: provider as StorageProvider },
-      update: { quotaBytes: BigInt(quotaBytesInt) },
-      create: {
-        provider: provider as StorageProvider,
-        quotaBytes: BigInt(quotaBytesInt),
-      },
+    const storageProvider = provider as StorageProvider;
+    const quota = await prisma.$transaction(async (tx) => {
+      await lockStorageQuota(tx, storageProvider);
+      return tx.storageQuota.upsert({
+        where: { provider: storageProvider },
+        update: { quotaBytes: BigInt(quotaBytesInt) },
+        create: {
+          provider: storageProvider,
+          quotaBytes: BigInt(quotaBytesInt),
+        },
+      });
     });
 
     return NextResponse.json({
@@ -83,8 +88,10 @@ export const DELETE = withSessionAuth(async (req: NextRequest) => {
       );
     }
 
-    await prisma.storageQuota.delete({
-      where: { provider: provider as StorageProvider },
+    const storageProvider = provider as StorageProvider;
+    await prisma.$transaction(async (tx) => {
+      await lockStorageQuota(tx, storageProvider);
+      await tx.storageQuota.delete({ where: { provider: storageProvider } });
     });
 
     return NextResponse.json({ success: true });

@@ -12,7 +12,7 @@ import {
   validateFileName,
   validateContentTypeExtension,
 } from "@/lib/validation/file-validator";
-import { checkStorageQuotaOptimized } from "@/lib/api/storage-quota";
+import { reservePendingUpload } from "@/lib/api/storage-quota";
 import { attachResponseLogMetadata } from "@/lib/api/request-log-metadata";
 
 export type PresignRequest = z.infer<typeof presignRequestSchema>;
@@ -106,22 +106,6 @@ export async function presignHandler(
     const sizeError = uploadLimitError(fileSize, project.maxUploadBytes);
     if (sizeError) return sizeError;
 
-    // 스토리지 한도 체크 (최적화된 버전 사용)
-    const quotaCheckResult = await checkStorageQuotaOptimized(
-      project.storageProvider,
-      fileSize,
-    );
-    if (!quotaCheckResult.allowed) {
-      return NextResponse.json(
-        {
-          message: quotaCheckResult.message,
-          code: "QUOTA_EXCEEDED",
-          remaining: quotaCheckResult.remaining,
-        },
-        { status: 413 },
-      );
-    }
-
     // 파일 ID 및 객체 이름 생성
     const fileId = cuid();
     const isImage = isImageMimeType(contentType);
@@ -151,27 +135,41 @@ export async function presignHandler(
     const storageProvider = fromPrismaStorageProvider(project.storageProvider);
     const storageAdapter = await StorageFactory.getAdapter(storageProvider);
 
-    // Presigned URL 생성
-    const parResult = await storageAdapter.createPresignedUploadUrl({
+    const reservation = await reservePendingUpload(project.storageProvider, {
+      id: fileId,
+      name: fileName,
+      mimeType: contentType,
+      isImage,
+      size: fileSize,
       objectName,
-      contentType,
-      expiresInMinutes: 15,
+      status: "PENDING",
+      variants: [],
+      projectId,
     });
+    if (!reservation.allowed) {
+      return NextResponse.json(
+        {
+          message: reservation.message,
+          code: "QUOTA_EXCEEDED",
+          remaining: reservation.remaining,
+        },
+        { status: 413 },
+      );
+    }
 
-    // pending 상태로 DB 레코드 생성 (고아 오브젝트 추적용)
-    await prisma.file.create({
-      data: {
-        id: fileId,
-        name: fileName,
-        mimeType: contentType,
-        isImage,
-        size: fileSize,
+    let parResult;
+    try {
+      parResult = await storageAdapter.createPresignedUploadUrl({
         objectName,
-        status: "PENDING",
-        variants: [],
-        projectId,
-      },
-    });
+        contentType,
+        expiresInMinutes: 15,
+      });
+    } catch (error) {
+      await prisma.file.deleteMany({
+        where: { id: fileId, status: "PENDING" },
+      });
+      throw error;
+    }
 
     const payload: PresignResponse = {
       presignedUrl: parResult.presignedUrl,

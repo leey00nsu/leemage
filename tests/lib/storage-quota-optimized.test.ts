@@ -5,26 +5,42 @@ import {
   invalidateStorageCache,
   invalidateAllStorageCaches,
   checkStorageQuotaOptimized,
+  reservePendingUpload,
 } from "@/lib/api/storage-quota";
 import { StorageProvider } from "@/lib/generated/prisma";
 
 // Prisma 목업
-vi.mock("@/lib/prisma", () => ({
-  prisma: {
+vi.mock("@/lib/prisma", () => {
+  const db = {
     $queryRaw: vi.fn(async () => [{ bytes: BigInt(0) }]),
+    $executeRaw: vi.fn(async () => 1),
     file: {
       aggregate: vi.fn(),
+      create: vi.fn(),
     },
     storageQuota: {
       findUnique: vi.fn(),
     },
-  },
-}));
+  };
+  return {
+    prisma: {
+      ...db,
+      $transaction: vi.fn(
+        async (operation: (tx: typeof db) => unknown) => operation(db),
+      ),
+    },
+  };
+});
 
 import { prisma } from "@/lib/prisma";
 
 const mockPrisma = prisma as unknown as {
-  file: { aggregate: ReturnType<typeof vi.fn> };
+  $queryRaw: ReturnType<typeof vi.fn>;
+  $executeRaw: ReturnType<typeof vi.fn>;
+  file: {
+    aggregate: ReturnType<typeof vi.fn>;
+    create: ReturnType<typeof vi.fn>;
+  };
   storageQuota: { findUnique: ReturnType<typeof vi.fn> };
 };
 
@@ -210,6 +226,54 @@ describe("스토리지 쿼터 최적화", () => {
       expect(result.allowed).toBe(false);
       expect(result.message).toContain("Storage quota exceeded.");
       expect(result.remaining).toBe(500000);
+    });
+  });
+
+  describe("reservePendingUpload", () => {
+    const file = {
+      id: "file",
+      name: "asset.bin",
+      mimeType: "application/octet-stream",
+      isImage: false,
+      size: 600,
+      objectName: "project/file.bin",
+      status: "PENDING" as const,
+      variants: [],
+      projectId: "project",
+    };
+
+    it("locks the provider and includes pending bytes before creating", async () => {
+      mockPrisma.storageQuota.findUnique.mockResolvedValue({
+        provider: StorageProvider.R2,
+        quotaBytes: BigInt(1000),
+      });
+      mockPrisma.$queryRaw.mockResolvedValue([{ bytes: BigInt(500) }]);
+
+      const result = await reservePendingUpload(StorageProvider.R2, file);
+
+      expect(result).toMatchObject({
+        allowed: false,
+        currentUsage: 500,
+        remaining: 500,
+      });
+      expect(mockPrisma.$executeRaw).toHaveBeenCalledOnce();
+      expect(mockPrisma.file.create).not.toHaveBeenCalled();
+    });
+
+    it("creates the pending reservation while holding the quota lock", async () => {
+      mockPrisma.storageQuota.findUnique.mockResolvedValue({
+        provider: StorageProvider.R2,
+        quotaBytes: BigInt(2000),
+      });
+      mockPrisma.$queryRaw.mockResolvedValue([{ bytes: BigInt(500) }]);
+
+      const result = await reservePendingUpload(StorageProvider.R2, file);
+
+      expect(result).toEqual({ allowed: true });
+      expect(mockPrisma.file.create).toHaveBeenCalledWith({ data: file });
+      expect(mockPrisma.$executeRaw.mock.invocationCallOrder[0]).toBeLessThan(
+        mockPrisma.file.create.mock.invocationCallOrder[0],
+      );
     });
   });
 
