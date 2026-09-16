@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { uploadLimitError } from "@/lib/api/upload-policy";
+import {
+  imageUploadLimitError,
+  uploadLimitError,
+} from "@/lib/api/upload-policy";
 import { prisma } from "@/lib/prisma";
 import { StorageFactory } from "@/lib/storage";
 import { fromPrismaStorageProvider } from "@/lib/storage/utils";
@@ -146,7 +149,7 @@ export async function confirmHandler(
     }
 
     const pending = await prisma.file.findFirst({
-      where: { id: fileId, projectId, status: "PENDING" },
+      where: { id: fileId, projectId },
     });
     if (
       !pending ||
@@ -158,6 +161,36 @@ export async function confirmHandler(
       return NextResponse.json(
         { message: "Upload does not match a pending presigned request." },
         { status: 400 },
+      );
+    }
+
+    if (pending.status === "FAILED") {
+      return NextResponse.json(
+        { message: "Upload processing has failed." },
+        { status: 409 },
+      );
+    }
+    if (
+      pending.status === "COMPLETED" ||
+      ["QUEUED", "RUNNING", "READY"].includes(pending.processingStatus)
+    ) {
+      return NextResponse.json(
+        {
+          message: "Upload was already confirmed.",
+          file: pending,
+          variants: pending.variants,
+        },
+        {
+          status: ["QUEUED", "RUNNING"].includes(pending.processingStatus)
+            ? 202
+            : 200,
+        },
+      );
+    }
+    if (pending.status !== "PENDING") {
+      return NextResponse.json(
+        { message: "Upload cannot be confirmed in its current state." },
+        { status: 409 },
       );
     }
 
@@ -184,6 +217,11 @@ export async function confirmHandler(
       );
 
     if (isImageMimeType(contentType)) {
+      const imageSizeError = imageUploadLimitError(
+        actualSize,
+        project.maxUploadBytes,
+      );
+      if (imageSizeError) return imageSizeError;
       return handleImageConfirm({
         projectId,
         fileId,

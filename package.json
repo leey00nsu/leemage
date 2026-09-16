@@ -19,7 +19,8 @@
     "root:hash": "node scripts/generate-root-password-hash.js",
     "sdk:sync": "cd packages/sdk && npm run sync",
     "prepare": "husky",
-    "worker:video": "tsx scripts/video-worker.ts"
+    "worker:media": "tsx scripts/video-worker.ts",
+    "worker:video": "npm run worker:media"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^7.3.4",

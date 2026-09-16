@@ -393,7 +393,7 @@ export interface paths {
         put?: never;
         /**
          * Confirm upload
-         * @description Confirm after direct upload to OCI/R2. Image thumbnails and variants are processed synchronously. Videos return immediately after registration; a separate worker generates thumbnails asynchronously. Poll GET file for processingStatus.
+         * @description Confirm after direct upload to OCI/R2. Image variants and video thumbnails are processed by a durable background worker. Poll GET file for processingStatus.
          */
         post: {
             parameters: {
@@ -1284,7 +1284,7 @@ export interface components {
              * @example 102400
              */
             fileSize: number;
-            /** @description (Image only) Array of image variant options to generate */
+            /** @description (Image only) Up to 5 image variant options to generate asynchronously */
             variants?: components["schemas"]["VariantOption"][];
         };
         ProjectTag: {
@@ -1293,7 +1293,7 @@ export interface components {
             name: string;
         };
         FileResponse: {
-            /** @description Video processing: NONE, QUEUED, RUNNING, READY, FAILED, or SKIPPED. Original is available while queued/running or after failure. */
+            /** @description Image/video processing: NONE, QUEUED, RUNNING, READY, FAILED, or SKIPPED. Original is available while queued/running or after a transient failure. */
             processingStatus?: string;
             /**
              * @description File ID

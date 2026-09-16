@@ -4,6 +4,7 @@ import { StorageFactory } from "@/lib/storage";
 import { fromPrismaStorageProvider } from "@/lib/storage/utils";
 import { ImageVariantData } from "@/entities/files/model/types";
 import { verifyFileOwnershipWithProject } from "@/lib/auth/ownership";
+import { invalidateAllStorageCaches } from "@/lib/api/storage-quota";
 
 export async function deleteFileHandler(
   fileId: string,
@@ -40,6 +41,9 @@ export async function deleteFileHandler(
 
     // Cancel/fence workers before reading the final variant list.
     await prisma.videoJob.deleteMany({
+      where: { id: fileId, file: { projectId } },
+    });
+    await prisma.imageJob.deleteMany({
       where: { id: fileId, file: { projectId } },
     });
 
@@ -132,6 +136,7 @@ export async function deleteFileHandler(
     await prisma.file.delete({
       where: { id: fileId },
     });
+    invalidateAllStorageCaches();
 
     console.log(
       `File deleted: DB ID = ${fileId}, Storage Objects = [${deletedObjectNames.join(

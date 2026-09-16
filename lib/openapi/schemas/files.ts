@@ -193,8 +193,9 @@ export const confirmRequestSchema = z
       description: "File size (bytes)",
       example: 102400,
     }),
-    variants: z.array(variantOptionSchema).max(20).optional().openapi({
-      description: "(Image only) Array of image variant options to generate",
+    variants: z.array(variantOptionSchema).max(5).optional().openapi({
+      description:
+        "(Image only) Up to 5 image variant options to generate asynchronously",
     }),
   })
   .openapi("ConfirmRequest", {
@@ -216,7 +217,7 @@ export const fileResponseSchema = z
   .object({
     processingStatus: z.string().optional().openapi({
       description:
-        "Video processing: NONE, QUEUED, RUNNING, READY, FAILED, or SKIPPED. Original is available while queued/running or after failure.",
+        "Image/video processing: NONE, QUEUED, RUNNING, READY, FAILED, or SKIPPED. Original is available while queued/running or after a transient failure.",
     }),
     id: z.string().openapi({
       description: "File ID",

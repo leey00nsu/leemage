@@ -91,6 +91,9 @@ beforeEach(() => {
     size: payload.fileSize,
     objectName: payload.objectName,
     projectId: "p",
+    status: "PENDING",
+    processingStatus: "NONE",
+    variants: [],
     url: "https://assets.test/p/f.mp4",
     project: { storageProvider: "R2", videoThumbnailEnabled: true },
   });

@@ -80,7 +80,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     const nextArgs = args[0] === "--" ? args.slice(1) : args;
     process.exitCode = await runProcesses([
       { name: "web", args: [require.resolve("next/dist/bin/next"), mode, ...nextArgs] },
-      { name: "video worker", args: ["--import", "tsx", "scripts/video-worker.ts"], drain: true },
+      { name: "media worker", args: ["--import", "tsx", "scripts/video-worker.ts"], drain: true },
     ], { ...process.env, NODE_ENV: mode === "dev" ? "development" : "production" });
   }
 }

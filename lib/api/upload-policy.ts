@@ -10,6 +10,10 @@ export function serverUploadLimit() {
     ? mb * MIB
     : 500 * MIB;
 }
+export function imageUploadLimit() {
+  const mb = Number(process.env.IMAGE_MAX_FILE_SIZE_MB || 50);
+  return Number.isInteger(mb) && mb >= 1 && mb <= 50 ? mb * MIB : 50 * MIB;
+}
 export const effectiveUploadLimit = (projectLimit?: number) =>
   Math.min(projectLimit ?? DEFAULT_UPLOAD_BYTES, serverUploadLimit());
 export function uploadLimitError(fileSize: number, projectLimit?: number) {
@@ -19,6 +23,26 @@ export function uploadLimitError(fileSize: number, projectLimit?: number) {
         {
           code: "FILE_SIZE_EXCEEDED",
           message: `File size exceeds the limit (${limitBytes / MIB} MiB).`,
+          limitBytes,
+        },
+        { status: 413 },
+      )
+    : null;
+}
+
+export function imageUploadLimitError(
+  fileSize: number,
+  projectLimit?: number,
+) {
+  const limitBytes = Math.min(
+    effectiveUploadLimit(projectLimit),
+    imageUploadLimit(),
+  );
+  return fileSize > limitBytes
+    ? NextResponse.json(
+        {
+          code: "FILE_SIZE_EXCEEDED",
+          message: `Image size exceeds the processing limit (${limitBytes / MIB} MiB).`,
           limitBytes,
         },
         { status: 413 },

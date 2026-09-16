@@ -1,6 +1,8 @@
 import { afterEach, expect, it, vi } from "vitest";
 import {
   effectiveUploadLimit,
+  imageUploadLimit,
+  imageUploadLimitError,
   serverUploadLimit,
   uploadLimitError,
 } from "@/lib/api/upload-policy";
@@ -25,4 +27,11 @@ it("bounds configuration and rejects invalid project limits", () => {
   for (const size of [0, -1, 1.5, 1025 * MIB])
     expect(schema.safeParse({ maxUploadBytes: size }).success).toBe(false);
   expect(schema.parse({})).toEqual({});
+});
+it("caps image decoding at 50 MiB even when general uploads are larger", () => {
+  vi.stubEnv("UPLOAD_MAX_FILE_SIZE_MB", "500");
+  vi.stubEnv("IMAGE_MAX_FILE_SIZE_MB", "50");
+  expect(imageUploadLimit()).toBe(50 * MIB);
+  expect(imageUploadLimitError(50 * MIB, 100 * MIB)).toBeNull();
+  expect(imageUploadLimitError(50 * MIB + 1, 100 * MIB)?.status).toBe(413);
 });

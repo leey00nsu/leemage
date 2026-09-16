@@ -44,6 +44,23 @@ export async function lockStorageQuota(
   );
 }
 
+export async function getReservedStorageBytes(
+  tx: Prisma.TransactionClient,
+  provider: StorageProvider,
+) {
+  const rows = await tx.$queryRaw<{ bytes: bigint }[]>(Prisma.sql`
+    SELECT COALESCE(SUM(
+      "File".size::bigint + CASE WHEN "File".status = 'COMPLETED'
+        THEN ${variantBytesSql} ELSE 0 END
+    ), 0)::bigint AS bytes
+    FROM "File"
+    INNER JOIN "Project" ON "Project".id = "File"."projectId"
+    WHERE "File".status IN ('PENDING', 'COMPLETED')
+      AND "Project"."storageProvider" = ${provider}::"StorageProvider"
+  `);
+  return Number(rows[0]?.bytes ?? 0);
+}
+
 export type PendingUploadReservation =
   | { allowed: true }
   | {
@@ -68,17 +85,7 @@ export async function reservePendingUpload(
     const quota = await tx.storageQuota.findUnique({ where: { provider } });
 
     if (quota && Number(quota.quotaBytes) > 0) {
-      const rows = await tx.$queryRaw<{ bytes: bigint }[]>(Prisma.sql`
-        SELECT COALESCE(SUM(
-          "File".size::bigint + CASE WHEN "File".status = 'COMPLETED'
-            THEN ${variantBytesSql} ELSE 0 END
-        ), 0)::bigint AS bytes
-        FROM "File"
-        INNER JOIN "Project" ON "Project".id = "File"."projectId"
-        WHERE "File".status IN ('PENDING', 'COMPLETED')
-          AND "Project"."storageProvider" = ${provider}::"StorageProvider"
-      `);
-      const currentUsage = Number(rows[0]?.bytes ?? 0);
+      const currentUsage = await getReservedStorageBytes(tx, provider);
       const quotaBytes = Number(quota.quotaBytes);
       const remaining = quotaBytes - currentUsage;
       if (currentUsage + Number(file.size ?? 0) > quotaBytes) {

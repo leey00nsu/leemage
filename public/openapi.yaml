@@ -286,8 +286,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/VariantOption"
-          maxItems: 20
-          description: (Image only) Array of image variant options to generate
+          maxItems: 5
+          description: (Image only) Up to 5 image variant options to generate asynchronously
       required:
         - fileId
         - objectName
@@ -323,7 +323,7 @@ components:
       properties:
         processingStatus:
           type: string
-          description: "Video processing: NONE, QUEUED, RUNNING, READY, FAILED, or SKIPPED. Original is available while queued/running or after failure."
+          description: "Image/video processing: NONE, QUEUED, RUNNING, READY, FAILED, or SKIPPED. Original is available while queued/running or after a transient failure."
         id:
           type: string
           description: File ID
@@ -855,7 +855,7 @@ paths:
       tags:
         - Files
       summary: Confirm upload
-      description: Confirm after direct upload to OCI/R2. Image thumbnails and variants are processed synchronously. Videos return immediately after registration; a separate worker generates thumbnails asynchronously. Poll GET file for processingStatus.
+      description: Confirm after direct upload to OCI/R2. Image variants and video thumbnails are processed by a durable background worker. Poll GET file for processingStatus.
       security:
         - bearerAuth: []
       parameters:

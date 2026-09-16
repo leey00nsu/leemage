@@ -88,7 +88,7 @@ registry.registerPath({
   tags: ["Files"],
   summary: "Confirm upload",
   description:
-    "Confirm after direct upload to OCI/R2. Image thumbnails and variants are processed synchronously. Videos return immediately after registration; a separate worker generates thumbnails asynchronously. Poll GET file for processingStatus.",
+    "Confirm after direct upload to OCI/R2. Image variants and video thumbnails are processed by a durable background worker. Poll GET file for processingStatus.",
   security: [{ bearerAuth: [] }],
   request: {
     params: projectIdParamSchema,

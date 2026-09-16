@@ -1,4 +1,7 @@
-import { uploadLimitError } from "@/lib/api/upload-policy";
+import {
+  imageUploadLimitError,
+  uploadLimitError,
+} from "@/lib/api/upload-policy";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { StorageFactory } from "@/lib/storage";
@@ -110,6 +113,14 @@ export async function presignHandler(
     const fileId = cuid();
     const isImage = isImageMimeType(contentType);
     const extension = getFileExtension(fileName) || "bin";
+
+    if (isImage) {
+      const imageSizeError = imageUploadLimitError(
+        fileSize,
+        project.maxUploadBytes,
+      );
+      if (imageSizeError) return imageSizeError;
+    }
 
     if (
       isImage &&

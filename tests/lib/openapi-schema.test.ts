@@ -4,6 +4,7 @@ import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
 import { OpenApiGeneratorV3 } from "@asteasolutions/zod-to-openapi";
 import { z } from "zod";
 import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
+import { confirmRequestSchema } from "@/lib/openapi/schemas/files";
 
 // Zod에 OpenAPI 확장 추가
 extendZodWithOpenApi(z);
@@ -118,4 +119,28 @@ describe("OpenAPI 스키마 변환", () => {
     expect(generatedSchema.required).toContain("arrayProp");
     expect(generatedSchema.required).not.toContain("optionalProp");
   });
+});
+
+it("limits custom image variants to five per confirmation", () => {
+  const base = {
+    fileId: "file",
+    objectName: "project/file.png",
+    fileName: "file.png",
+    contentType: "image/png",
+    fileSize: 100,
+  };
+  const variant = { sizeLabel: "max300", format: "webp" } as const;
+
+  expect(
+    confirmRequestSchema.safeParse({
+      ...base,
+      variants: Array.from({ length: 5 }, () => variant),
+    }).success,
+  ).toBe(true);
+  expect(
+    confirmRequestSchema.safeParse({
+      ...base,
+      variants: Array.from({ length: 6 }, () => variant),
+    }).success,
+  ).toBe(false);
 });

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import type { StorageAdapter } from "@/lib/storage";
 import { attachResponseLogMetadata } from "@/lib/api/request-log-metadata";
+import { invalidateAllStorageCaches } from "@/lib/api/storage-quota";
 
 interface HandleOtherConfirmInput {
   fileId: string;
@@ -22,28 +23,39 @@ export async function handleOtherConfirm({
 }: HandleOtherConfirmInput): Promise<NextResponse> {
   const objectUrl = storageAdapter.getObjectUrl(objectName);
 
-  const savedFile = await prisma.file.update({
-    where: { id: fileId },
-    data: {
-      name: fileName,
-      mimeType: contentType,
-      isImage: false,
-      size: fileSize,
-      url: objectUrl,
-      objectName,
-      status: "COMPLETED",
-      uploadedAt: new Date(),
-      variants: [],
-    },
+  const result = await prisma.$transaction(async (tx) => {
+    const claimed = await tx.file.updateMany({
+      where: { id: fileId, status: "PENDING" },
+      data: {
+        name: fileName,
+        mimeType: contentType,
+        isImage: false,
+        size: fileSize,
+        url: objectUrl,
+        objectName,
+        status: "COMPLETED",
+        uploadedAt: new Date(),
+        variants: [],
+      },
+    });
+    const file = await tx.file.findUnique({ where: { id: fileId } });
+    if (!file || file.status !== "COMPLETED") {
+      throw new Error("File confirmation was not claimed");
+    }
+    return { file, created: claimed.count === 1 };
   });
 
   const response = NextResponse.json(
     {
-      message: "File upload complete",
-      file: savedFile,
+      message: result.created
+        ? "File upload complete"
+        : "File upload was already confirmed",
+      file: result.file,
     },
-    { status: 201 },
+    { status: result.created ? 201 : 200 },
   );
+
+  invalidateAllStorageCaches();
 
   attachResponseLogMetadata(response, {
     fileName,

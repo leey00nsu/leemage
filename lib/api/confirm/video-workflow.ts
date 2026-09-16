@@ -23,7 +23,7 @@ export async function handleVideoConfirm({
   storageAdapter,
   videoThumbnailEnabled = true,
 }: HandleVideoConfirmInput): Promise<NextResponse> {
-  const file = await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     const result = await tx.file.updateMany({
       where: { id: fileId, status: "PENDING" },
       data: {
@@ -39,14 +39,27 @@ export async function handleVideoConfirm({
         variants: [],
       },
     });
-    if (!result.count) throw new Error("File already confirmed");
+    if (!result.count) {
+      const existing = await tx.file.findUnique({ where: { id: fileId } });
+      if (existing?.status === "COMPLETED") {
+        return { file: existing, created: false };
+      }
+      throw new Error("File confirmation was not claimed");
+    }
     if (videoThumbnailEnabled)
       await tx.videoJob.create({ data: { id: fileId } });
-    return tx.file.findUniqueOrThrow({ where: { id: fileId } });
+    const file = await tx.file.findUniqueOrThrow({ where: { id: fileId } });
+    return { file, created: true };
   });
   invalidateAllStorageCaches();
   return NextResponse.json(
-    { message: "Video upload complete", file, variants: [] },
-    { status: 201 },
+    {
+      message: result.created
+        ? "Video upload complete"
+        : "Video upload was already confirmed",
+      file: result.file,
+      variants: result.file.variants,
+    },
+    { status: result.created ? 201 : 200 },
   );
 }
