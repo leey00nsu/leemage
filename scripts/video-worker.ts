@@ -11,6 +11,9 @@ async function main() {
   const { cleanupOrphanFiles, cleanupFailedFiles } = await import(
     "../lib/api/cleanup-orphans"
   );
+  const { cleanupExpiredApiLogs } = await import(
+    "../lib/api/api-log-retention"
+  );
   let stopping = false;
   process.on("SIGTERM", () => {
     stopping = true;
@@ -56,6 +59,7 @@ async function main() {
           nextMaintenanceAt = Date.now() + 5 * 60 * 1000;
           await cleanupOrphanFiles(30);
           await cleanupFailedFiles(7);
+          await cleanupExpiredApiLogs();
         }
         const start = nextQueue++ % queueRunners.length;
         let handled = false;

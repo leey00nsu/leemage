@@ -6,6 +6,7 @@
 
 import { StorageAdapter } from "./adapter";
 import { StorageProvider } from "./types";
+import { instrumentStorageAdapter } from "./instrumented-adapter";
 
 // Lazy imports to avoid circular dependencies
 let OCIStorageAdapter: new () => StorageAdapter;
@@ -73,9 +74,9 @@ export class StorageFactory {
   private static createAdapter(provider: StorageProvider): StorageAdapter {
     switch (provider) {
       case StorageProvider.OCI:
-        return new OCIStorageAdapter();
+        return instrumentStorageAdapter(new OCIStorageAdapter());
       case StorageProvider.R2:
-        return new CloudflareR2Adapter();
+        return instrumentStorageAdapter(new CloudflareR2Adapter());
       default:
         throw new Error(`Unknown storage provider: ${provider}`);
     }

@@ -9,6 +9,11 @@ import {
   checkIdentityRateLimit,
   createRateLimitResponse,
 } from "@/lib/auth/rate-limiter";
+import {
+  completeRequest,
+  logUnhandledRequestError,
+} from "@/lib/observability/request";
+import { maskApiKey } from "@/lib/logging/secure-logger";
 
 /**
  * API 라우트 핸들러를 감싸 API 키 인증을 추가하는 HOF(Higher-Order Function)
@@ -33,60 +38,85 @@ export function withApiKeyAuth<T extends Record<string, string | string[]>>(
 
     const validatedKey = await validateApiKey(req);
     if (!validatedKey) {
+      const response = NextResponse.json(
+        { message: "Authentication failed: invalid API key" },
+        { status: 401 },
+      );
+      const { requestId, durationMs } = completeRequest(
+        req,
+        response,
+        startTime,
+        "apiKey",
+      );
       logApiCall({
         userId: "anonymous",
         projectId: extractProjectIdFromPath(pathname),
         endpoint: pathname,
         method,
         statusCode: 401,
-        durationMs: Date.now() - startTime,
+        durationMs,
         metadata: {
           authSource: "apiKey",
+          requestId,
         },
       });
-
-      return new NextResponse(
-        JSON.stringify({ message: "Authentication failed: invalid API key" }),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      return response;
     }
 
     if (!hasMethodPermission(method, validatedKey.permissions)) {
+      const response = NextResponse.json(
+        { message: "Insufficient permissions: method access denied." },
+        { status: 403 },
+      );
+      const { requestId, durationMs } = completeRequest(
+        req,
+        response,
+        startTime,
+        "apiKey",
+      );
       logApiCall({
         userId: validatedKey.userIdentifier,
         projectId: extractProjectIdFromPath(pathname),
         endpoint: pathname,
         method,
         statusCode: 403,
-        durationMs: Date.now() - startTime,
+        durationMs,
         metadata: {
           authSource: "apiKey",
           apiKeyId: validatedKey.id,
           apiKeyName: validatedKey.name,
-          apiKeyPrefix: validatedKey.prefix,
+          apiKeyPrefix: maskApiKey(validatedKey.prefix),
+          requestId,
         },
       });
-
-      return new NextResponse(
-        JSON.stringify({ message: "Insufficient permissions: method access denied." }),
-        {
-          status: 403,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      return response;
     }
 
     const rateLimit = checkIdentityRateLimit(
       req,
       `api-key:${validatedKey.id}`,
     );
-    if (!rateLimit.allowed) return createRateLimitResponse(rateLimit);
+    if (!rateLimit.allowed) {
+      const response = createRateLimitResponse(rateLimit);
+      completeRequest(req, response, startTime, "apiKey");
+      return response;
+    }
 
-    const response = await handler(req, context, validatedKey.userIdentifier);
+    let response: NextResponse;
+    try {
+      response = await handler(req, context, validatedKey.userIdentifier);
+    } catch (error) {
+      logUnhandledRequestError(req, startTime, "apiKey", error);
+      throw error;
+    }
     const extraMetadata = consumeResponseLogMetadata(response);
+    const finalResponse = applyRateLimitHeaders(response, rateLimit);
+    const { requestId, durationMs } = completeRequest(
+      req,
+      finalResponse,
+      startTime,
+      "apiKey",
+    );
 
     logApiCall({
       userId: validatedKey.userIdentifier,
@@ -94,17 +124,18 @@ export function withApiKeyAuth<T extends Record<string, string | string[]>>(
       endpoint: pathname,
       method,
       statusCode: response.status,
-      durationMs: Date.now() - startTime,
+      durationMs,
       metadata: {
         ...(extraMetadata ?? {}),
         authSource: "apiKey",
         apiKeyId: validatedKey.id,
         apiKeyName: validatedKey.name,
-        apiKeyPrefix: validatedKey.prefix,
+        apiKeyPrefix: maskApiKey(validatedKey.prefix),
+        requestId,
       },
     });
 
-    return applyRateLimitHeaders(response, rateLimit);
+    return finalResponse;
   };
 }
 

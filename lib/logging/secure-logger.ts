@@ -155,6 +155,7 @@ function formatSecurityEvent(event: SecurityEvent, level: LogLevel): string {
   return JSON.stringify({
     level,
     timestamp,
+    context: "security",
     type: event.type,
     ip: event.ip,
     userId,
@@ -178,13 +179,13 @@ export function logSecurityEvent(
 
   switch (level) {
     case "ERROR":
-      console.error(`[SECURITY] ${formatted}`);
+      console.error(formatted);
       break;
     case "WARN":
-      console.warn(`[SECURITY] ${formatted}`);
+      console.warn(formatted);
       break;
     default:
-      console.log(`[SECURITY] ${formatted}`);
+      console.log(formatted);
   }
 }
 

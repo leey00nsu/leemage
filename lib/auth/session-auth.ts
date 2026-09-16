@@ -7,6 +7,10 @@ import {
   checkIdentityRateLimit,
   createRateLimitResponse,
 } from "@/lib/auth/rate-limiter";
+import {
+  completeRequest,
+  logUnhandledRequestError,
+} from "@/lib/observability/request";
 
 /**
  * Session authentication options
@@ -102,10 +106,14 @@ export function withSessionAuth<T extends Record<string, string | string[]>>(
       // Handle redirect for page routes if configured
       if (options?.redirectOnFail) {
         const redirectUrl = options.redirectUrl || "/auth/login";
-        return NextResponse.redirect(new URL(redirectUrl, req.url));
+        const response = NextResponse.redirect(new URL(redirectUrl, req.url));
+        completeRequest(req, response, startTime, "ui");
+        return response;
       }
 
-      return createUnauthorizedResponse(AUTH_ERROR_CODES.NO_SESSION);
+      const response = createUnauthorizedResponse(AUTH_ERROR_CODES.NO_SESSION);
+      completeRequest(req, response, startTime, "ui");
+      return response;
     }
 
     // Attach session to request for handler access
@@ -116,14 +124,29 @@ export function withSessionAuth<T extends Record<string, string | string[]>>(
       req,
       `session:${session.username ?? "unknown"}`,
     );
-    if (!rateLimit.allowed) return createRateLimitResponse(rateLimit);
+    if (!rateLimit.allowed) {
+      const response = createRateLimitResponse(rateLimit);
+      completeRequest(req, response, startTime, "ui");
+      return response;
+    }
 
-    // Execute the original handler
-    const response = await handler(authenticatedReq, context);
+    let response: NextResponse;
+    try {
+      response = await handler(authenticatedReq, context);
+    } catch (error) {
+      logUnhandledRequestError(req, startTime, "ui", error);
+      throw error;
+    }
     const extraMetadata = consumeResponseLogMetadata(response);
 
     // Log the API call (don't await to avoid blocking response)
-    const durationMs = Date.now() - startTime;
+    const finalResponse = applyRateLimitHeaders(response, rateLimit);
+    const { requestId, durationMs } = completeRequest(
+      req,
+      finalResponse,
+      startTime,
+      "ui",
+    );
     const url = new URL(req.url);
     const pathname = url.pathname;
 
@@ -141,12 +164,13 @@ export function withSessionAuth<T extends Record<string, string | string[]>>(
       metadata: {
         ...(extraMetadata ?? {}),
         authSource: "ui",
+        requestId,
       },
     }).catch(() => {
       // Ignore logging errors silently
     });
 
-    return applyRateLimitHeaders(response, rateLimit);
+    return finalResponse;
   };
 }
 

@@ -194,7 +194,10 @@ describe("보안 로거", () => {
 
       expect(consoleSpy).toHaveBeenCalled();
       const loggedMessage = consoleSpy.mock.calls[0][0];
-      expect(loggedMessage).toContain("[SECURITY]");
+      expect(JSON.parse(loggedMessage)).toMatchObject({
+        context: "security",
+        type: "AUTH_SUCCESS",
+      });
       expect(loggedMessage).toContain("AUTH_SUCCESS");
     });
 
@@ -298,8 +301,10 @@ describe("보안 로거", () => {
       });
 
       const loggedMessage = consoleSpy.mock.calls[0][0];
-      expect(loggedMessage).toContain("[SECURITY]");
-      expect(loggedMessage).toContain("AUTH_SUCCESS");
+      expect(JSON.parse(loggedMessage)).toMatchObject({
+        context: "security",
+        type: "AUTH_SUCCESS",
+      });
     });
   });
 });

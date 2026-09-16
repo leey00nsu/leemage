@@ -5,6 +5,15 @@
 
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@/lib/generated/prisma";
+import { apiLogger } from "@/lib/logging/secure-logger";
+import { recordDroppedApiLogs } from "@/lib/observability/metrics";
+
+const BATCH_SIZE = 100;
+const MAX_QUEUE_SIZE = 1_000;
+const FLUSH_INTERVAL_MS = 250;
+const queue: Prisma.ApiLogCreateManyInput[] = [];
+let flushTimer: NodeJS.Timeout | undefined;
+let flushing: Promise<void> | undefined;
 
 export interface ApiLogData {
   userId: string;
@@ -21,22 +30,53 @@ export interface ApiLogData {
  * 비동기로 실행되며, 에러가 발생해도 API 응답에 영향을 주지 않습니다.
  */
 export async function logApiCall(data: ApiLogData): Promise<void> {
-  try {
-    await prisma.apiLog.create({
-      data: {
-        userId: data.userId,
-        projectId: data.projectId || null,
-        endpoint: data.endpoint,
-        method: data.method,
-        statusCode: data.statusCode,
-        durationMs: data.durationMs,
-        metadata: data.metadata as Prisma.InputJsonValue | undefined,
-      },
-    });
-  } catch (error) {
-    // 로깅 실패는 조용히 처리 (API 응답에 영향 X)
-    console.error("Failed to persist API log:", error);
+  if (process.env.NODE_ENV === "test" && process.env.API_LOGGING_IN_TESTS !== "true") {
+    return;
   }
+  if (queue.length >= MAX_QUEUE_SIZE) {
+    recordDroppedApiLogs(1);
+    return;
+  }
+  queue.push({
+    userId: data.userId,
+    projectId: data.projectId || null,
+    endpoint: data.endpoint,
+    method: data.method,
+    statusCode: data.statusCode,
+    durationMs: data.durationMs,
+    metadata: data.metadata as Prisma.InputJsonValue | undefined,
+  });
+
+  if (queue.length >= BATCH_SIZE) {
+    void flushApiLogs();
+  } else if (!flushTimer) {
+    flushTimer = setTimeout(() => void flushApiLogs(), FLUSH_INTERVAL_MS);
+    flushTimer.unref?.();
+  }
+}
+
+export async function flushApiLogs(): Promise<void> {
+  if (flushing) return flushing;
+  if (flushTimer) clearTimeout(flushTimer);
+  flushTimer = undefined;
+  const batch = queue.splice(0, BATCH_SIZE);
+  if (batch.length === 0) return;
+
+  flushing = prisma.apiLog
+    .createMany({ data: batch })
+    .then(() => undefined)
+    .catch(() => {
+      recordDroppedApiLogs(batch.length);
+      apiLogger.warn("api_log.batch_dropped", { count: batch.length });
+    })
+    .finally(() => {
+      flushing = undefined;
+      if (queue.length > 0) {
+        flushTimer = setTimeout(() => void flushApiLogs(), FLUSH_INTERVAL_MS);
+        flushTimer.unref?.();
+      }
+    });
+  return flushing;
 }
 
 /**

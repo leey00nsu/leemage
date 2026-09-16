@@ -11,6 +11,7 @@ import {
   uploadRateLimiter,
 } from "@/lib/auth/rate-limiter";
 import { getRateLimitPolicyIdForPath } from "@/shared/config/rate-limit";
+import { getOrCreateRequestId } from "@/lib/observability/request-id";
 
 const intlMiddleware = createMiddleware(routing);
 
@@ -38,11 +39,24 @@ function isApiRoutePath(pathname: string) {
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const requestId = getOrCreateRequestId(request.headers);
+
+  const nextApiResponse = () => {
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set("x-request-id", requestId);
+    const response = NextResponse.next({ request: { headers: requestHeaders } });
+    response.headers.set("X-Request-Id", requestId);
+    return response;
+  };
 
   // Health probes must not be rejected because unrelated public traffic has
   // exhausted an in-memory rate-limit bucket.
-  if (pathname === "/api/health/live" || pathname === "/api/health/ready") {
-    return NextResponse.next();
+  if (
+    pathname === "/api/health/live" ||
+    pathname === "/api/health/ready" ||
+    pathname === "/api/metrics"
+  ) {
+    return nextApiResponse();
   }
 
   // API 요청은 레이트 리밋만 적용하고 나머지는 패스
@@ -52,10 +66,12 @@ export async function proxy(request: NextRequest) {
     const result = limiter.check(`ip:${key}`);
 
     if (!result.allowed) {
-      return createRateLimitResponse(result);
+      const response = createRateLimitResponse(result);
+      response.headers.set("X-Request-Id", requestId);
+      return response;
     }
 
-    return applyRateLimitHeaders(NextResponse.next(), result);
+    return applyRateLimitHeaders(nextApiResponse(), result);
   }
 
   // next-intl 미들웨어 실행

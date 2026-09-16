@@ -1,5 +1,6 @@
 import { PrismaClient } from "./generated/prisma";
 import { buildDatabaseUrl } from "./database-url";
+import { observeDependency } from "./observability/metrics";
 
 declare global {
   // allow global `var` declarations
@@ -9,12 +10,37 @@ declare global {
 
 const databaseUrl = buildDatabaseUrl(process.env.DATABASE_URL);
 
-export const prisma = global.prisma || new PrismaClient({
-  ...(databaseUrl ? { datasources: { db: { url: databaseUrl } } } : {}),
-  transactionOptions: {
-    maxWait: 5_000,
-    timeout: 15_000,
-  },
-});
+function createPrismaClient() {
+  const client = new PrismaClient({
+    ...(databaseUrl ? { datasources: { db: { url: databaseUrl } } } : {}),
+    transactionOptions: {
+      maxWait: 5_000,
+      timeout: 15_000,
+    },
+    log: [
+      { emit: "event", level: "query" },
+      { emit: "event", level: "error" },
+    ],
+  });
+  client.$on("query", (event) => {
+    observeDependency({
+      dependency: "database",
+      operation: "query",
+      durationMs: event.duration,
+      success: true,
+    });
+  });
+  client.$on("error", () => {
+    observeDependency({
+      dependency: "database",
+      operation: "query",
+      durationMs: 0,
+      success: false,
+    });
+  });
+  return client;
+}
+
+export const prisma = global.prisma || createPrismaClient();
 
 if (process.env.NODE_ENV !== "production") global.prisma = prisma;
