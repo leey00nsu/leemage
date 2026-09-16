@@ -1,5 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { withSessionAuth } from "@/lib/auth/session-auth";
+import { StorageFactory } from "@/lib/storage";
+import { fromPrismaStorageProvider } from "@/lib/storage/utils";
 
 type ImageVariantData = {
   url: string;
@@ -10,98 +13,99 @@ type ImageVariantData = {
   label: string;
 };
 
-// GET 핸들러: 파일 다운로드
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ projectId: string; fileId: string }> }
+function variantObjectName(
+  projectId: string,
+  fileObjectName: string,
+  variants: ImageVariantData[],
+  selectedVariant: ImageVariantData,
 ) {
-  try {
-    const { projectId, fileId } = await params;
-    const { searchParams } = new URL(request.url);
-    const variantLabel = searchParams.get("variant"); // 이미지 variant 선택 (선택적)
+  // The first stored variant is the source object.
+  if (selectedVariant === variants[0]) return fileObjectName;
 
-    // 파일 정보 조회
-    const file = await prisma.file.findUnique({
+  try {
+    const parts = decodeURIComponent(new URL(selectedVariant.url).pathname)
+      .split("/")
+      .filter(Boolean);
+    const objectName = parts.slice(-2).join("/");
+    return objectName.startsWith(`${projectId}/`) ? objectName : null;
+  } catch {
+    return null;
+  }
+}
+
+export const GET = withSessionAuth(
+  async (
+    request,
+    { params }: { params: Promise<{ projectId: string; fileId: string }> },
+  ) => {
+    const { projectId, fileId } = await params;
+    const variantLabel = request.nextUrl.searchParams.get("variant");
+
+    const file = await prisma.file.findFirst({
       where: {
         id: fileId,
-        projectId: projectId,
+        projectId,
+        status: "COMPLETED",
+        project: { userId: request.session.username! },
       },
+      include: { project: { select: { storageProvider: true } } },
     });
 
-    if (!file) {
+    if (!file?.objectName) {
       return NextResponse.json(
         { message: "File not found." },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
-    let downloadUrl: string;
-    let filename = file.name;
-
+    let objectName = file.objectName;
     if (file.isImage) {
-      // 이미지 파일: variant 선택 가능
-      const variants = file.variants as ImageVariantData[];
-
-      if (variants.length === 0) {
-        return NextResponse.json(
-          { message: "No downloadable image variant available." },
-          { status: 404 }
-        );
-      }
-
-      // variant 선택 또는 기본값 (original 또는 첫 번째)
+      const variants = Array.isArray(file.variants)
+        ? (file.variants as ImageVariantData[])
+        : [];
       const selectedVariant = variantLabel
-        ? variants.find((v) => v.label === variantLabel)
-        : variants.find((v) => v.label === "original") || variants[0];
+        ? variants.find((variant) => variant.label === variantLabel)
+        : variants[0];
 
       if (!selectedVariant) {
         return NextResponse.json(
-          { message: `Variant '${variantLabel}' not found.` },
-          { status: 404 }
+          {
+            message: variantLabel
+              ? `Variant '${variantLabel}' not found.`
+              : "No downloadable image variant available.",
+          },
+          { status: 404 },
         );
       }
 
-      downloadUrl = selectedVariant.url;
-
-      // 파일명에 variant 정보 추가
-      const nameWithoutExt = file.name.replace(/\.[^/.]+$/, "");
-      filename = `${nameWithoutExt}-${selectedVariant.label}.${selectedVariant.format}`;
-    } else {
-      // 비이미지 파일: 원본 URL 사용
-      if (!file.url) {
+      const selectedObjectName = variantObjectName(
+        projectId,
+        file.objectName,
+        variants,
+        selectedVariant,
+      );
+      if (!selectedObjectName) {
         return NextResponse.json(
-          { message: "No download URL available." },
-          { status: 404 }
+          { message: "Invalid image variant." },
+          { status: 422 },
         );
       }
-      downloadUrl = file.url;
+      objectName = selectedObjectName;
     }
 
-    // 스토리지 URL에서 파일 가져오기 (OCI, R2 등 프로바이더에 관계없이 URL로 접근)
-    const response = await fetch(downloadUrl);
-
-    if (!response.ok) {
+    try {
+      const adapter = await StorageFactory.getAdapter(
+        fromPrismaStorageProvider(file.project.storageProvider),
+      );
+      const access = await adapter.createReadAccess(objectName);
+      const response = NextResponse.redirect(access.url, 307);
+      response.headers.set("Cache-Control", "private, no-store");
+      return response;
+    } catch {
       return NextResponse.json(
-        { message: "Failed to fetch the file." },
-        { status: 500 }
+        { message: "Download is temporarily unavailable." },
+        { status: 503 },
       );
     }
-
-    const blob = await response.blob();
-
-    // 다운로드 응답 생성
-    return new NextResponse(blob, {
-      headers: {
-        "Content-Type": file.mimeType,
-        "Content-Disposition": `attachment; filename="${encodeURIComponent(filename)}"`,
-        "Content-Length": blob.size.toString(),
-      },
-    });
-  } catch (error) {
-    console.error("Download error:", error);
-    return NextResponse.json(
-      { message: "An error occurred during download." },
-      { status: 500 }
-    );
-  }
-}
+  },
+);
