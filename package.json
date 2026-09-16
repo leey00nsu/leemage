@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "npm run openapi:generate && node scripts/run-app.mjs dev",
     "build": "npm run openapi:generate && next build",
-    "start": "npm run db:deploy && node scripts/run-app.mjs start",
+    "start": "node scripts/run-app.mjs start",
     "lint": "next lint",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -13,7 +13,8 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate deploy",
-    "db:deploy": "prisma migrate deploy && prisma generate",
+    "db:deploy": "prisma migrate deploy",
+    "release": "npm run db:deploy",
     "start:production": "npm run start --",
     "openapi:generate": "npx tsx scripts/generate-openapi.ts",
     "root:hash": "node scripts/generate-root-password-hash.js",

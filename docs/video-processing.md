@@ -28,7 +28,7 @@ presign은 PostgreSQL advisory lock 아래에서 PENDING 원본 용량까지 포
 
 ## 배포
 
-`npm run dev`와 `npm run start`는 웹 서버와 이미지·영상 통합 미디어 워커를 별도 자식 프로세스로 함께 실행합니다. 웹 요청에서 워커를 시작하거나 서버리스 응답 뒤 실행에 의존하지 않습니다. 한쪽이 종료되면 다른 쪽도 정리하고 전체 명령을 종료하므로 프로세스 관리자가 함께 재시작할 수 있습니다. Ctrl+C/SIGTERM 시 워커는 진행 중인 작업을 마무리하며, 2분이 지나면 남은 프로세스를 강제 종료합니다.
+`npm run dev`와 `npm run start`는 웹 서버와 이미지·영상 통합 미디어 워커를 별도 자식 프로세스로 함께 실행합니다. 웹 요청에서 워커를 시작하거나 서버리스 응답 뒤 실행에 의존하지 않습니다. 한쪽이 종료되면 다른 쪽도 정리하고 전체 명령을 종료하므로 프로세스 관리자가 함께 재시작할 수 있습니다. Ctrl+C/SIGTERM 시 워커는 진행 중인 작업을 마무리하며, 기본 25초(`SHUTDOWN_GRACE_MS`)가 지나면 남은 프로세스를 강제 종료합니다. 중단된 작업은 lease 만료 후 다시 처리됩니다.
 
 ```sh
 npm ci
@@ -40,7 +40,9 @@ npm run start
 npm run dev -- --port 3002
 ```
 
-워커 런타임에는 Node, `tsx`, FFmpeg와 FFprobe, Prisma 생성 클라이언트 및 앱 의존성이 필요합니다. `tsx`는 운영 실행에 필요한 dependency에 포함됩니다. 빌드와 DB 마이그레이션에 필요한 도구도 배포 환경에 설치되어 있어야 합니다. systemd/컨테이너 등의 프로세스 관리자로 자동 재시작하도록 구성합니다. `npm run start`는 시작 전에 마이그레이션과 Prisma 생성을 수행합니다. 개발 환경의 최초 DB 설정은 `npm run db:deploy`로 적용하세요. `npm run worker:media`는 워커만 실행하는 명령이며, 기존 `worker:video`는 호환 alias입니다.
+워커 런타임에는 Node, `tsx`, FFmpeg와 FFprobe, Prisma 생성 클라이언트 및 앱 의존성이 필요합니다. `tsx`는 운영 실행에 필요한 dependency에 포함됩니다. 빌드와 DB 마이그레이션에 필요한 도구도 배포 환경에 설치되어 있어야 합니다. systemd/컨테이너 등의 프로세스 관리자로 자동 재시작하도록 구성합니다. 배포 시 트래픽 전환 전에 단 하나의 release job에서 `npm run release`를 실행하고, 성공한 경우에만 앱을 시작하세요. `npm run start`는 여러 인스턴스가 동시에 migration을 실행하지 않습니다. 개발 환경의 최초 DB 설정은 `npm run db:deploy`로 적용하세요. `npm run worker:media`는 워커만 실행하는 명령이며, 기존 `worker:video`는 호환 alias입니다.
+
+로드 밸런서의 liveness는 `/api/health/live`, readiness는 `/api/health/ready`를 사용합니다. readiness는 DB를 최대 3초 기다린 뒤 503을 반환하며, probe 폭주를 막기 위해 결과를 프로세스별 1초간 재사용합니다. 배포 플랫폼의 종료 유예 시간은 `SHUTDOWN_GRACE_MS`보다 길게 설정하세요.
 
 ```dotenv
 UPLOAD_MAX_FILE_SIZE_MB=500

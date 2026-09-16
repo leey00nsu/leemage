@@ -14,6 +14,10 @@ export function runProcesses(commands, env = process.env) {
     let stopping = false;
     let exitCode = 0;
     let deadline;
+    const configuredGrace = Number(env.SHUTDOWN_GRACE_MS ?? 25_000);
+    const shutdownGraceMs = Number.isFinite(configuredGrace)
+      ? Math.max(1_000, Math.min(120_000, configuredGrace))
+      : 25_000;
 
     function signalGroup(child, signal) {
       try {
@@ -42,7 +46,7 @@ export function runProcesses(commands, env = process.env) {
       if (!children.size) { finish(); return; }
       deadline = setTimeout(() => {
         for (const child of groups) signalGroup(child, "SIGKILL");
-      }, 120_000);
+      }, shutdownGraceMs);
     }
     const onInterrupt = () => stop(130);
     const onTerminate = () => stop(143);

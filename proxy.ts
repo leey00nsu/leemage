@@ -39,6 +39,12 @@ function isApiRoutePath(pathname: string) {
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Health probes must not be rejected because unrelated public traffic has
+  // exhausted an in-memory rate-limit bucket.
+  if (pathname === "/api/health/live" || pathname === "/api/health/ready") {
+    return NextResponse.next();
+  }
+
   // API 요청은 레이트 리밋만 적용하고 나머지는 패스
   if (isApiRoutePath(pathname)) {
     const limiter = selectLimiter(pathname);
