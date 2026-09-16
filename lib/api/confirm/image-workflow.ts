@@ -1,6 +1,7 @@
 import { invalidateAllStorageCaches } from "@/lib/api/storage-quota";
 import { NextResponse } from "next/server";
 import sharp from "sharp";
+import type { Metadata } from "sharp";
 import { Prisma } from "@/lib/generated/prisma";
 import type { StorageAdapter } from "@/lib/storage";
 import { prisma } from "@/lib/prisma";
@@ -48,7 +49,7 @@ export async function handleImageConfirm({
     );
   }
 
-  let originalMetadata: sharp.Metadata;
+  let originalMetadata: Metadata;
   try {
     originalMetadata = await sharp(originalBuffer).metadata();
   } catch (error) {
