@@ -1,4 +1,5 @@
 import { PrismaClient } from "./generated/prisma";
+import { buildDatabaseUrl } from "./database-url";
 
 declare global {
   // allow global `var` declarations
@@ -6,10 +7,14 @@ declare global {
   var prisma: PrismaClient | undefined;
 }
 
-export const prisma =
-  global.prisma ||
-  new PrismaClient({
-    // log: ['query'], // 개발 중 쿼리 로그 확인 시 주석 해제
-  });
+const databaseUrl = buildDatabaseUrl(process.env.DATABASE_URL);
+
+export const prisma = global.prisma || new PrismaClient({
+  ...(databaseUrl ? { datasources: { db: { url: databaseUrl } } } : {}),
+  transactionOptions: {
+    maxWait: 5_000,
+    timeout: 15_000,
+  },
+});
 
 if (process.env.NODE_ENV !== "production") global.prisma = prisma;

@@ -1,6 +1,7 @@
 import * as common from "oci-common";
 import * as os from "oci-objectstorage";
 import fs from "fs";
+import https from "node:https";
 
 // OCI 설정을 동적으로 로드하는 함수
 function getOCIConfig() {
@@ -79,6 +80,13 @@ function getOCIClient() {
 
       cachedClient = new os.ObjectStorageClient({
         authenticationDetailsProvider: provider,
+      }, {
+        httpOptions: {
+          // An agent selects node-fetch in the OCI SDK, whose timeout covers
+          // connection, response headers, and response body reads.
+          agent: new https.Agent({ keepAlive: true, maxSockets: 25 }),
+          timeout: 30_000,
+        },
       });
     } else {
       cachedClient = null;

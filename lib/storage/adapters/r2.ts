@@ -57,6 +57,17 @@ export class CloudflareR2Adapter implements StorageAdapter {
       this.client = new S3Client({
         region: "auto",
         endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+        maxAttempts: 3,
+        requestHandler: {
+          connectionTimeout: 5_000,
+          requestTimeout: 30_000,
+          socketTimeout: 30_000,
+          throwOnRequestTimeout: true,
+          httpsAgent: {
+            keepAlive: true,
+            maxSockets: 25,
+          },
+        },
         credentials: {
           accessKeyId: process.env.R2_ACCESS_KEY_ID!,
           secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,

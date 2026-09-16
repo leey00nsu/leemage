@@ -51,7 +51,7 @@ export function runProcesses(commands, env = process.env) {
 
     for (const command of commands) {
       const child = spawn(process.execPath, command.args, {
-        stdio: "inherit", env, detached,
+        stdio: "inherit", env: { ...env, ...command.env }, detached,
       });
       child.drain = command.drain;
       children.add(child);
@@ -79,8 +79,27 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   } else {
     const nextArgs = args[0] === "--" ? args.slice(1) : args;
     process.exitCode = await runProcesses([
-      { name: "web", args: [require.resolve("next/dist/bin/next"), mode, ...nextArgs] },
-      { name: "media worker", args: ["--import", "tsx", "scripts/video-worker.ts"], drain: true },
+      {
+        name: "web",
+        args: [require.resolve("next/dist/bin/next"), mode, ...nextArgs],
+        env: {
+          DB_CONNECTION_LIMIT:
+            process.env.WEB_DB_CONNECTION_LIMIT ??
+            process.env.DB_CONNECTION_LIMIT ??
+            "5",
+        },
+      },
+      {
+        name: "media worker",
+        args: ["--import", "tsx", "scripts/video-worker.ts"],
+        env: {
+          DB_CONNECTION_LIMIT:
+            process.env.WORKER_DB_CONNECTION_LIMIT ??
+            process.env.DB_CONNECTION_LIMIT ??
+            "2",
+        },
+        drain: true,
+      },
     ], { ...process.env, NODE_ENV: mode === "dev" ? "development" : "production" });
   }
 }
