@@ -4,7 +4,9 @@ import { getSessionFromEdge, sessionOptions } from "@/lib/session";
 import createMiddleware from "next-intl/middleware";
 import { routing } from "@/i18n/routing";
 import {
+  applyRateLimitHeaders,
   apiRateLimiter,
+  createRateLimitResponse,
   loginRateLimiter,
   uploadRateLimiter,
 } from "@/lib/auth/rate-limiter";
@@ -26,34 +28,6 @@ function selectLimiter(pathname: string) {
   return apiRateLimiter;
 }
 
-function createRateLimitResponse(result: {
-  remaining: number;
-  resetAt: Date;
-  retryAfter?: number;
-}) {
-  const response = NextResponse.json(
-    {
-      code: "RATE_LIMIT_EXCEEDED",
-      message: "요청 한도를 초과했습니다. 잠시 후 다시 시도해주세요.",
-    },
-    { status: 429 },
-  );
-
-  if (result.retryAfter) {
-    response.headers.set("Retry-After", result.retryAfter.toString());
-  }
-  response.headers.set("X-RateLimit-Remaining", result.remaining.toString());
-  response.headers.set("X-RateLimit-Reset", result.resetAt.toISOString());
-
-  return response;
-}
-
-function getFallbackKey(req: NextRequest) {
-  const userAgent = req.headers.get("user-agent") ?? "unknown";
-  const acceptLanguage = req.headers.get("accept-language") ?? "unknown";
-  return `ua:${userAgent}|lang:${acceptLanguage}`;
-}
-
 function isExactOrSubPath(pathname: string, basePath: string) {
   return pathname === basePath || pathname.startsWith(`${basePath}/`);
 }
@@ -69,18 +43,13 @@ export async function proxy(request: NextRequest) {
   if (isApiRoutePath(pathname)) {
     const limiter = selectLimiter(pathname);
     const key = limiter.getKey(request);
-    const effectiveKey = key === "unknown" ? getFallbackKey(request) : key;
-    const result = limiter.check(effectiveKey);
+    const result = limiter.check(`ip:${key}`);
 
     if (!result.allowed) {
       return createRateLimitResponse(result);
     }
 
-    const response = NextResponse.next();
-    response.headers.set("X-RateLimit-Remaining", result.remaining.toString());
-    response.headers.set("X-RateLimit-Reset", result.resetAt.toISOString());
-
-    return response;
+    return applyRateLimitHeaders(NextResponse.next(), result);
   }
 
   // next-intl 미들웨어 실행

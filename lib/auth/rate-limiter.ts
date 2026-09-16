@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import type { AuthenticatedRequest } from "./session-auth";
 import { RATE_LIMIT_CONFIG } from "@/shared/config/rate-limit";
+import { getClientIp } from "@/lib/http/client-ip";
 
 // ============================================
 // Rate Limit Store Interface & Implementations
@@ -136,17 +137,7 @@ export class RateLimiter {
    * Default key generator using IP address
    */
   private defaultKeyGenerator(req: NextRequest): string {
-    const forwarded = req.headers.get("x-forwarded-for");
-    if (forwarded) {
-      return forwarded.split(",")[0].trim();
-    }
-    
-    const realIp = req.headers.get("x-real-ip");
-    if (realIp) {
-      return realIp;
-    }
-
-    return "unknown";
+    return getClientIp(req);
   }
 
   /**
@@ -240,13 +231,13 @@ export class RateLimiter {
 /**
  * Creates a 429 Too Many Requests response
  */
-function createRateLimitResponse(result: RateLimitResult): NextResponse {
+export function createRateLimitResponse(result: RateLimitResult): NextResponse {
   const response = NextResponse.json(
     {
       code: "RATE_LIMIT_EXCEEDED",
       message: "Rate limit exceeded. Please try again later.",
     },
-    { status: 429 }
+    { status: 429 },
   );
 
   if (result.retryAfter) {
@@ -255,6 +246,15 @@ function createRateLimitResponse(result: RateLimitResult): NextResponse {
   response.headers.set("X-RateLimit-Remaining", result.remaining.toString());
   response.headers.set("X-RateLimit-Reset", result.resetAt.toISOString());
 
+  return response;
+}
+
+export function applyRateLimitHeaders(
+  response: NextResponse,
+  result: RateLimitResult,
+) {
+  response.headers.set("X-RateLimit-Remaining", result.remaining.toString());
+  response.headers.set("X-RateLimit-Reset", result.resetAt.toISOString());
   return response;
 }
 
@@ -284,10 +284,7 @@ export function withRateLimit<T extends Record<string, string | string[]>>(
     }
 
     const response = await handler(req, context);
-    response.headers.set("X-RateLimit-Remaining", result.remaining.toString());
-    response.headers.set("X-RateLimit-Reset", result.resetAt.toISOString());
-
-    return response;
+    return applyRateLimitHeaders(response, result);
   };
 }
 
@@ -328,10 +325,7 @@ export function withRateLimitAndAuth<T extends Record<string, string | string[]>
     authenticatedReq.session = session;
     
     const response = await handler(authenticatedReq, context);
-    response.headers.set("X-RateLimit-Remaining", result.remaining.toString());
-    response.headers.set("X-RateLimit-Reset", result.resetAt.toISOString());
-
-    return response;
+    return applyRateLimitHeaders(response, result);
   };
 }
 
@@ -353,3 +347,18 @@ export const apiRateLimiter = new RateLimiter({
 export const uploadRateLimiter = new RateLimiter({
   ...RATE_LIMIT_CONFIG.uploadConfirm,
 });
+
+export function checkIdentityRateLimit(
+  request: NextRequest,
+  identity: string,
+) {
+  const pathname = request.nextUrl.pathname;
+  const isUpload =
+    /^\/api(?:\/v1)?\/projects\/[^/]+\/files\/(?:presign|confirm)$/.test(
+      pathname,
+    );
+  const projectId = pathname.match(/\/projects\/([^/]+)/)?.[1] ?? "none";
+  const limiter = isUpload ? uploadRateLimiter : apiRateLimiter;
+  const scope = isUpload ? `project:${projectId}` : "api";
+  return limiter.check(`identity:${identity}:${scope}`);
+}

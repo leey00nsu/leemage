@@ -8,8 +8,10 @@ import {
   loginRateLimiter,
   apiRateLimiter,
   uploadRateLimiter,
+  checkIdentityRateLimit,
   type RateLimitEntry,
 } from "@/lib/auth/rate-limiter";
+import { getRateLimitPolicyIdForPath } from "@/shared/config/rate-limit";
 
 describe("RateLimiter", () => {
   let limiter: RateLimiter;
@@ -382,10 +384,47 @@ describe("사전 설정된 요청 제한기", () => {
     // Reset for other tests
     uploadRateLimiter.reset(key);
   });
+
+  it("presign과 confirm을 동일한 업로드 정책으로 제한해야 한다", () => {
+    expect(
+      getRateLimitPolicyIdForPath(
+        "/api/projects/project/files/presign",
+      ),
+    ).toBe("uploadConfirm");
+    expect(
+      getRateLimitPolicyIdForPath(
+        "/api/v1/projects/project/files/confirm",
+      ),
+    ).toBe("uploadConfirm");
+  });
+
+  it("인증된 업로드 제한을 사용자와 프로젝트별로 분리해야 한다", () => {
+    const identity = "test-project-scope";
+    const requestFor = (projectId: string) =>
+      new NextRequest(
+        `http://localhost/api/projects/${projectId}/files/confirm`,
+        { method: "POST" },
+      );
+
+    for (let i = 0; i < 20; i++) {
+      expect(checkIdentityRateLimit(requestFor("one"), identity).allowed).toBe(
+        true,
+      );
+    }
+    expect(checkIdentityRateLimit(requestFor("one"), identity).allowed).toBe(
+      false,
+    );
+    expect(checkIdentityRateLimit(requestFor("two"), identity).allowed).toBe(
+      true,
+    );
+
+    uploadRateLimiter.reset(`identity:${identity}:project:one`);
+    uploadRateLimiter.reset(`identity:${identity}:project:two`);
+  });
 });
 
 describe("IP 주소 추출", () => {
-  it("x-forwarded-for 헤더에서 IP를 추출해야 한다", () => {
+  it("신뢰 프록시가 추가한 우측 x-forwarded-for 값을 사용해야 한다", () => {
     const limiter = new RateLimiter({
       windowMs: 60000,
       maxRequests: 5,
@@ -399,7 +438,39 @@ describe("IP 주소 추출", () => {
     });
 
     const key = limiter.getKey(req);
-    expect(key).toBe("192.168.1.1");
+    expect(key).toBe("10.0.0.1");
+  });
+
+  it("설정된 프록시 hop 수만큼 우측에서 이동해야 한다", () => {
+    vi.stubEnv("TRUST_PROXY_HOPS", "2");
+    const limiter = new RateLimiter({
+      windowMs: 60000,
+      maxRequests: 5,
+      blockDurationMs: 60000,
+    });
+    const req = new NextRequest("http://localhost/api/test", {
+      headers: {
+        "x-forwarded-for": "203.0.113.10, 10.0.0.1, 10.0.0.2",
+      },
+    });
+
+    expect(limiter.getKey(req)).toBe("10.0.0.1");
+    vi.unstubAllEnvs();
+  });
+
+  it("프록시를 신뢰하지 않도록 설정하면 전달 헤더를 무시해야 한다", () => {
+    vi.stubEnv("TRUST_PROXY_HOPS", "0");
+    const limiter = new RateLimiter({
+      windowMs: 60000,
+      maxRequests: 5,
+      blockDurationMs: 60000,
+    });
+    const req = new NextRequest("http://localhost/api/test", {
+      headers: { "x-forwarded-for": "203.0.113.10" },
+    });
+
+    expect(limiter.getKey(req)).toBe("unknown");
+    vi.unstubAllEnvs();
   });
 
   it("x-real-ip 헤더에서 IP를 추출해야 한다", () => {

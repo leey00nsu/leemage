@@ -11,10 +11,7 @@ import {
   type ApiKeyPermission,
 } from "@/shared/config/api-key-permissions";
 import type { ValidatedApiKey } from "@/lib/auth/api-key-auth/types";
-
-function getClientIp(request: NextRequest): string {
-  return request.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
-}
+import { getClientIp } from "@/lib/http/client-ip";
 
 function extractBearerToken(request: NextRequest): string | null {
   const authorizationHeader = request.headers.get("Authorization");

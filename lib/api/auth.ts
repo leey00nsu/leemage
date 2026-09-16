@@ -5,6 +5,12 @@ import { cookies } from "next/headers";
 import { SessionData, sessionOptions } from "@/lib/session";
 import { authLogger, maskEmail } from "@/lib/logging/secure-logger";
 import { compare } from "bcryptjs";
+import { createHash } from "node:crypto";
+import {
+  createRateLimitResponse,
+  loginRateLimiter,
+} from "@/lib/auth/rate-limiter";
+import { getClientIp } from "@/lib/http/client-ip";
 
 function decodeBase64Url(value: string): string | null {
   const normalized = value.trim().replace(/-/g, "+").replace(/_/g, "/");
@@ -18,7 +24,7 @@ function decodeBase64Url(value: string): string | null {
 }
 
 export async function loginHandler(req: NextRequest) {
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
+  const ip = getClientIp(req);
   
   try {
     const body = await req.json();
@@ -41,6 +47,18 @@ export async function loginHandler(req: NextRequest) {
     }
 
     const { email, password } = validationResult.data;
+    const emailIdentity = createHash("sha256")
+      .update(email.trim().toLowerCase())
+      .digest("hex");
+    const accountLimit = loginRateLimiter.check(`account:${emailIdentity}`);
+    if (!accountLimit.allowed) {
+      authLogger.security({
+        type: "AUTH_FAILURE",
+        ip,
+        details: { reason: "Login rate limit exceeded" },
+      });
+      return createRateLimitResponse(accountLimit);
+    }
 
     // 2. 환경 변수에서 루트 사용자 정보 가져오기
     const rootEmail = process.env.ROOT_USER_EMAIL;
@@ -63,8 +81,6 @@ export async function loginHandler(req: NextRequest) {
     // 3. 입력된 정보와 환경 변수 정보 비교
     const isPasswordValid = await compare(password, rootPasswordHash);
     const emailMatchExact = email === rootEmail;
-    const emailMatchNormalized =
-      email.trim().toLowerCase() === rootEmail.trim().toLowerCase();
     if (emailMatchExact && isPasswordValid) {
       // 로그인 성공
       const session = await getIronSession<SessionData>(

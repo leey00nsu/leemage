@@ -2,6 +2,11 @@ import { type NextRequest, NextResponse } from "next/server";
 import { getSessionDefault, SessionData } from "@/lib/session";
 import { logApiCall } from "@/lib/api/api-logger";
 import { consumeResponseLogMetadata } from "@/lib/api/request-log-metadata";
+import {
+  applyRateLimitHeaders,
+  checkIdentityRateLimit,
+  createRateLimitResponse,
+} from "@/lib/auth/rate-limiter";
 
 /**
  * Session authentication options
@@ -107,6 +112,12 @@ export function withSessionAuth<T extends Record<string, string | string[]>>(
     const authenticatedReq = req as AuthenticatedRequest;
     authenticatedReq.session = session;
 
+    const rateLimit = checkIdentityRateLimit(
+      req,
+      `session:${session.username ?? "unknown"}`,
+    );
+    if (!rateLimit.allowed) return createRateLimitResponse(rateLimit);
+
     // Execute the original handler
     const response = await handler(authenticatedReq, context);
     const extraMetadata = consumeResponseLogMetadata(response);
@@ -135,7 +146,7 @@ export function withSessionAuth<T extends Record<string, string | string[]>>(
       // Ignore logging errors silently
     });
 
-    return response;
+    return applyRateLimitHeaders(response, rateLimit);
   };
 }
 

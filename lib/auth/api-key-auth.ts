@@ -4,6 +4,11 @@ import { logApiCall, extractProjectIdFromPath } from "@/lib/api/api-logger";
 import { consumeResponseLogMetadata } from "@/lib/api/request-log-metadata";
 import { hasMethodPermission } from "@/lib/auth/api-key-auth/permissions";
 import { validateApiKey } from "@/lib/auth/api-key-auth/validate-api-key";
+import {
+  applyRateLimitHeaders,
+  checkIdentityRateLimit,
+  createRateLimitResponse,
+} from "@/lib/auth/rate-limiter";
 
 /**
  * API 라우트 핸들러를 감싸 API 키 인증을 추가하는 HOF(Higher-Order Function)
@@ -74,6 +79,12 @@ export function withApiKeyAuth<T extends Record<string, string | string[]>>(
       );
     }
 
+    const rateLimit = checkIdentityRateLimit(
+      req,
+      `api-key:${validatedKey.id}`,
+    );
+    if (!rateLimit.allowed) return createRateLimitResponse(rateLimit);
+
     const response = await handler(req, context, validatedKey.userIdentifier);
     const extraMetadata = consumeResponseLogMetadata(response);
 
@@ -93,7 +104,7 @@ export function withApiKeyAuth<T extends Record<string, string | string[]>>(
       },
     });
 
-    return response;
+    return applyRateLimitHeaders(response, rateLimit);
   };
 }
 
