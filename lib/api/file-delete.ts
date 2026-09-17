@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { invalidateAllStorageCaches } from "@/lib/api/storage-quota";
 import { enqueueOwnedObjects } from "@/lib/storage/cleanup-queue";
+import { apiLogger, getSafeErrorMetadata } from "@/lib/logging/secure-logger";
 
 export async function deleteFileHandler(
   fileId: string,
@@ -46,7 +47,7 @@ export async function deleteFileHandler(
       { status: 200 },
     );
   } catch (error) {
-    console.error("Error deleting file:", error);
+    apiLogger.error("file.delete.failed", getSafeErrorMetadata(error));
     return NextResponse.json(
       { message: "An error occurred while deleting the file." },
       { status: 500 },

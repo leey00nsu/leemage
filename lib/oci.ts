@@ -2,6 +2,10 @@ import * as common from "oci-common";
 import * as os from "oci-objectstorage";
 import fs from "fs";
 import https from "node:https";
+import {
+  getSafeErrorMetadata,
+  storageLogger,
+} from "@/lib/logging/secure-logger";
 
 // OCI 설정을 동적으로 로드하는 함수
 function getOCIConfig() {
@@ -20,9 +24,7 @@ function getOCIConfig() {
     // 환경 변수에 직접 키 내용을 넣는 경우 (권장하지 않음)
     privateKey = process.env.OCI_PRIVATE_KEY_CONTENT.replace(/\\n/g, "\n");
   } else {
-    console.warn(
-      "OCI private key path not found or invalid, or OCI_PRIVATE_KEY_CONTENT not set. OCI functionality might be disabled."
-    );
+    storageLogger.warn("oci.private-key.missing");
   }
 
   // 모든 필수 환경 변수가 설정되었는지 확인 (네임스페이스, 버킷 이름 포함)
@@ -35,9 +37,7 @@ function getOCIConfig() {
     !namespaceName ||
     !bucketName
   ) {
-    console.error(
-      "Error: Missing required OCI environment variables. Check OCI_TENANCY_OCID, OCI_USER_OCID, OCI_FINGERPRINT, OCI_PRIVATE_KEY_PATH/CONTENT, OCI_REGION, OCI_NAMESPACE, OCI_BUCKET_NAME."
-    );
+    storageLogger.error("oci.configuration.incomplete");
   }
 
   return {
@@ -129,10 +129,6 @@ export async function deleteObject(objectName: string): Promise<void> {
     );
   }
 
-  console.log(
-    `Attempting to delete OCI object: ${objectName} from bucket: ${config.bucketName}`
-  );
-
   try {
     const deleteObjectRequest: os.requests.DeleteObjectRequest = {
       namespaceName: config.namespaceName,
@@ -141,7 +137,6 @@ export async function deleteObject(objectName: string): Promise<void> {
     };
 
     await client.deleteObject(deleteObjectRequest);
-    console.log(`Successfully deleted OCI object: ${objectName}`);
   } catch (error) {
     const statusCode =
       typeof error === "object" && error !== null && "statusCode" in error
@@ -149,9 +144,8 @@ export async function deleteObject(objectName: string): Promise<void> {
         : undefined;
     // Deletion is intentionally idempotent for durable cleanup retries.
     if (statusCode === 404) return;
-    console.error(`Error deleting OCI object ${objectName}:`, error);
-    // 특정 OCI 오류 코드에 따라 다른 처리 가능 (예: 객체 못 찾음 등)
-    throw new Error(`OCI 객체 삭제 중 오류 발생: ${objectName}`);
+    storageLogger.error("oci.delete.failed", getSafeErrorMetadata(error));
+    throw new Error("OCI object deletion failed");
   }
 }
 
@@ -196,10 +190,6 @@ export async function createPresignedUploadUrl(
   const expiresAt = new Date();
   expiresAt.setMinutes(expiresAt.getMinutes() + expiresInMinutes);
 
-  console.log(
-    `Creating PAR for object: ${objectName} in bucket: ${config.bucketName}`
-  );
-
   try {
     const createPreauthenticatedRequestDetails: os.models.CreatePreauthenticatedRequestDetails =
       {
@@ -235,16 +225,14 @@ export async function createPresignedUploadUrl(
     // 객체의 최종 URL (업로드 완료 후 접근 가능한 URL)
     const objectUrl = `https://objectstorage.${config.regionId}.oraclecloud.com/n/${config.namespaceName}/b/${config.bucketName}/o/${objectName}`;
 
-    console.log(`Successfully created PAR for object: ${objectName}`);
-
     return {
       presignedUrl,
       objectUrl,
       expiresAt,
     };
   } catch (error) {
-    console.error(`Error creating PAR for object ${objectName}:`, error);
-    throw new Error(`PAR 생성 중 오류 발생: ${objectName}`);
+    storageLogger.error("oci.presign.failed", getSafeErrorMetadata(error));
+    throw new Error("OCI presigned URL creation failed");
   }
 }
 
@@ -261,10 +249,6 @@ export async function downloadObject(objectName: string): Promise<Buffer> {
       "OCI 클라이언트 또는 필수 정보(네임스페이스, 버킷 이름)가 초기화되지 않았습니다."
     );
   }
-
-  console.log(
-    `Downloading OCI object: ${objectName} from bucket: ${config.bucketName}`
-  );
 
   try {
     const getObjectRequest: os.requests.GetObjectRequest = {
@@ -291,11 +275,10 @@ export async function downloadObject(objectName: string): Promise<Buffer> {
       chunks.push(value);
     }
 
-    console.log(`Successfully downloaded OCI object: ${objectName}`);
     return Buffer.concat(chunks);
   } catch (error) {
-    console.error(`Error downloading OCI object ${objectName}:`, error);
-    throw new Error(`OCI 객체 다운로드 중 오류 발생: ${objectName}`);
+    storageLogger.error("oci.download.failed", getSafeErrorMetadata(error));
+    throw new Error("OCI object download failed");
   }
 }
 
@@ -324,10 +307,6 @@ export async function uploadObject(
     );
   }
 
-  console.log(
-    `Attempting to upload OCI object: ${objectName} to bucket: ${config.bucketName}`
-  );
-
   try {
     const putObjectRequest: os.requests.PutObjectRequest = {
       namespaceName: config.namespaceName,
@@ -339,13 +318,11 @@ export async function uploadObject(
     };
 
     await client.putObject(putObjectRequest);
-    console.log(`Successfully uploaded OCI object: ${objectName}`);
-
     // 업로드 성공 후 객체 URL 생성 (실제 OCI URL 형식에 맞게 조정 필요)
     const objectUrl = `https://objectstorage.${config.regionId}.oraclecloud.com/n/${config.namespaceName}/b/${config.bucketName}/o/${objectName}`;
     return objectUrl;
   } catch (error) {
-    console.error(`Error uploading OCI object ${objectName}:`, error);
-    throw new Error(`OCI 객체 업로드 중 오류 발생: ${objectName}`);
+    storageLogger.error("oci.upload.failed", getSafeErrorMetadata(error));
+    throw new Error("OCI object upload failed");
   }
 }

@@ -19,6 +19,7 @@ import {
   verifyProjectOwnership,
   OWNERSHIP_ERROR_CODES,
 } from "@/lib/auth/ownership";
+import { apiLogger, getSafeErrorMetadata } from "@/lib/logging/secure-logger";
 
 // 응답 타입 추론
 type ProjectListResponse = z.infer<typeof projectListResponseSchema>;
@@ -95,7 +96,7 @@ export async function getProjectsHandler(
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error("Fetch projects API error:", error);
+    apiLogger.error("projects.list.failed", getSafeErrorMetadata(error));
     return NextResponse.json(
       { message: "An error occurred while fetching projects." },
       { status: 500 },
@@ -172,7 +173,7 @@ export async function createProjectHandler(
 
     return NextResponse.json(response, { status: 201 });
   } catch (error) {
-    console.error("Project creation API error:", error);
+    apiLogger.error("projects.create.failed", getSafeErrorMetadata(error));
     return NextResponse.json(
       { message: "An error occurred while creating the project." },
       { status: 500 },
@@ -290,7 +291,7 @@ export async function updateProjectHandler(
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error("Project update API error:", error);
+    apiLogger.error("projects.update.failed", getSafeErrorMetadata(error));
     return NextResponse.json(
       { message: "An error occurred while updating the project." },
       { status: 500 },

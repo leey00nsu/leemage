@@ -16,6 +16,7 @@ import { confirmRequestSchema } from "@/lib/openapi/schemas/files";
 import { handleImageConfirm } from "@/lib/api/confirm/image-workflow";
 import { handleVideoConfirm } from "@/lib/api/confirm/video-workflow";
 import { handleOtherConfirm } from "@/lib/api/confirm/other-workflow";
+import { apiLogger, getSafeErrorMetadata } from "@/lib/logging/secure-logger";
 
 export type {
   ConfirmRequest,
@@ -256,7 +257,7 @@ export async function confirmHandler(
       storageAdapter,
     });
   } catch (error) {
-    console.error("Confirm API error:", error);
+    apiLogger.error("file.confirm.failed", getSafeErrorMetadata(error));
 
     if (
       error instanceof Error &&

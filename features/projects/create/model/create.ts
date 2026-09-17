@@ -20,8 +20,6 @@ export const useCreateProject = (options?: UseCreateProjectOptions) => {
       }
     },
     onError: (error) => {
-      console.error("Project creation mutation error:", error);
-
       if (options?.onErrorCallback) {
         options.onErrorCallback(error);
       }

@@ -19,6 +19,7 @@ import type {
   VariantOption,
 } from "@/lib/api/confirm/types";
 import { enqueueStorageObjects } from "@/lib/storage/cleanup-queue";
+import { workerLogger } from "@/lib/logging/secure-logger";
 
 const MAX_ATTEMPTS = 3;
 const MAX_IMAGE_BYTES = 50 * 1024 * 1024;
@@ -298,7 +299,7 @@ export async function executeImageJob(job: ImageJob): Promise<void> {
       );
       if (cleanupProvider && failed.length > 0) {
         await enqueueStorageObjects(cleanupProvider, failed).catch(() => {
-          console.error("Failed to queue image object cleanup", job.id);
+          workerLogger.error("image.cleanup-queue.failed", { jobId: job.id });
         });
       }
     }

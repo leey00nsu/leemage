@@ -18,8 +18,7 @@ export const deleteFile = async ({
 
   try {
     return await response.json();
-  } catch (error) {
-    console.error("파일 삭제 응답 파싱 오류:", error);
+  } catch {
     return { message: "파일이 성공적으로 삭제되었습니다." };
   }
 };

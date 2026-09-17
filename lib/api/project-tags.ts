@@ -3,6 +3,7 @@ import { ZodError } from "zod";
 import { prisma } from "@/lib/prisma";
 import { verifyProjectOwnership } from "@/lib/auth/ownership";
 import { fileTagsSchema, tagNameSchema } from "@/shared/lib/project-tags";
+import { apiLogger, getSafeErrorMetadata } from "@/lib/logging/secure-logger";
 
 export const tagSelect = { id: true, projectId: true, name: true } as const;
 const missing = () =>
@@ -105,7 +106,7 @@ export async function projectTagsHandler(
         { status: 409 },
       );
     if (code === "P2025" || code === "P2003") return missing();
-    console.error("Project tags request failed", error);
+    apiLogger.error("project-tags.request.failed", getSafeErrorMetadata(error));
     return NextResponse.json(
       { message: "Unable to update tags." },
       { status: 500 },

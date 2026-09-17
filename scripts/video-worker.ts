@@ -14,6 +14,9 @@ async function main() {
   const { cleanupExpiredApiLogs } = await import(
     "../lib/api/api-log-retention"
   );
+  const { getSafeErrorMetadata, workerLogger } = await import(
+    "../lib/logging/secure-logger"
+  );
   let stopping = false;
   process.on("SIGTERM", () => {
     stopping = true;
@@ -29,7 +32,7 @@ async function main() {
   const concurrency = Number.isInteger(configured)
     ? Math.max(1, Math.min(8, configured))
     : 2;
-  console.info(`Media worker started (concurrency=${concurrency})`);
+  workerLogger.info("media-worker.started", { concurrency });
   const queueRunners = [
     async () => {
       const job = await claimImageJob();
@@ -72,8 +75,8 @@ async function main() {
           }
         }
         if (handled) continue;
-      } catch {
-        console.error("Media worker database operation failed; retrying");
+      } catch (error) {
+        workerLogger.error("media-worker.loop.failed", getSafeErrorMetadata(error));
       }
       await new Promise((resolve) => setTimeout(resolve, 2000));
     }
@@ -81,7 +84,13 @@ async function main() {
   await Promise.all(Array.from({ length: concurrency }, loop));
   await prisma.$disconnect();
 }
-void main().catch(() => {
-  console.error("Media worker startup failed");
+void main().catch((error) => {
+  console.error(JSON.stringify({
+    level: "ERROR",
+    timestamp: new Date().toISOString(),
+    context: "worker",
+    message: "media-worker.startup.failed",
+    data: { errorType: error instanceof Error ? error.name : typeof error },
+  }));
   process.exitCode = 1;
 });

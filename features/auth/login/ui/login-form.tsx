@@ -46,13 +46,9 @@ export function LoginForm() {
   // 로그인 Mutation
   const mutation = useMutation({
     mutationFn: login,
-    onSuccess: (data) => {
-      console.log("Login successful:", data);
+    onSuccess: () => {
       router.replace("/projects");
       router.refresh();
-    },
-    onError: (error) => {
-      console.error("Login mutation error:", error);
     },
   });
 

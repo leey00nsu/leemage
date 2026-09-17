@@ -1,3 +1,8 @@
+import {
+  getSafeErrorMetadata,
+  storageLogger,
+} from "@/lib/logging/secure-logger";
+
 /**
  * Storage Error Handling
  * 
@@ -49,8 +54,10 @@ export class StorageError extends Error {
  * Ensures no internal details leak to users.
  */
 export function translateStorageError(error: unknown, operation?: string): StorageError {
-  // Log the original error for debugging
-  console.error(`Storage operation failed${operation ? ` (${operation})` : ""}:`, error);
+  storageLogger.error("operation.failed", {
+    operation: operation ?? "unknown",
+    ...getSafeErrorMetadata(error),
+  });
 
   // Determine error code based on error type/message
   let code = StorageErrorCode.UNKNOWN_ERROR;

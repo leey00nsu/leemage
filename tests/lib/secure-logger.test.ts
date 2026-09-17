@@ -5,6 +5,7 @@ import {
   maskEmail,
   maskUsername,
   maskSensitiveData,
+  getSafeErrorMetadata,
   logSecurityEvent,
   createSecureLogger,
   SecurityEvent,
@@ -164,6 +165,24 @@ describe("보안 로거", () => {
       expect(
         maskSensitiveData(undefined as unknown as Record<string, unknown>),
       ).toBe(undefined);
+    });
+  });
+
+  describe("안전한 오류 메타데이터", () => {
+    it("오류 분류는 보존하고 메시지와 stack은 제외해야 한다", () => {
+      const error = Object.assign(new Error("token=top-secret"), {
+        code: "P2025",
+        statusCode: 503,
+      });
+      const metadata = getSafeErrorMetadata(error);
+
+      expect(metadata).toEqual({
+        errorType: "Error",
+        code: "P2025",
+        statusCode: 503,
+      });
+      expect(JSON.stringify(metadata)).not.toContain("top-secret");
+      expect(metadata).not.toHaveProperty("stack");
     });
   });
 

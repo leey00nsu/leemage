@@ -3,22 +3,17 @@
  * 사용자의 API 호출 통계를 제공합니다.
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getSessionDefault } from "@/lib/session";
 import { buildStatsWhere } from "@/features/api-stats/server/log-filters";
 import { parseStatsQueryParams } from "@/features/api-stats/server/query-params";
 import { mapApiLogs } from "@/features/api-stats/server/response-mapper";
 import { queryStatsAggregates } from "@/features/api-stats/server/stats-query";
+import { AuthenticatedRequest, withSessionAuth } from "@/lib/auth/session-auth";
+import { apiLogger, getSafeErrorMetadata } from "@/lib/logging/secure-logger";
 
-export async function GET(request: NextRequest) {
-  const session = await getSessionDefault();
-
-  if (!session?.username) {
-    return NextResponse.json({ message: "Authentication is required." }, { status: 401 });
-  }
-
-  const userId = session.username;
+export const GET = withSessionAuth(async (request: AuthenticatedRequest) => {
+  const userId = request.session.username!;
   const params = parseStatsQueryParams(request);
 
   try {
@@ -75,10 +70,10 @@ export async function GET(request: NextRequest) {
       logs: mapApiLogs(logs),
     });
   } catch (error) {
-    console.error("Stats fetch error:", error);
+    apiLogger.error("stats.fetch.failed", getSafeErrorMetadata(error));
     return NextResponse.json(
       { message: "An error occurred while retrieving statistics." },
       { status: 500 },
     );
   }
-}
+});

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/lib/generated/prisma";
 import { enqueueOwnedObjects } from "@/lib/storage/cleanup-queue";
+import { getSafeErrorMetadata, workerLogger } from "@/lib/logging/secure-logger";
 
 async function cleanupFiles(
   status: "PENDING" | "FAILED",
@@ -51,7 +52,7 @@ export async function cleanupOrphanFiles(
     );
     return { deletedCount, errors: [] };
   } catch (error) {
-    console.error("Error during orphan cleanup:", error);
+    workerLogger.error("pending-file-cleanup.failed", getSafeErrorMetadata(error));
     throw error;
   }
 }
@@ -76,7 +77,7 @@ export async function cleanupFailedFiles(
     );
     return { deletedCount };
   } catch (error) {
-    console.error("Error during failed files cleanup:", error);
+    workerLogger.error("failed-file-cleanup.failed", getSafeErrorMetadata(error));
     throw error;
   }
 }

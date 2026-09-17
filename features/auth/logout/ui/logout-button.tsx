@@ -16,8 +16,7 @@ export function LogoutButton() {
       router.push("/auth/login");
       router.refresh();
     },
-    onErrorCallback: (error) => {
-      console.error("Logout error:", error);
+    onErrorCallback: () => {
       toast.error(t("logoutErrorToast"), {
         description: t("networkErrorToastDescription"),
       });

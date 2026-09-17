@@ -12,6 +12,7 @@ import {
 import { ImageVariantData } from "@/entities/files/model/types";
 import { verifyProjectOwnership } from "@/lib/auth/ownership";
 import { enqueueOwnedObjects } from "@/lib/storage/cleanup-queue";
+import { apiLogger, getSafeErrorMetadata } from "@/lib/logging/secure-logger";
 
 // 응답 타입 추론
 type ProjectDetailsResponse = z.infer<typeof projectDetailsResponseSchema>;
@@ -120,7 +121,7 @@ export async function getProjectDetailsHandler(
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error(`Fetch project ${projectId} API error:`, error);
+    apiLogger.error("project.details.failed", getSafeErrorMetadata(error));
     return NextResponse.json(
       { message: "An error occurred while fetching the project." },
       { status: 500 },
@@ -165,7 +166,7 @@ export async function deleteProjectHandler(
       { status: 200 },
     );
   } catch (error) {
-    console.error(`Delete project ${projectId} API error:`, error);
+    apiLogger.error("project.delete.failed", getSafeErrorMetadata(error));
     return NextResponse.json(
       { message: "An error occurred while deleting the project." },
       { status: 500 },

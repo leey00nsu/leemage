@@ -142,6 +142,25 @@ export function maskSensitiveData<T extends Record<string, unknown>>(data: T): T
   return masked as T;
 }
 
+/** Extracts only classification fields that are safe to send to production logs. */
+export function getSafeErrorMetadata(error: unknown): Record<string, unknown> {
+  const metadata: Record<string, unknown> = {
+    errorType: error instanceof Error ? error.name : typeof error,
+  };
+
+  if (error && typeof error === "object") {
+    const errorRecord = error as Record<string, unknown>;
+    for (const key of ["code", "statusCode"] as const) {
+      const value = errorRecord[key];
+      if (typeof value === "string" || typeof value === "number") {
+        metadata[key] = typeof value === "string" ? value.slice(0, 64) : value;
+      }
+    }
+  }
+
+  return metadata;
+}
+
 /**
  * Formats a security event for logging.
  */
@@ -233,8 +252,9 @@ export function createSecureLogger(context: string): SecureLogger {
     error: (message: string, data?: Record<string, unknown>) => {
       // In production, don't include stack traces
       if (process.env.NODE_ENV === "production" && data?.stack) {
-        const { stack, ...rest } = data;
-        console.error(formatMessage("ERROR", message, rest));
+        const safeData = { ...data };
+        delete safeData.stack;
+        console.error(formatMessage("ERROR", message, safeData));
       } else {
         console.error(formatMessage("ERROR", message, data));
       }
@@ -254,3 +274,4 @@ export function createSecureLogger(context: string): SecureLogger {
 export const authLogger = createSecureLogger("auth");
 export const apiLogger = createSecureLogger("api");
 export const storageLogger = createSecureLogger("storage");
+export const workerLogger = createSecureLogger("worker");

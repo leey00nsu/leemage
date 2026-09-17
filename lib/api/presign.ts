@@ -17,6 +17,7 @@ import {
 } from "@/lib/validation/file-validator";
 import { reservePendingUpload } from "@/lib/api/storage-quota";
 import { attachResponseLogMetadata } from "@/lib/api/request-log-metadata";
+import { apiLogger, getSafeErrorMetadata } from "@/lib/logging/secure-logger";
 
 export type PresignRequest = z.infer<typeof presignRequestSchema>;
 
@@ -199,7 +200,7 @@ export async function presignHandler(
     });
     return response;
   } catch (error) {
-    console.error("Presign API error:", error);
+    apiLogger.error("file.presign.failed", getSafeErrorMetadata(error));
     return NextResponse.json(
       { message: "Failed to generate upload URL." },
       { status: 500 },

@@ -10,6 +10,7 @@ import { StorageFactory, fromPrismaStorageProvider } from "@/lib/storage";
 import { invalidateAllStorageCaches } from "@/lib/api/storage-quota";
 import { processRemoteVideo } from "./remote";
 import { enqueueStorageObjects } from "@/lib/storage/cleanup-queue";
+import { workerLogger } from "@/lib/logging/secure-logger";
 
 const MAX_ATTEMPTS = 3;
 
@@ -186,15 +187,15 @@ export async function executeVideoJob(job: VideoJob): Promise<void> {
   } finally {
     clearInterval(heartbeat);
     await cleanup?.().catch(() => {
-      console.warn("Video output cleanup failed", job.id);
+      workerLogger.warn("video.output-cleanup.failed", { jobId: job.id });
       if (cleanupObject && cleanupProvider) {
         void enqueueStorageObjects(cleanupProvider, [cleanupObject]).catch(() => {
-          console.error("Failed to queue video object cleanup", job.id);
+          workerLogger.error("video.cleanup-queue.failed", { jobId: job.id });
         });
       }
     });
     await release?.().catch(() => {
-      console.warn("Video read access cleanup failed", job.id);
+      workerLogger.warn("video.read-access-cleanup.failed", { jobId: job.id });
     });
   }
 }

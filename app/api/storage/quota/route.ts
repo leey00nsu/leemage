@@ -4,6 +4,7 @@ import { withSessionAuth } from "@/lib/auth/session-auth";
 import { StorageProvider } from "@/lib/generated/prisma";
 import { validateQuota } from "@/shared/lib/storage-quota-utils";
 import { lockStorageQuota } from "@/lib/api/storage-quota";
+import { apiLogger, getSafeErrorMetadata } from "@/lib/logging/secure-logger";
 
 // GET: 모든 quota 조회 (세션 기반 인증)
 export const GET = withSessionAuth(async () => {
@@ -17,7 +18,7 @@ export const GET = withSessionAuth(async () => {
       })),
     });
   } catch (error) {
-    console.error("Failed to get storage quotas:", error);
+    apiLogger.error("storage-quota.list.failed", getSafeErrorMetadata(error));
     return NextResponse.json(
       { error: "Failed to get storage quotas" },
       { status: 500 }
@@ -67,7 +68,7 @@ export const PUT = withSessionAuth(async (req: NextRequest) => {
       quotaBytes: Number(quota.quotaBytes),
     });
   } catch (error) {
-    console.error("Failed to set storage quota:", error);
+    apiLogger.error("storage-quota.update.failed", getSafeErrorMetadata(error));
     return NextResponse.json(
       { error: "Failed to set storage quota" },
       { status: 500 }
@@ -96,7 +97,7 @@ export const DELETE = withSessionAuth(async (req: NextRequest) => {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Failed to delete storage quota:", error);
+    apiLogger.error("storage-quota.delete.failed", getSafeErrorMetadata(error));
     return NextResponse.json(
       { error: "Failed to delete storage quota" },
       { status: 500 }

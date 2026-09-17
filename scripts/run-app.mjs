@@ -4,6 +4,19 @@ import { pathToFileURL } from "node:url";
 
 const require = createRequire(import.meta.url);
 
+function log(level, message, data) {
+  const payload = {
+    level,
+    timestamp: new Date().toISOString(),
+    context: "supervisor",
+    message,
+    ...(data && { data }),
+  };
+  const output = JSON.stringify(payload);
+  if (level === "ERROR") console.error(output);
+  else console.log(output);
+}
+
 // One supervisor owns both services. A failed service shuts down its peer so
 // the process manager can restart the complete application.
 export function runProcesses(commands, env = process.env) {
@@ -24,7 +37,8 @@ export function runProcesses(commands, env = process.env) {
         if (detached && child.pid) process.kill(-child.pid, signal);
         else child.kill(signal);
       } catch (error) {
-        if (error.code !== "ESRCH") console.error("Process cleanup failed", error.code);
+        if (error.code !== "ESRCH")
+          log("ERROR", "process.cleanup.failed", { errorCode: error.code });
       }
     }
     function finish() {
@@ -61,13 +75,16 @@ export function runProcesses(commands, env = process.env) {
       children.add(child);
       groups.add(child);
       child.once("error", () => {
-        console.error(`${command.name} failed to start`);
+        log("ERROR", "process.start.failed", { service: command.name });
         stop(1);
       });
       child.once("close", (code, signal) => {
         children.delete(child);
         if (!stopping) {
-          console.error(`${command.name} exited (${signal ?? code}); stopping application`);
+          log("ERROR", "process.exited", {
+            service: command.name,
+            exit: signal ?? code,
+          });
           stop(code || 1);
         } else if (!children.size) finish();
       });
@@ -78,7 +95,9 @@ export function runProcesses(commands, env = process.env) {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const [mode, ...args] = process.argv.slice(2);
   if (mode !== "dev" && mode !== "start") {
-    console.error("Usage: node scripts/run-app.mjs <dev|start> [Next.js arguments]");
+    log("ERROR", "invalid-command", {
+      usage: "node scripts/run-app.mjs <dev|start> [Next.js arguments]",
+    });
     process.exitCode = 1;
   } else {
     const nextArgs = args[0] === "--" ? args.slice(1) : args;

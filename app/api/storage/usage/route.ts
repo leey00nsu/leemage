@@ -7,6 +7,7 @@ import {
   getUsageStatus,
 } from "@/shared/lib/storage-quota-utils";
 import { variantBytesSql } from "@/lib/storage/variant-bytes-sql";
+import { apiLogger, getSafeErrorMetadata } from "@/lib/logging/secure-logger";
 
 export interface StorageProviderUsage {
   provider: "OCI" | "R2";
@@ -93,7 +94,7 @@ export const GET = withSessionAuth(async (req: AuthenticatedRequest) => {
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error("Failed to get storage usage:", error);
+    apiLogger.error("storage.usage.failed", getSafeErrorMetadata(error));
     return NextResponse.json(
       { error: "Failed to get storage usage" },
       { status: 500 }
