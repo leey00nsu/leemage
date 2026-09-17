@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "npm run openapi:generate && node scripts/run-app.mjs dev",
     "build": "npm run openapi:generate && next build",
-    "start": "node scripts/run-app.mjs start",
+    "start": "npm run release && node scripts/run-app.mjs start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

@@ -50,7 +50,7 @@ npm run release
 
 ## 마이그레이션과 롤백
 
-- 배포 파이프라인에서 `npm run release`를 웹 프로세스 시작 전에 한 번만 실행합니다.
+- 현재 단일 인스턴스 배포에서는 `npm run start`가 `npm run release`를 먼저 실행합니다. 여러 인스턴스로 확장할 때는 이를 단일 CI/CD release job으로 분리합니다.
 - 스키마 변경은 expand → 애플리케이션 배포 → contract 순서로 나눕니다. 같은 배포에서 컬럼 추가와 기존 컬럼 삭제를 함께 하지 않습니다.
 - 배포 실패 시 애플리케이션 이미지를 이전 버전으로 되돌립니다. 이미 적용한 migration은 임의로 down migration하지 않고 fix-forward합니다.
 - 데이터 삭제나 타입 축소가 포함된 migration 전에는 즉시 백업을 만들고 별도 DB에서 복구를 검증합니다.

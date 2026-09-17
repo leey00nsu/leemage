@@ -13,9 +13,6 @@ docker build \
   --build-arg NEXT_PUBLIC_SITE_URL=https://leemage.example.com \
   -t leemage:release .
 
-# 각 배포에서 한 번만 실행
-docker run --rm --env-file /secure/leemage.env leemage:release npm run release
-
 docker run -d --name leemage \
   --env-file /secure/leemage.env \
   -p 127.0.0.1:3000:3000 \
@@ -25,14 +22,14 @@ docker run -d --name leemage \
 
 이미지에는 `.env`와 private key를 넣지 않습니다. OCI key는 읽기 전용 secret mount로 제공하거나 `OCI_PRIVATE_KEY_CONTENT`를 secret manager에서 주입합니다. 최소 필수 설정은 DB URL, 세션 cookie 이름과 32자 이상의 password, root 사용자 정보, 스토리지 자격 증명, `NEXT_PUBLIC_SITE_URL`입니다.
 
-프로덕션 이미지는 ffmpeg/ffprobe, PostgreSQL client, Prisma migration CLI를 포함합니다. 기본 프로세스는 migration을 자동 실행하지 않습니다. 여러 인스턴스가 동시에 migration을 시작하는 경쟁을 피하기 위해 release command를 별도 단계에서 한 번만 실행합니다.
+프로덕션 이미지는 ffmpeg/ffprobe, PostgreSQL client, Prisma migration CLI를 포함합니다. 현재 단일 인스턴스 배포에서는 `npm run start`가 `npm run release`를 먼저 실행하며, migration이 성공한 경우에만 웹과 미디어 워커를 시작합니다. 여러 인스턴스로 확장하기 전에는 migration을 단일 CI/CD release job으로 분리하고 각 인스턴스의 시작 경로에서는 제거합니다.
 
 ## 배포 순서
 
 1. CI의 lint, typecheck, test, build, production dependency audit를 통과한 commit으로 이미지를 만듭니다.
 2. 파괴적 migration이면 [백업 런북](database-backup.md)에 따라 즉시 백업합니다.
-3. 새 이미지로 `npm run release`를 한 번 실행합니다.
-4. 새 컨테이너를 시작하고 `/api/health/live`와 `/api/health/ready`가 모두 200인지 확인합니다.
+3. 새 컨테이너를 시작합니다. 시작 명령이 pending migration을 적용하고, 실패하면 애플리케이션을 시작하지 않습니다.
+4. `/api/health/live`와 `/api/health/ready`가 모두 200인지 확인합니다.
 5. 리버스 프록시가 readiness 통과 인스턴스에만 트래픽을 보내도록 전환합니다.
 6. 최소 5분 동안 5xx, p95 latency, DB/storage 오류를 확인한 뒤 이전 컨테이너를 제거합니다.
 
