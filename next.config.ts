@@ -1,9 +1,12 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 
+const scriptSources = ["'self'", "'unsafe-inline'", "https:"];
+if (process.env.NODE_ENV !== "production") scriptSources.push("'unsafe-eval'");
+
 const contentSecurityPolicy = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:",
+  `script-src ${scriptSources.join(" ")}`,
   "style-src 'self' 'unsafe-inline' https:",
   "img-src 'self' data: blob: https:",
   "media-src 'self' blob: https:",
