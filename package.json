@@ -16,6 +16,8 @@
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate deploy",
     "db:deploy": "prisma migrate deploy",
+    "db:backup": "bash scripts/backup-database.sh",
+    "db:restore": "bash scripts/restore-database.sh",
     "release": "npm run db:deploy",
     "start:production": "npm run start --",
     "openapi:generate": "npx tsx scripts/generate-openapi.ts",

@@ -14,6 +14,7 @@ dist
 
 # testing
 /coverage
+/backups/
 
 # next.js
 /.next/
