@@ -124,6 +124,7 @@ cp .env.example .env
 
 프로덕션 백업, 복구 검증, 마이그레이션 순서는 [데이터베이스 백업·복구 런북](docs/operations/database-backup.md)을 따릅니다.
 컨테이너 배포, health probe, 연결 예산과 알림 기준은 [프로덕션 운영 런북](docs/operations/production.md)을 따릅니다.
+10/50/100 RPS와 500-request burst 검증은 [부하 테스트 런북](docs/operations/load-testing.md)을 따릅니다.
 
 ### 비밀번호 해시 생성
 

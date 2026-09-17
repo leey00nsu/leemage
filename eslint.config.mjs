@@ -9,6 +9,7 @@ export default defineConfig([
     ".next/**",
     "coverage/**",
     "lib/generated/**",
+    "load-tests/**",
     "node_modules/**",
     "packages/sdk/dist/**",
     "public/openapi.yaml",
