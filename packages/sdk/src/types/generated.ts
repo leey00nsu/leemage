@@ -1219,8 +1219,8 @@ export interface components {
              */
             presignedUrl: string;
             /**
-             * @description OCI object path. Image objects use either {fileId}-{width}x{height}-{ext}.{ext} (when width/height are provided) or {fileId}-source-{ext}.{ext} (when omitted).
-             * @example clq1234abcd/file5678efgh-source-jpg.jpg
+             * @description Temporary upload object path. Pass this unchanged to the confirm endpoint; the service promotes it to a private final object name.
+             * @example clq1234abcd/file5678efgh-source-jpg.jpg.upload-550e8400-e29b-41d4-a716-446655440000
              */
             objectName: string;
             /**

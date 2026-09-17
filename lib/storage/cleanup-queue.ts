@@ -40,6 +40,16 @@ export async function enqueueOwnedObjects(
 
       SELECT
         "Project"."storageProvider" AS provider,
+        "File"."uploadObjectName" AS "objectName",
+        GREATEST(NOW(), "File"."createdAt" + INTERVAL '20 minutes') AS "availableAt"
+      FROM "File"
+      INNER JOIN "Project" ON "Project".id = "File"."projectId"
+      WHERE ${condition} AND "File"."uploadObjectName" IS NOT NULL
+
+      UNION ALL
+
+      SELECT
+        "Project"."storageProvider" AS provider,
         "File"."projectId" || '/' || regexp_replace(
           split_part(variant.value->>'url', '?', 1), '^.*/', ''
         ) AS "objectName",
@@ -74,27 +84,39 @@ export async function enqueueOwnedObjects(
   `);
 }
 
-export async function enqueueStorageObjects(
+export async function enqueueStorageObjectsInTransaction(
+  tx: Prisma.TransactionClient,
   provider: StorageProvider,
   objectNames: string[],
+  availableAt: Date = new Date(),
 ) {
   const names = [...new Set(objectNames.filter(Boolean))];
   if (names.length === 0) return;
-  await prisma.$transaction(
+  await Promise.all(
     names.map((objectName) =>
-      prisma.objectCleanupJob.upsert({
+      tx.objectCleanupJob.upsert({
         where: { provider_objectName: { provider, objectName } },
-        create: { provider, objectName },
+        create: { provider, objectName, availableAt },
         update: {
           status: "QUEUED",
           attempts: 0,
-          availableAt: new Date(),
+          availableAt,
           leaseUntil: null,
           leaseToken: null,
           lastError: null,
         },
       }),
     ),
+  );
+}
+
+export async function enqueueStorageObjects(
+  provider: StorageProvider,
+  objectNames: string[],
+  availableAt: Date = new Date(),
+) {
+  await prisma.$transaction((tx) =>
+    enqueueStorageObjectsInTransaction(tx, provider, objectNames, availableAt),
   );
 }
 

@@ -46,6 +46,7 @@ beforeEach(() => {
   mocks.reserve.mockResolvedValue({ allowed: true });
   mocks.adapter.mockResolvedValue({
     createPresignedUploadUrl: mocks.presign,
+    getObjectUrl: (name: string) => `https://storage.test/${name}`,
   });
   mocks.presign.mockResolvedValue({
     presignedUrl: "https://storage.test/upload",
@@ -64,6 +65,14 @@ it("reserves quota before issuing an upload URL", async () => {
       projectId: "project",
       size: 100,
       status: "PENDING",
+      objectName: expect.not.stringContaining(".upload-"),
+      uploadObjectName: expect.stringContaining(".upload-"),
+    }),
+  );
+  expect(mocks.presign).toHaveBeenCalledWith(
+    expect.objectContaining({
+      objectName: expect.stringContaining(".upload-"),
+      contentLength: 100,
     }),
   );
   expect(mocks.reserve.mock.invocationCallOrder[0]).toBeLessThan(
@@ -99,4 +108,27 @@ it("releases the pending reservation if URL signing fails", async () => {
   expect(mocks.deleteMany).toHaveBeenCalledWith({
     where: { id: expect.any(String), status: "PENDING" },
   });
+});
+
+it("uses a size-limited application upload capability for OCI", async () => {
+  mocks.project.mockResolvedValue({
+    storageProvider: "OCI",
+    maxUploadBytes: 1024,
+  });
+
+  const response = await presignHandler(request(), "project", "owner");
+  const body = await response.json();
+
+  expect(response.status).toBe(200);
+  expect(body.presignedUrl).toMatch(
+    /^http:\/\/localhost\/api\/uploads\/.+\?token=.+$/,
+  );
+  expect(mocks.presign).not.toHaveBeenCalled();
+  expect(mocks.reserve).toHaveBeenCalledWith(
+    "OCI",
+    expect.objectContaining({
+      uploadTokenHash: expect.stringMatching(/^[a-f0-9]{64}$/),
+      uploadExpiresAt: expect.any(Date),
+    }),
+  );
 });

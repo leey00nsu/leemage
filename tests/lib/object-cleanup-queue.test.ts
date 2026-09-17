@@ -50,8 +50,10 @@ beforeEach(() => {
   mocks.deleteObject.mockResolvedValue(undefined);
   mocks.deleteMany.mockResolvedValue({ count: 1 });
   mocks.updateMany.mockResolvedValue({ count: 1 });
-  mocks.transaction.mockImplementation(async (operations) =>
-    Promise.all(operations),
+  mocks.transaction.mockImplementation(async (operation) =>
+    typeof operation === "function"
+      ? operation({ objectCleanupJob: { upsert: mocks.upsert } })
+      : Promise.all(operation),
   );
 });
 

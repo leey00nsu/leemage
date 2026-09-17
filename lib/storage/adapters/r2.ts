@@ -11,12 +11,14 @@ import {
 } from "../adapter";
 import { StorageProvider } from "../types";
 import { createStorageError, StorageErrorCode } from "../errors";
+import type { Readable } from "node:stream";
 
 // Lazy-loaded S3 client to avoid import errors when not configured
 let S3Client: typeof import("@aws-sdk/client-s3").S3Client;
 let PutObjectCommand: typeof import("@aws-sdk/client-s3").PutObjectCommand;
 let GetObjectCommand: typeof import("@aws-sdk/client-s3").GetObjectCommand;
 let DeleteObjectCommand: typeof import("@aws-sdk/client-s3").DeleteObjectCommand;
+let CopyObjectCommand: typeof import("@aws-sdk/client-s3").CopyObjectCommand;
 let getSignedUrl: typeof import("@aws-sdk/s3-request-presigner").getSignedUrl;
 
 async function loadS3Dependencies() {
@@ -26,6 +28,7 @@ async function loadS3Dependencies() {
     PutObjectCommand = s3Module.PutObjectCommand;
     GetObjectCommand = s3Module.GetObjectCommand;
     DeleteObjectCommand = s3Module.DeleteObjectCommand;
+    CopyObjectCommand = s3Module.CopyObjectCommand;
 
     const presignerModule = await import("@aws-sdk/s3-request-presigner");
     getSignedUrl = presignerModule.getSignedUrl;
@@ -94,6 +97,7 @@ export class CloudflareR2Adapter implements StorageAdapter {
       Bucket: bucketName,
       Key: options.objectName,
       ContentType: options.contentType,
+      ContentLength: options.contentLength,
     });
 
     const presignedUrl = await getSignedUrl(client, command, {
@@ -121,6 +125,10 @@ export class CloudflareR2Adapter implements StorageAdapter {
   }
 
   async getObjectSize(objectName: string) {
+    return (await this.getObjectMetadata(objectName)).size;
+  }
+
+  async getObjectMetadata(objectName: string) {
     const { HeadObjectCommand } = await import("@aws-sdk/client-s3");
     const client = await this.getClient();
     const response = await client.send(
@@ -128,7 +136,30 @@ export class CloudflareR2Adapter implements StorageAdapter {
     );
     if (response.ContentLength === undefined)
       throw new Error("Missing object size");
-    return response.ContentLength;
+    if (!response.ETag) throw new Error("Missing object revision");
+    return { size: response.ContentLength, revision: response.ETag };
+  }
+
+  async promoteObject(
+    sourceObjectName: string,
+    destinationObjectName: string,
+    sourceRevision: string,
+  ) {
+    await loadS3Dependencies();
+    const client = await this.getClient();
+    const bucketName = this.getBucketName();
+    const copySource = encodeURIComponent(
+      `${bucketName}/${sourceObjectName}`,
+    ).replace(/%2F/g, "/");
+
+    await client.send(
+      new CopyObjectCommand({
+        Bucket: bucketName,
+        Key: destinationObjectName,
+        CopySource: copySource,
+        CopySourceIfMatch: sourceRevision,
+      }),
+    );
   }
 
   async downloadObject(objectName: string): Promise<Buffer> {
@@ -176,6 +207,26 @@ export class CloudflareR2Adapter implements StorageAdapter {
     await client.send(command);
 
     return this.getObjectUrl(objectName);
+  }
+
+  async uploadObjectStream(
+    objectName: string,
+    body: Readable,
+    contentType: string,
+    contentLength: number,
+  ) {
+    await loadS3Dependencies();
+    const client = await this.getClient();
+    await client.send(
+      new PutObjectCommand({
+        Bucket: this.getBucketName(),
+        Key: objectName,
+        Body: body,
+        ContentType: contentType,
+        ContentLength: contentLength,
+        IfNoneMatch: "*",
+      }),
+    );
   }
 
   async deleteObject(objectName: string): Promise<void> {

@@ -24,9 +24,8 @@ export function getRateLimitPolicyIdForPath(pathname: string): RateLimitPolicyId
   }
 
   if (
-    /^\/api(?:\/v1)?\/projects\/[^/]+\/files\/(?:presign|confirm)$/.test(
-      pathname,
-    )
+    /^\/api(?:\/v1)?\/projects\/[^/]+\/files\/(?:presign|confirm)$/.test(pathname) ||
+    /^\/api\/uploads\/[^/]+$/.test(pathname)
   ) {
     return "uploadConfirm";
   }

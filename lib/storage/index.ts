@@ -5,7 +5,7 @@
  */
 
 export { StorageProvider, STORAGE_PROVIDER_LABELS, STORAGE_PROVIDER_DESCRIPTIONS, DEFAULT_STORAGE_PROVIDER } from "./types";
-export type { StorageAdapter, CreatePresignedUrlOptions, PresignedUrlResult } from "./adapter";
+export type { StorageAdapter, CreatePresignedUrlOptions, ObjectMetadata, PresignedUrlResult } from "./adapter";
 export { StorageFactory } from "./factory";
 export { StorageError, StorageErrorCode, STORAGE_ERROR_MESSAGES, translateStorageError, createStorageError } from "./errors";
 export { fromPrismaStorageProvider, toPrismaStorageProvider, isValidStorageProvider } from "./utils";

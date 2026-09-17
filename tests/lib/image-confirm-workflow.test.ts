@@ -15,7 +15,9 @@ const mocks = vi.hoisted(() => ({
   quota: vi.fn(),
   queryRaw: vi.fn(),
   executeRaw: vi.fn(),
+  cleanupUpsert: vi.fn(),
   head: vi.fn(),
+  promote: vi.fn(),
   download: vi.fn(),
   upload: vi.fn(),
   remove: vi.fn(),
@@ -37,6 +39,7 @@ vi.mock("@/lib/prisma", () => {
       updateMany: mocks.updateJobs,
     },
     storageQuota: { findUnique: mocks.quota },
+    objectCleanupJob: { upsert: mocks.cleanupUpsert },
     $queryRaw: mocks.queryRaw,
     $executeRaw: mocks.executeRaw,
   };
@@ -63,6 +66,7 @@ const pendingFile = {
   id: "f",
   projectId: "p",
   objectName: "p/f.png",
+  uploadObjectName: "p/f.png.upload-token",
   name: "한글 이미지.png",
   mimeType: "image/png",
   size: 100,
@@ -74,6 +78,7 @@ const pendingFile = {
 };
 const queuedFile = {
   ...pendingFile,
+  uploadObjectName: null,
   status: "COMPLETED",
   processingStatus: "QUEUED",
   url: "https://assets.test/p/f.png",
@@ -92,7 +97,7 @@ const confirm = (variants: unknown[] = []) =>
       method: "POST",
       body: JSON.stringify({
         fileId: "f",
-        objectName: "p/f.png",
+        objectName: "p/f.png.upload-token",
         fileName: "한글 이미지.png",
         contentType: "image/png",
         fileSize: 100,
@@ -118,10 +123,13 @@ beforeEach(() => {
   mocks.quota.mockResolvedValue(null);
   mocks.queryRaw.mockResolvedValue([{ bytes: BigInt(100) }]);
   mocks.executeRaw.mockResolvedValue(1);
-  mocks.head.mockResolvedValue(100);
+  mocks.head.mockResolvedValue({ size: 100, revision: "etag" });
+  mocks.promote.mockResolvedValue(undefined);
+  mocks.cleanupUpsert.mockResolvedValue({});
   mocks.remove.mockResolvedValue(undefined);
   mocks.adapter.mockResolvedValue({
-    getObjectSize: mocks.head,
+    getObjectMetadata: mocks.head,
+    promoteObject: mocks.promote,
     getObjectUrl: () => "https://assets.test/p/f.png",
     downloadObject: mocks.download,
     uploadObject: mocks.upload,
@@ -145,6 +153,11 @@ it("atomically queues image work without downloading in the request", async () =
       variants: [{ sizeLabel: "max800", format: "webp" }],
     },
   });
+  expect(mocks.promote).toHaveBeenCalledWith(
+    "p/f.png.upload-token",
+    "p/f.png",
+    "etag",
+  );
   expect(mocks.updateFiles).toHaveBeenCalledWith(
     expect.objectContaining({
       where: expect.objectContaining({
@@ -155,6 +168,7 @@ it("atomically queues image work without downloading in the request", async () =
       data: expect.objectContaining({
         status: "COMPLETED",
         processingStatus: "QUEUED",
+        uploadObjectName: null,
       }),
     }),
   );

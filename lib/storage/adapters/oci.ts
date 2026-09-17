@@ -11,6 +11,7 @@ import {
 } from "../adapter";
 import { StorageProvider } from "../types";
 import { createStorageError, StorageErrorCode } from "../errors";
+import type { Readable } from "node:stream";
 
 export class OCIStorageAdapter implements StorageAdapter {
   readonly provider = StorageProvider.OCI;
@@ -60,9 +61,31 @@ export class OCIStorageAdapter implements StorageAdapter {
   }
 
   async getObjectSize(objectName: string) {
+    return (await this.getObjectMetadata(objectName)).size;
+  }
+
+  async getObjectMetadata(objectName: string) {
     const { client, ...location } = await this.readContext();
     const response = await client.headObject({ ...location, objectName });
-    return response.contentLength;
+    if (!response.eTag) throw new Error("Missing object revision");
+    return { size: response.contentLength, revision: response.eTag };
+  }
+
+  async promoteObject(
+    sourceObjectName: string,
+    destinationObjectName: string,
+    sourceRevision: string,
+  ) {
+    const { client, ...location } = await this.readContext();
+    await client.renameObject({
+      ...location,
+      renameObjectDetails: {
+        sourceName: sourceObjectName,
+        newName: destinationObjectName,
+        srcObjIfMatchETag: sourceRevision,
+        newObjIfNoneMatchETag: "*",
+      },
+    });
   }
 
   async createReadAccess(objectName: string) {
@@ -110,6 +133,23 @@ export class OCIStorageAdapter implements StorageAdapter {
 
     const { uploadObject } = await import("@/lib/oci");
     return uploadObject(objectName, buffer, contentType);
+  }
+
+  async uploadObjectStream(
+    objectName: string,
+    body: Readable,
+    contentType: string,
+    contentLength: number,
+  ) {
+    const { client, ...location } = await this.readContext();
+    await client.putObject({
+      ...location,
+      objectName,
+      putObjectBody: body,
+      contentType,
+      contentLength,
+      ifNoneMatch: "*",
+    });
   }
 
   async deleteObject(objectName: string): Promise<void> {

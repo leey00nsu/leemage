@@ -3,10 +3,14 @@ import { prisma } from "@/lib/prisma";
 import type { StorageAdapter } from "@/lib/storage";
 import { attachResponseLogMetadata } from "@/lib/api/request-log-metadata";
 import { invalidateAllStorageCaches } from "@/lib/api/storage-quota";
+import type { StorageProvider } from "@/lib/generated/prisma";
+import { enqueueUploadCleanup } from "@/lib/api/confirm/promote-upload";
 
 interface HandleOtherConfirmInput {
   fileId: string;
   objectName: string;
+  uploadObjectName: string;
+  cleanupProvider: StorageProvider;
   fileName: string;
   contentType: string;
   fileSize: number;
@@ -16,6 +20,8 @@ interface HandleOtherConfirmInput {
 export async function handleOtherConfirm({
   fileId,
   objectName,
+  uploadObjectName,
+  cleanupProvider,
   fileName,
   contentType,
   fileSize,
@@ -33,11 +39,17 @@ export async function handleOtherConfirm({
         size: fileSize,
         url: objectUrl,
         objectName,
+        uploadObjectName: null,
+        uploadTokenHash: null,
+        uploadExpiresAt: null,
         status: "COMPLETED",
         uploadedAt: new Date(),
         variants: [],
       },
     });
+    if (claimed.count) {
+      await enqueueUploadCleanup(tx, cleanupProvider, uploadObjectName);
+    }
     const file = await tx.file.findUnique({ where: { id: fileId } });
     if (!file || file.status !== "COMPLETED") {
       throw new Error("File confirmation was not claimed");

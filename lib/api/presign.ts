@@ -18,6 +18,7 @@ import {
 import { reservePendingUpload } from "@/lib/api/storage-quota";
 import { attachResponseLogMetadata } from "@/lib/api/request-log-metadata";
 import { apiLogger, getSafeErrorMetadata } from "@/lib/logging/secure-logger";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 
 export type PresignRequest = z.infer<typeof presignRequestSchema>;
 
@@ -137,11 +138,20 @@ export async function presignHandler(
       );
     }
 
-    const objectName = isImage
+    const finalObjectName = isImage
       ? width !== undefined && height !== undefined
         ? `${projectId}/${fileId}-${width}x${height}-${extension}.${extension}`
         : `${projectId}/${fileId}-source-${extension}.${extension}`
       : `${projectId}/${fileId}.${extension}`;
+    const uploadObjectName = `${finalObjectName}.upload-${randomUUID()}`;
+    const uploadExpiresAt = new Date(Date.now() + 15 * 60 * 1000);
+    const uploadToken =
+      project.storageProvider === "OCI"
+        ? randomBytes(32).toString("base64url")
+        : null;
+    const uploadTokenHash = uploadToken
+      ? createHash("sha256").update(uploadToken).digest("hex")
+      : null;
 
     // 프로젝트의 스토리지 프로바이더에 맞는 어댑터 가져오기
     const storageProvider = fromPrismaStorageProvider(project.storageProvider);
@@ -153,7 +163,10 @@ export async function presignHandler(
       mimeType: contentType,
       isImage,
       size: fileSize,
-      objectName,
+      objectName: finalObjectName,
+      uploadObjectName,
+      uploadTokenHash,
+      uploadExpiresAt,
       status: "PENDING",
       variants: [],
       projectId,
@@ -171,11 +184,21 @@ export async function presignHandler(
 
     let parResult;
     try {
-      parResult = await storageAdapter.createPresignedUploadUrl({
-        objectName,
-        contentType,
-        expiresInMinutes: 15,
-      });
+      parResult = uploadToken
+        ? {
+            presignedUrl: new URL(
+              `/api/uploads/${fileId}?token=${encodeURIComponent(uploadToken)}`,
+              request.url,
+            ).toString(),
+            objectUrl: storageAdapter.getObjectUrl(finalObjectName),
+            expiresAt: uploadExpiresAt,
+          }
+        : await storageAdapter.createPresignedUploadUrl({
+            objectName: uploadObjectName,
+            contentType,
+            contentLength: fileSize,
+            expiresInMinutes: 15,
+          });
     } catch (error) {
       await prisma.file.deleteMany({
         where: { id: fileId, status: "PENDING" },
@@ -185,8 +208,8 @@ export async function presignHandler(
 
     const payload: PresignResponse = {
       presignedUrl: parResult.presignedUrl,
-      objectName,
-      objectUrl: parResult.objectUrl,
+      objectName: uploadObjectName,
+      objectUrl: storageAdapter.getObjectUrl(finalObjectName),
       fileId,
       expiresAt: parResult.expiresAt.toISOString(),
     };

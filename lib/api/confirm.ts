@@ -17,6 +17,7 @@ import { handleImageConfirm } from "@/lib/api/confirm/image-workflow";
 import { handleVideoConfirm } from "@/lib/api/confirm/video-workflow";
 import { handleOtherConfirm } from "@/lib/api/confirm/other-workflow";
 import { apiLogger, getSafeErrorMetadata } from "@/lib/logging/secure-logger";
+import { promoteUpload } from "@/lib/api/confirm/promote-upload";
 
 export type {
   ConfirmRequest,
@@ -55,6 +56,7 @@ async function getProjectStorageProvider(projectId: string) {
 
   return {
     ...project,
+    cleanupProvider: project.storageProvider,
     storageProvider: fromPrismaStorageProvider(project.storageProvider),
   };
 }
@@ -154,10 +156,11 @@ export async function confirmHandler(
     });
     if (
       !pending ||
-      pending.objectName !== objectName ||
       pending.size !== fileSize ||
       pending.mimeType !== contentType ||
-      pending.name !== fileName
+      pending.name !== fileName ||
+      (pending.status === "PENDING" &&
+        pending.uploadObjectName !== objectName)
     ) {
       return NextResponse.json(
         { message: "Upload does not match a pending presigned request." },
@@ -198,6 +201,12 @@ export async function confirmHandler(
     const storageAdapter = await StorageFactory.getAdapter(
       project.storageProvider,
     );
+    if (!pending.objectName || !pending.uploadObjectName) {
+      return NextResponse.json(
+        { message: "Upload cannot be confirmed in its current state." },
+        { status: 409 },
+      );
+    }
 
     const declaredSizeError = uploadLimitError(
       fileSize,
@@ -205,7 +214,9 @@ export async function confirmHandler(
     );
     if (declaredSizeError) return declaredSizeError;
 
-    const actualSize = await storageAdapter.getObjectSize(objectName);
+    const uploadMetadata =
+      await storageAdapter.getObjectMetadata(pending.uploadObjectName);
+    const actualSize = uploadMetadata.size;
     const actualSizeError = uploadLimitError(
       actualSize,
       project.maxUploadBytes,
@@ -217,6 +228,14 @@ export async function confirmHandler(
         { status: 400 },
       );
 
+    await promoteUpload({
+      storageAdapter,
+      uploadObjectName: pending.uploadObjectName,
+      finalObjectName: pending.objectName,
+      expectedSize: actualSize,
+      sourceRevision: uploadMetadata.revision,
+    });
+
     if (isImageMimeType(contentType)) {
       const imageSizeError = imageUploadLimitError(
         actualSize,
@@ -226,7 +245,9 @@ export async function confirmHandler(
       return handleImageConfirm({
         projectId,
         fileId,
-        objectName,
+        objectName: pending.objectName,
+        uploadObjectName: pending.uploadObjectName,
+        cleanupProvider: project.cleanupProvider,
         fileName,
         contentType,
         fileSize,
@@ -240,7 +261,9 @@ export async function confirmHandler(
         videoThumbnailEnabled: project.videoThumbnailEnabled,
         projectId,
         fileId,
-        objectName,
+        objectName: pending.objectName,
+        uploadObjectName: pending.uploadObjectName,
+        cleanupProvider: project.cleanupProvider,
         fileName,
         contentType,
         fileSize,
@@ -250,7 +273,9 @@ export async function confirmHandler(
 
     return handleOtherConfirm({
       fileId,
-      objectName,
+      objectName: pending.objectName,
+      uploadObjectName: pending.uploadObjectName,
+      cleanupProvider: project.cleanupProvider,
       fileName,
       contentType,
       fileSize,

@@ -8,6 +8,8 @@ const mocks = vi.hoisted(() => ({
   head: vi.fn(),
   download: vi.fn(),
   updateJob: vi.fn(),
+  cleanupUpsert: vi.fn(),
+  promote: vi.fn(),
   release: vi.fn(),
   remove: vi.fn(),
   upload: vi.fn(),
@@ -24,6 +26,7 @@ vi.mock("@/lib/prisma", () => {
     },
     project: { findUnique: mocks.project },
     videoJob: { create: mocks.createJob, updateMany: mocks.updateJob },
+    objectCleanupJob: { upsert: mocks.cleanupUpsert },
   };
   return {
     prisma: {
@@ -43,7 +46,8 @@ vi.mock("@/lib/storage", () => ({
   StorageFactory: {
     getAdapter: async () => ({
       getObjectUrl: () => "https://assets.test/p/f.mp4",
-      getObjectSize: mocks.head,
+      getObjectMetadata: mocks.head,
+      promoteObject: mocks.promote,
       downloadObject: mocks.download,
       createReadAccess: async () => ({
         url: "https://storage.test/private?secret=never-log",
@@ -62,7 +66,7 @@ import sharp from "sharp";
 const MIB = 1024 * 1024;
 const payload = {
   fileId: "f",
-  objectName: "p/f.mp4",
+  objectName: "p/f.mp4.upload-token",
   fileName: "한글 영상.mp4",
   contentType: "video/mp4",
   fileSize: 80 * MIB,
@@ -89,7 +93,8 @@ beforeEach(() => {
     name: payload.fileName,
     mimeType: payload.contentType,
     size: payload.fileSize,
-    objectName: payload.objectName,
+    objectName: "p/f.mp4",
+    uploadObjectName: payload.objectName,
     projectId: "p",
     status: "PENDING",
     processingStatus: "NONE",
@@ -97,7 +102,9 @@ beforeEach(() => {
     url: "https://assets.test/p/f.mp4",
     project: { storageProvider: "R2", videoThumbnailEnabled: true },
   });
-  mocks.head.mockResolvedValue(payload.fileSize);
+  mocks.head.mockResolvedValue({ size: payload.fileSize, revision: "etag" });
+  mocks.promote.mockResolvedValue(undefined);
+  mocks.cleanupUpsert.mockResolvedValue({});
   mocks.update.mockResolvedValue({ count: 1 });
   mocks.updateJob.mockResolvedValue({ count: 1 });
   mocks.release.mockResolvedValue(undefined);
@@ -109,6 +116,11 @@ it("confirms an 80 MiB Korean-named video without downloading it and atomically 
   expect(mocks.download).not.toHaveBeenCalled();
   expect(mocks.process).not.toHaveBeenCalled();
   expect(mocks.createJob).toHaveBeenCalledWith({ data: { id: "f" } });
+  expect(mocks.promote).toHaveBeenCalledWith(
+    payload.objectName,
+    "p/f.mp4",
+    "etag",
+  );
   expect(mocks.update).toHaveBeenCalledWith(
     expect.objectContaining({
       data: expect.objectContaining({
@@ -135,7 +147,7 @@ it("rejects a forged object key before reading storage", async () => {
   expect(mocks.head).not.toHaveBeenCalled();
 });
 it("rejects actual oversized objects even when declared size is within limit", async () => {
-  mocks.head.mockResolvedValue(101 * MIB);
+  mocks.head.mockResolvedValue({ size: 101 * MIB, revision: "etag" });
   const response = await confirm();
   expect(response.status).toBe(413);
   expect(await response.json()).toMatchObject({
@@ -145,7 +157,10 @@ it("rejects actual oversized objects even when declared size is within limit", a
   expect(mocks.createJob).not.toHaveBeenCalled();
 });
 it("rejects declared size mismatch and duplicate confirmation", async () => {
-  mocks.head.mockResolvedValue(payload.fileSize - 1);
+  mocks.head.mockResolvedValue({
+    size: payload.fileSize - 1,
+    revision: "etag",
+  });
   expect((await confirm()).status).toBe(400);
   mocks.find.mockResolvedValue(null);
   expect((await confirm()).status).toBe(400);

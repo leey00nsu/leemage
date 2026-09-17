@@ -5,10 +5,12 @@
  */
 
 import { StorageProvider } from "./types";
+import type { Readable } from "node:stream";
 
 export interface CreatePresignedUrlOptions {
   objectName: string;
   contentType: string;
+  contentLength?: number;
   expiresInMinutes?: number;
 }
 
@@ -18,6 +20,11 @@ export interface PresignedUrlResult {
   expiresAt: Date;
 }
 
+export interface ObjectMetadata {
+  size: number;
+  revision: string;
+}
+
 export interface StorageAdapter {
   readonly provider: StorageProvider;
 
@@ -25,6 +32,12 @@ export interface StorageAdapter {
     objectName: string,
   ): Promise<{ url: string; release?: () => Promise<void> }>;
   getObjectSize(objectName: string): Promise<number>;
+  getObjectMetadata(objectName: string): Promise<ObjectMetadata>;
+  promoteObject(
+    sourceObjectName: string,
+    destinationObjectName: string,
+    sourceRevision: string,
+  ): Promise<void>;
 
   /**
    * Creates a presigned URL for uploading a file directly to storage.
@@ -46,6 +59,12 @@ export interface StorageAdapter {
     buffer: Buffer,
     contentType: string,
   ): Promise<string>;
+  uploadObjectStream(
+    objectName: string,
+    body: Readable,
+    contentType: string,
+    contentLength: number,
+  ): Promise<void>;
 
   /**
    * Deletes an object from storage.

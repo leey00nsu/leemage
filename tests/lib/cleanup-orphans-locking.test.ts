@@ -42,6 +42,9 @@ it("locks pending cleanup candidates before enqueueing their objects", async () 
   expect(mocks.executeRaw.mock.invocationCallOrder[0]).toBeLessThan(
     mocks.deleteMany.mock.invocationCallOrder[0],
   );
+  expect(mocks.executeRaw.mock.calls[0]?.[0].strings.join(" ")).toContain(
+    '"File"."uploadObjectName"',
+  );
   expect(mocks.deleteMany).toHaveBeenCalledWith({
     where: {
       id: { in: ["pending-file"] },

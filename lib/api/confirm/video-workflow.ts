@@ -2,11 +2,15 @@ import { NextResponse } from "next/server";
 import type { StorageAdapter } from "@/lib/storage";
 import { prisma } from "@/lib/prisma";
 import { invalidateAllStorageCaches } from "@/lib/api/storage-quota";
+import type { StorageProvider } from "@/lib/generated/prisma";
+import { enqueueUploadCleanup } from "@/lib/api/confirm/promote-upload";
 
 interface HandleVideoConfirmInput {
   projectId: string;
   fileId: string;
   objectName: string;
+  uploadObjectName: string;
+  cleanupProvider: StorageProvider;
   fileName: string;
   contentType: string;
   fileSize: number;
@@ -17,6 +21,8 @@ interface HandleVideoConfirmInput {
 export async function handleVideoConfirm({
   fileId,
   objectName,
+  uploadObjectName,
+  cleanupProvider,
   fileName,
   contentType,
   fileSize,
@@ -33,6 +39,9 @@ export async function handleVideoConfirm({
         size: fileSize,
         url: storageAdapter.getObjectUrl(objectName),
         objectName,
+        uploadObjectName: null,
+        uploadTokenHash: null,
+        uploadExpiresAt: null,
         status: "COMPLETED",
         uploadedAt: new Date(),
         processingStatus: videoThumbnailEnabled ? "QUEUED" : "SKIPPED",
@@ -46,6 +55,7 @@ export async function handleVideoConfirm({
       }
       throw new Error("File confirmation was not claimed");
     }
+    await enqueueUploadCleanup(tx, cleanupProvider, uploadObjectName);
     if (videoThumbnailEnabled)
       await tx.videoJob.create({ data: { id: fileId } });
     const file = await tx.file.findUniqueOrThrow({ where: { id: fileId } });

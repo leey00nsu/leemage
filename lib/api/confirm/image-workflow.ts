@@ -5,11 +5,15 @@ import { prisma } from "@/lib/prisma";
 import { invalidateAllStorageCaches } from "@/lib/api/storage-quota";
 import { attachResponseLogMetadata } from "@/lib/api/request-log-metadata";
 import type { VariantOption } from "@/lib/api/confirm/types";
+import type { StorageProvider } from "@/lib/generated/prisma";
+import { enqueueUploadCleanup } from "@/lib/api/confirm/promote-upload";
 
 interface HandleImageConfirmInput {
   projectId: string;
   fileId: string;
   objectName: string;
+  uploadObjectName: string;
+  cleanupProvider: StorageProvider;
   fileName: string;
   contentType: string;
   fileSize: number;
@@ -21,6 +25,8 @@ export async function handleImageConfirm({
   projectId,
   fileId,
   objectName,
+  uploadObjectName,
+  cleanupProvider,
   fileName,
   contentType,
   fileSize,
@@ -42,6 +48,9 @@ export async function handleImageConfirm({
         size: fileSize,
         url: storageAdapter.getObjectUrl(objectName),
         objectName,
+        uploadObjectName: null,
+        uploadTokenHash: null,
+        uploadExpiresAt: null,
         status: "COMPLETED",
         uploadedAt: new Date(),
         processingStatus: "QUEUED",
@@ -50,6 +59,7 @@ export async function handleImageConfirm({
     });
 
     if (claimed.count) {
+      await enqueueUploadCleanup(tx, cleanupProvider, uploadObjectName);
       await tx.imageJob.create({
         data: {
           id: fileId,
