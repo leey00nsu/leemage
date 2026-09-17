@@ -8,6 +8,10 @@ const mocks = vi.hoisted(() => ({
   head: vi.fn(),
   download: vi.fn(),
   updateJob: vi.fn(),
+  findJob: vi.fn(),
+  quota: vi.fn(),
+  queryRaw: vi.fn(),
+  executeRaw: vi.fn(),
   cleanupUpsert: vi.fn(),
   promote: vi.fn(),
   release: vi.fn(),
@@ -25,8 +29,15 @@ vi.mock("@/lib/prisma", () => {
       update: mocks.update,
     },
     project: { findUnique: mocks.project },
-    videoJob: { create: mocks.createJob, updateMany: mocks.updateJob },
+    videoJob: {
+      create: mocks.createJob,
+      findFirst: mocks.findJob,
+      updateMany: mocks.updateJob,
+    },
+    storageQuota: { findUnique: mocks.quota },
     objectCleanupJob: { upsert: mocks.cleanupUpsert },
+    $queryRaw: mocks.queryRaw,
+    $executeRaw: mocks.executeRaw,
   };
   return {
     prisma: {
@@ -37,9 +48,6 @@ vi.mock("@/lib/prisma", () => {
 });
 vi.mock("@/lib/auth/ownership", () => ({
   verifyProjectOwnership: async () => ({ authorized: true }),
-}));
-vi.mock("@/lib/api/storage-quota", () => ({
-  invalidateAllStorageCaches: vi.fn(),
 }));
 vi.mock("@/lib/storage", () => ({
   fromPrismaStorageProvider: (v: string) => v,
@@ -107,6 +115,10 @@ beforeEach(() => {
   mocks.cleanupUpsert.mockResolvedValue({});
   mocks.update.mockResolvedValue({ count: 1 });
   mocks.updateJob.mockResolvedValue({ count: 1 });
+  mocks.findJob.mockResolvedValue(job);
+  mocks.quota.mockResolvedValue(null);
+  mocks.queryRaw.mockResolvedValue([{ bytes: BigInt(payload.fileSize) }]);
+  mocks.executeRaw.mockResolvedValue(1);
   mocks.release.mockResolvedValue(undefined);
   mocks.remove.mockResolvedValue(undefined);
   mocks.upload.mockResolvedValue("https://assets.test/p/thumbnail.jpg");
@@ -222,4 +234,30 @@ it("publishes only a small thumbnail and preserves original availability", async
     }),
   );
   expect(mocks.remove).not.toHaveBeenCalled();
+});
+it("drops a generated thumbnail when its actual bytes exceed quota", async () => {
+  const thumbnail = await sharp({
+    create: { width: 16, height: 16, channels: 3, background: "red" },
+  })
+    .jpeg()
+    .toBuffer();
+  mocks.process.mockResolvedValue({ width: 1920, height: 1080, thumbnail });
+  mocks.quota.mockResolvedValue({ quotaBytes: BigInt(payload.fileSize) });
+
+  await executeVideoJob(job);
+
+  expect(mocks.updateJob).toHaveBeenCalledWith(
+    expect.objectContaining({
+      where: expect.objectContaining({ leaseToken: "lease" }),
+      data: expect.objectContaining({
+        status: "FAILED",
+        lastError: "STORAGE_QUOTA_EXCEEDED",
+      }),
+    }),
+  );
+  expect(mocks.update).toHaveBeenCalledWith({
+    where: { id: "f" },
+    data: { processingStatus: "FAILED" },
+  });
+  expect(mocks.remove).toHaveBeenCalledWith("p/f-thumbnail-lease.jpg");
 });

@@ -7,7 +7,11 @@ import {
   type VideoJob,
 } from "@/lib/generated/prisma";
 import { StorageFactory, fromPrismaStorageProvider } from "@/lib/storage";
-import { invalidateAllStorageCaches } from "@/lib/api/storage-quota";
+import {
+  getReservedStorageBytes,
+  invalidateAllStorageCaches,
+  lockStorageQuota,
+} from "@/lib/api/storage-quota";
 import { processRemoteVideo } from "./remote";
 import { enqueueStorageObjects } from "@/lib/storage/cleanup-queue";
 import { workerLogger } from "@/lib/logging/secure-logger";
@@ -142,6 +146,34 @@ export async function executeVideoJob(job: VideoJob): Promise<void> {
       },
     ];
     const saved = await prisma.$transaction(async (tx) => {
+      const owned = await tx.videoJob.findFirst({ where: ownership });
+      if (!owned) return false;
+      await lockStorageQuota(tx, file.project.storageProvider);
+      const quota = await tx.storageQuota.findUnique({
+        where: { provider: file.project.storageProvider },
+      });
+      const quotaBytes = Number(quota?.quotaBytes ?? 0);
+      const used =
+        quotaBytes > 0
+          ? await getReservedStorageBytes(tx, file.project.storageProvider)
+          : 0;
+      if (quotaBytes > 0 && used + result.thumbnail.length > quotaBytes) {
+        const failed = await tx.videoJob.updateMany({
+          where: ownership,
+          data: {
+            status: "FAILED",
+            leaseUntil: null,
+            leaseToken: null,
+            lastError: "STORAGE_QUOTA_EXCEEDED",
+          },
+        });
+        if (failed.count)
+          await tx.file.update({
+            where: { id: file.id },
+            data: { processingStatus: "FAILED" },
+          });
+        return false;
+      }
       const updated = await tx.videoJob.updateMany({
         where: ownership,
         data: {
