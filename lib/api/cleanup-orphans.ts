@@ -14,12 +14,19 @@ async function cleanupFiles(
     `);
     if (!lock[0]?.locked) return 0;
 
-    const files = await tx.file.findMany({
-      where: { status, createdAt: { lt: cutoff } },
-      orderBy: { createdAt: "asc" },
-      take: 100,
-      select: { id: true },
-    });
+    // Lock candidates until the outbox entry and database deletion commit.
+    // Without the row lock, confirm can change a candidate to COMPLETED after
+    // this read, leaving a live database row whose object is still queued for
+    // deletion.
+    const files = await tx.$queryRaw<{ id: string }[]>(Prisma.sql`
+      SELECT id
+      FROM "File"
+      WHERE status = ${status}::"FileStatus"
+        AND "createdAt" < ${cutoff}
+      ORDER BY "createdAt" ASC
+      LIMIT 100
+      FOR UPDATE SKIP LOCKED
+    `);
     if (files.length === 0) return 0;
 
     const fileIds = files.map((file) => file.id);
