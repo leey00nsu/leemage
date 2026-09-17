@@ -123,6 +123,7 @@ cp .env.example .env
 각 변수에 대한 상세 설명과 설정 방법은 [.env.example](.env.example) 파일을 참조하세요.
 
 프로덕션 백업, 복구 검증, 마이그레이션 순서는 [데이터베이스 백업·복구 런북](docs/operations/database-backup.md)을 따릅니다.
+컨테이너 배포, health probe, 연결 예산과 알림 기준은 [프로덕션 운영 런북](docs/operations/production.md)을 따릅니다.
 
 ### 비밀번호 해시 생성
 

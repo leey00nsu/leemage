@@ -1,0 +1,15 @@
+.git
+.github
+.next
+.env
+.env.*
+!.env.example
+backups
+coverage
+docs
+node_modules
+npm-debug.log*
+packages/sdk
+plan
+public/readme-captures
+tests
