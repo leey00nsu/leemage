@@ -26,9 +26,9 @@ docker run -d --name leemage \
 
 ## 배포 순서
 
-1. CI의 lint, typecheck, test, build, production dependency audit를 통과한 commit으로 이미지를 만듭니다.
+1. 로컬 pre-commit의 OpenAPI/SDK 생성 및 테스트와 pre-push의 production build 검사를 통과한 commit을 `main`에 push합니다.
 2. 파괴적 migration이면 [백업 런북](database-backup.md)에 따라 즉시 백업합니다.
-3. 새 컨테이너를 시작합니다. 시작 명령이 pending migration을 적용하고, 실패하면 애플리케이션을 시작하지 않습니다.
+3. Coolify 자동 배포가 새 이미지를 빌드하고 컨테이너를 시작합니다. 시작 명령이 pending migration을 적용하며, 실패하면 애플리케이션을 시작하지 않습니다.
 4. `/api/health/live`와 `/api/health/ready`가 모두 200인지 확인합니다.
 5. 리버스 프록시가 readiness 통과 인스턴스에만 트래픽을 보내도록 전환합니다.
 6. 최소 5분 동안 5xx, p95 latency, DB/storage 오류를 확인한 뒤 이전 컨테이너를 제거합니다.
