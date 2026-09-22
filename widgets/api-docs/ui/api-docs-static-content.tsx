@@ -1,7 +1,6 @@
 import { ExternalLink } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { SdkCodeExample } from "@/entities/sdk/model/code-examples";
-import { Link } from "@/i18n/navigation";
 import { AppButton } from "@/shared/ui/app/app-button";
 import {
   AppTable,
@@ -84,10 +83,10 @@ export function ApiDocsStaticContent({
               </p>
             </div>
             <AppButton variant="outline" size="sm" asChild>
-              <Link href="/api/v1/openapi" target="_blank" rel="noopener noreferrer">
+              <a href="/api/v1/openapi" target="_blank" rel="noopener noreferrer">
                 {t("specNotice.viewSpec")}
                 <ExternalLink className="h-3.5 w-3.5" />
-              </Link>
+              </a>
             </AppButton>
           </div>
         </section>
