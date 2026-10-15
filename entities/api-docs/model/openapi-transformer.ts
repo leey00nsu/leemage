@@ -20,6 +20,7 @@ const OPERATION_ID_MAP: Record<string, string> = {
   "DELETE /projects/{projectId}": "projects.delete",
   "POST /projects/{projectId}/files/presign": "files.presign",
   "POST /projects/{projectId}/files/confirm": "files.confirm",
+  "POST /projects/{projectId}/files/bulk-delete": "files.bulkDelete",
   "DELETE /projects/{projectId}/files/{fileId}": "files.delete",
 };
 
@@ -34,6 +35,8 @@ const RESPONSE_TRANSLATION_KEY_MAP: Record<string, string> = {
     "apiDocs.responses.confirmSuccess",
   "DELETE /projects/{projectId}/files/{fileId} 200":
     "apiDocs.responses.fileDeleted",
+  "POST /projects/{projectId}/files/bulk-delete 200":
+    "apiDocs.responses.filesDeleted",
 };
 
 function getResponseTranslationKey(
@@ -114,6 +117,7 @@ const SCHEMA_NAME_MAP: Record<string, string> = {
   PresignRequest: "presign",
   PresignResponse: "presign",
   ConfirmRequest: "confirm",
+  DeleteFilesRequest: "bulkDelete",
   ConfirmResponse: "file",
   FileResponse: "file",
   VariantOption: "variant",
@@ -161,6 +165,7 @@ function joinEndpointPath(basePath: string, path: string): string {
 }
 
 interface OpenAPIOperation {
+  "x-permission-method"?: string;
   tags?: string[];
   summary?: string;
   description?: string;
@@ -289,7 +294,7 @@ function transformOperation(
   const hasAuth = operation.security && operation.security.length > 0;
   const normalizedMethod = method.toUpperCase() as UIMethod;
   const requiredPermission = hasAuth
-    ? getRequiredPermissionForMethod(normalizedMethod)
+    ? getRequiredPermissionForMethod(operation["x-permission-method"] ?? normalizedMethod)
     : null;
 
   // 엔드포인트 설명 번역

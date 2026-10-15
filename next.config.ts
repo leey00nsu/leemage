@@ -35,6 +35,8 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // OCI's CommonJS node-fetch loader must run in Node rather than be bundled.
+  serverExternalPackages: ["oci-common", "oci-objectstorage"],
   images: {
     remotePatterns: [
       {

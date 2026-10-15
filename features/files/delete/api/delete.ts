@@ -1,24 +1,18 @@
-interface DeleteFile {
-  projectId: string;
-  fileId: string;
-}
-
-export const deleteFile = async ({
+export const deleteFiles = async ({
   projectId,
-  fileId,
-}: DeleteFile): Promise<{ message: string }> => {
-  const response = await fetch(`/api/projects/${projectId}/files/${fileId}`, {
-    method: "DELETE",
+  fileIds,
+}: {
+  projectId: string;
+  fileIds: string[];
+}): Promise<{ message: string }> => {
+  const response = await fetch(`/api/projects/${projectId}/files/bulk-delete`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ fileIds }),
   });
-
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || "파일 삭제에 실패했습니다.");
+    const data = await response.json().catch(() => null);
+    throw new Error(data?.message || "파일 삭제에 실패했습니다.");
   }
-
-  try {
-    return await response.json();
-  } catch {
-    return { message: "파일이 성공적으로 삭제되었습니다." };
-  }
+  return response.json();
 };

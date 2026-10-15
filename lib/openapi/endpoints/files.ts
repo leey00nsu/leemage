@@ -6,6 +6,7 @@ import {
   presignResponseSchema,
   confirmRequestSchema,
   confirmResponseSchema,
+  deleteFilesRequestSchema,
 } from "../schemas/files";
 import { projectIdParamSchema } from "../schemas/projects";
 import {
@@ -179,6 +180,33 @@ registry.registerPath({
   },
 });
 
+// POST /projects/{projectId}/files/bulk-delete - Delete multiple files
+registry.registerPath({
+  method: "post",
+  path: "/projects/{projectId}/files/bulk-delete",
+  tags: ["Files"],
+  summary: "Delete multiple files",
+  "x-permission-method": "DELETE",
+  description:
+    "Delete 1–100 files in one transaction and queue their original and variant objects for batched OCI/R2 cleanup. Requires DELETE permission despite using POST. Duplicate IDs are deduplicated. If any file is missing or belongs to another project, nothing is deleted.",
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: projectIdParamSchema,
+    body: {
+      required: true,
+      content: { "application/json": { schema: deleteFilesRequestSchema } },
+    },
+  },
+  responses: {
+    200: { description: "Files deleted; storage cleanup queued", content: { "application/json": { schema: messageResponseSchema } } },
+    400: { description: "Invalid request", content: { "application/json": { schema: badRequestErrorSchema } } },
+    401: { description: "Authentication failed", content: { "application/json": { schema: unauthorizedErrorSchema } } },
+    403: { description: "DELETE permission required", content: { "application/json": { schema: errorResponseSchema } } },
+    404: { description: "One or more files not found", content: { "application/json": { schema: fileNotFoundErrorSchema } } },
+    500: { description: "Server error", content: { "application/json": { schema: serverErrorSchema } } },
+  },
+});
+
 // DELETE /projects/{projectId}/files/{fileId} - Delete file
 registry.registerPath({
   method: "delete",
@@ -186,7 +214,7 @@ registry.registerPath({
   tags: ["Files"],
   summary: "Delete file",
   description:
-    "Delete a file with the specified ID and all related versions (including OCI storage).",
+    "Delete a file and queue all related objects for batched OCI/R2 storage cleanup.",
   security: [{ bearerAuth: [] }],
   request: {
     params: fileIdParamSchema,

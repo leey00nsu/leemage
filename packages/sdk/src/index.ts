@@ -27,6 +27,7 @@ export type {
   PresignResponse,
   ConfirmRequest,
   ConfirmResponse,
+  DeleteFilesRequest,
   // Upload
   UploadOptions,
   UploadProgress,

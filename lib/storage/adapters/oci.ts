@@ -8,6 +8,8 @@ import {
   StorageAdapter,
   CreatePresignedUrlOptions,
   PresignedUrlResult,
+  type DeleteObjectsResult,
+  MAX_DELETE_OBJECTS,
 } from "../adapter";
 import { StorageProvider } from "../types";
 import { createStorageError, StorageErrorCode } from "../errors";
@@ -159,6 +161,38 @@ export class OCIStorageAdapter implements StorageAdapter {
 
     const { deleteObject } = await import("@/lib/oci");
     await deleteObject(objectName);
+  }
+
+  async deleteObjects(objectNames: string[]): Promise<DeleteObjectsResult> {
+    const names = [...new Set(objectNames)];
+    const result: DeleteObjectsResult = { deleted: [], failed: [] };
+    if (!names.length) return result;
+    const { client, ...location } = await this.readContext();
+    for (let offset = 0; offset < names.length; offset += MAX_DELETE_OBJECTS) {
+      const batch = names.slice(offset, offset + MAX_DELETE_OBJECTS);
+      try {
+        const response = await client.batchDeleteObjects({
+          ...location,
+          batchDeleteObjectsDetails: {
+            objects: batch.map((objectName) => ({ objectName })),
+            isSkipDeletedResult: false,
+          },
+        });
+        const deleted = new Set(response.batchDeleteObjectsResult.deleted.map(
+          (item) => item.objectName,
+        ));
+        for (const failure of response.batchDeleteObjectsResult.failed ?? []) {
+          if (failure.statusCode === 404) deleted.add(failure.objectName);
+          else deleted.delete(failure.objectName);
+        }
+        for (const name of batch) {
+          (deleted.has(name) ? result.deleted : result.failed).push(name);
+        }
+      } catch {
+        result.failed.push(...batch);
+      }
+    }
+    return result;
   }
 
   getObjectUrl(objectName: string): string {

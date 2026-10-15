@@ -25,6 +25,13 @@ export interface ObjectMetadata {
   revision: string;
 }
 
+export interface DeleteObjectsResult {
+  deleted: string[];
+  failed: string[];
+}
+
+export const MAX_DELETE_OBJECTS = 1000;
+
 export interface StorageAdapter {
   readonly provider: StorageProvider;
 
@@ -70,6 +77,9 @@ export interface StorageAdapter {
    * Deletes an object from storage.
    */
   deleteObject(objectName: string): Promise<void>;
+
+  /** Deletes in provider batches, reporting per-object failures for retries. */
+  deleteObjects(objectNames: string[]): Promise<DeleteObjectsResult>;
 
   /**
    * Returns the public URL for an object.

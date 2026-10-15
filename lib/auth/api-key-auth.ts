@@ -27,6 +27,7 @@ export function withApiKeyAuth<T extends Record<string, string | string[]>>(
     context: { params: Promise<T> },
     userId: string,
   ) => Promise<NextResponse> | NextResponse,
+  options?: { permissionMethod: string },
 ) {
   return async (
     req: NextRequest,
@@ -63,7 +64,7 @@ export function withApiKeyAuth<T extends Record<string, string | string[]>>(
       return response;
     }
 
-    if (!hasMethodPermission(method, validatedKey.permissions)) {
+    if (!hasMethodPermission(options?.permissionMethod ?? method, validatedKey.permissions)) {
       const response = NextResponse.json(
         { message: "Insufficient permissions: method access denied." },
         { status: 403 },

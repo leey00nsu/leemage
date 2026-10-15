@@ -845,7 +845,11 @@
         },
         "delete": {
           "summary": "파일 삭제",
-          "description": "특정 ID를 가진 파일 및 관련된 모든 버전을 삭제합니다. (OCI 스토리지 포함)"
+          "description": "파일을 삭제하고 원본과 변환 파일의 OCI·R2 스토리지 정리를 예약합니다."
+        },
+        "bulkDelete": {
+          "summary": "파일 일괄 삭제",
+          "description": "파일 1~100개를 하나의 트랜잭션으로 삭제하고 OCI·R2 객체의 일괄 정리를 예약합니다. 중복 ID는 한 번만 처리합니다. 파일이 없거나 다른 프로젝트에 속하면 전체 요청을 거부합니다. POST 요청이지만 API 키의 삭제 권한이 필요합니다."
         }
       }
     },
@@ -889,6 +893,9 @@
         "fileSize": "파일 크기 (bytes)",
         "variants": "(이미지 전용) 생성할 이미지 버전 옵션 배열"
       },
+      "bulkDelete": {
+        "fileIds": "삭제할 파일 ID 배열(1~100개, 중복 제거)"
+      },
       "variant": {
         "sizeLabel": "이미지 크기 레이블",
         "format": "이미지 포맷",
@@ -916,7 +923,8 @@
       "projectDeleted": "프로젝트가 성공적으로 삭제되었습니다.",
       "presignSuccess": "Presigned URL이 성공적으로 생성되었습니다.",
       "confirmSuccess": "파일 레코드가 성공적으로 생성되었습니다.",
-      "fileDeleted": "파일 삭제 성공"
+      "fileDeleted": "파일 삭제 성공",
+      "filesDeleted": "파일 일괄 삭제 완료, 스토리지 정리 예약됨"
     }
   },
   "ApiLogs": {

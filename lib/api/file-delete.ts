@@ -3,16 +3,45 @@ import { prisma } from "@/lib/prisma";
 import { invalidateAllStorageCaches } from "@/lib/api/storage-quota";
 import { enqueueOwnedObjects } from "@/lib/storage/cleanup-queue";
 import { apiLogger, getSafeErrorMetadata } from "@/lib/logging/secure-logger";
+import { Prisma } from "@/lib/generated/prisma";
+import { deleteFilesSchema } from "@/shared/lib/file-delete";
+
+export async function deleteFilesRequestHandler(
+  request: Request,
+  projectId: string,
+  userId: string,
+) {
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ message: "Invalid delete request." }, { status: 400 });
+  }
+  const result = deleteFilesSchema.safeParse(body);
+  if (!result.success) {
+    return NextResponse.json({ message: "Invalid delete request." }, { status: 400 });
+  }
+  return deleteFilesHandler(result.data.fileIds, projectId, userId);
+}
 
 export async function deleteFileHandler(
   fileId: string,
   projectId: string,
   userId: string,
 ) {
+  return deleteFilesHandler([fileId], projectId, userId);
+}
+
+export async function deleteFilesHandler(
+  requestedIds: string[],
+  projectId: string,
+  userId: string,
+) {
   try {
-    if (!fileId) {
+    const parsed = deleteFilesSchema.safeParse({ fileIds: requestedIds });
+    if (!parsed.success) {
       return NextResponse.json(
-        { message: "File ID is required." },
+        { message: "Invalid delete request." },
         { status: 400 },
       );
     }
@@ -24,16 +53,26 @@ export async function deleteFileHandler(
       );
     }
 
+    const { fileIds } = parsed.data;
     const deleted = await prisma.$transaction(async (tx) => {
-      const file = await tx.file.findFirst({
-        where: { id: fileId, projectId, project: { userId } },
-        select: { id: true },
-      });
-      if (!file) return false;
+      // Lock every owned file until both the outbox and deletion commit.
+      // A mixed/foreign batch must never partially delete or enqueue objects.
+      const files = await tx.$queryRaw<{ id: string }[]>(Prisma.sql`
+        SELECT f.id FROM "File" f
+        INNER JOIN "Project" p ON p.id = f."projectId"
+        WHERE f.id IN (${Prisma.join(fileIds)})
+          AND f."projectId" = ${projectId} AND p."userId" = ${userId}
+        ORDER BY f.id
+        FOR UPDATE OF f
+      `);
+      if (files.length !== fileIds.length) return false;
 
-      await enqueueOwnedObjects(tx, { fileId, projectId });
-      const result = await tx.file.deleteMany({ where: { id: fileId, projectId } });
-      return result.count === 1;
+      await enqueueOwnedObjects(tx, { fileIds });
+      const result = await tx.file.deleteMany({
+        where: { id: { in: fileIds }, projectId },
+      });
+      if (result.count !== fileIds.length) throw new Error("FILE_DELETE_COUNT_MISMATCH");
+      return true;
     });
     if (!deleted)
       return NextResponse.json(

@@ -845,7 +845,11 @@
         },
         "delete": {
           "summary": "Delete File",
-          "description": "Delete a file with the specified ID and all related versions. (Including OCI storage)"
+          "description": "Delete a file and queue its original and variant objects for OCI/R2 storage cleanup."
+        },
+        "bulkDelete": {
+          "summary": "Delete Multiple Files",
+          "description": "Delete 1–100 files in one transaction and queue batched OCI/R2 object cleanup. Duplicate IDs are deduplicated. A missing or foreign-project file rejects the entire request. Requires delete permission despite using POST."
         }
       }
     },
@@ -889,6 +893,9 @@
         "fileSize": "File size (bytes)",
         "variants": "(Image only) Array of image variant options to generate"
       },
+      "bulkDelete": {
+        "fileIds": "File IDs to delete (1–100 entries; duplicates are deduplicated)"
+      },
       "variant": {
         "sizeLabel": "Image size label",
         "format": "Image format",
@@ -916,7 +923,8 @@
       "projectDeleted": "Project deleted successfully.",
       "presignSuccess": "Presigned URL generated successfully.",
       "confirmSuccess": "File record created successfully.",
-      "fileDeleted": "File deleted successfully"
+      "fileDeleted": "File deleted successfully",
+      "filesDeleted": "Files deleted; storage cleanup queued"
     }
   },
   "ApiLogs": {

@@ -74,5 +74,7 @@ export function instrumentStorageAdapter(adapter: StorageAdapter): StorageAdapte
       ),
     deleteObject: (objectName: string) =>
       timed("delete", () => adapter.deleteObject(objectName)),
+    deleteObjects: (objectNames: string[]) =>
+      timed("delete_batch", () => adapter.deleteObjects(objectNames)),
   };
 }

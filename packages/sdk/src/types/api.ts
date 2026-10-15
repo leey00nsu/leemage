@@ -33,6 +33,7 @@ export type PresignRequest = components["schemas"]["PresignRequest"];
 export type PresignResponse = components["schemas"]["PresignResponse"];
 export type ConfirmRequest = components["schemas"]["ConfirmRequest"];
 export type ConfirmResponse = components["schemas"]["ConfirmResponse"];
+export type DeleteFilesRequest = components["schemas"]["DeleteFilesRequest"];
 
 // Errors
 export type ErrorResponse = components["schemas"]["ErrorResponse"];

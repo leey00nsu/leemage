@@ -96,6 +96,13 @@ const uploadedFile = await client.files.upload("projectId", file);
 ### 파일 삭제
 
 ```typescript
+// 파일 1~100개를 한 번에 삭제
+await client.files.deleteMany("projectId", ["fileId1", "fileId2"]);
+
+// 한 개도 같은 API로 삭제
+await client.files.deleteMany("projectId", ["fileId"]);
+
+// 기존 메서드도 내부적으로 deleteMany를 호출
 await client.files.delete("projectId", "fileId");
 ```
 

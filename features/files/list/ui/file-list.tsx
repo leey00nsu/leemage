@@ -13,7 +13,7 @@ import { useTranslations } from "next-intl";
 import { AppCardLink } from "@/shared/ui/app/app-card-link";
 import { AppButton } from "@/shared/ui/app/app-button";
 import { formatFileSize } from "@/shared/lib/file-utils";
-import { deleteFile } from "@/features/files/delete/api/delete";
+import { deleteFiles } from "@/features/files/delete/api/delete";
 import { projectKeys } from "@/features/projects/model/query-keys";
 import { Checkbox } from "@/shared/ui/checkbox";
 import {
@@ -84,29 +84,22 @@ export function FileList({
     const ids = visibleSelected.map((f) => f.id);
     if (!ids.length || busy) return;
     setBusy(true);
-    const failed = new Set<string>();
     try {
-      for (let i = 0; i < ids.length; i += 4) {
-        const batch = ids.slice(i, i + 4);
-        const results = await Promise.allSettled(
-          batch.map((fileId) =>
-            deleteFile({ projectId: files[0].projectId, fileId }),
-          ),
-        );
-        results.forEach((result, j) => {
-          if (result.status === "rejected") failed.add(batch[j]);
-        });
-      }
-      setSelected(failed);
-      if (failed.size) toast.error(t("deleteFailed", { count: failed.size }));
-      else toast.success(t("deleteSuccess", { count: ids.length }));
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: projectKeys.all() }),
-        queryClient.invalidateQueries({ queryKey: ["storage-usage"] }),
-      ]);
+      await deleteFiles({ projectId: files[0].projectId, fileIds: ids });
+      setSelected(new Set());
+      toast.success(t("deleteSuccess", { count: ids.length }));
+    } catch {
+      toast.error(t("deleteFailed", { count: ids.length }));
     } finally {
-      setBusy(false);
-      setDialogOpen(false);
+      try {
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: projectKeys.all() }),
+          queryClient.invalidateQueries({ queryKey: ["storage-usage"] }),
+        ]);
+      } finally {
+        setBusy(false);
+        setDialogOpen(false);
+      }
     }
   };
 

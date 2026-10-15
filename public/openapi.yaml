@@ -582,6 +582,19 @@ components:
       type: array
       items:
         $ref: "#/components/schemas/ProjectListItemResponse"
+    DeleteFilesRequest:
+      type: object
+      properties:
+        fileIds:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 128
+          minItems: 1
+          maxItems: 100
+      required:
+        - fileIds
     TagNameRequest:
       type: object
       properties:
@@ -961,12 +974,72 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ServerError"
+  /projects/{projectId}/files/bulk-delete:
+    post:
+      tags:
+        - Files
+      summary: Delete multiple files
+      x-permission-method: DELETE
+      description: Delete 1–100 files in one transaction and queue their original and variant objects for batched OCI/R2 cleanup. Requires DELETE permission despite using POST. Duplicate IDs are deduplicated. If any file is missing or belongs to another project, nothing is deleted.
+      security:
+        - bearerAuth: []
+      parameters:
+        - schema:
+            type: string
+          required: true
+          description: Project ID
+          example: clq1234abcd
+          name: projectId
+          in: path
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteFilesRequest"
+      responses:
+        "200":
+          description: Files deleted; storage cleanup queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequestError"
+        "401":
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        "403":
+          description: DELETE permission required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: One or more files not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileNotFoundError"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServerError"
   /projects/{projectId}/files/{fileId}:
     delete:
       tags:
         - Files
       summary: Delete file
-      description: Delete a file with the specified ID and all related versions (including OCI storage).
+      description: Delete a file and queue all related objects for batched OCI/R2 storage cleanup.
       security:
         - bearerAuth: []
       parameters:

@@ -505,6 +505,100 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/projects/{projectId}/files/bulk-delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Delete multiple files
+         * @description Delete 1–100 files in one transaction and queue their original and variant objects for batched OCI/R2 cleanup. Requires DELETE permission despite using POST. Duplicate IDs are deduplicated. If any file is missing or belongs to another project, nothing is deleted.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /**
+                     * @description Project ID
+                     * @example clq1234abcd
+                     */
+                    projectId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["DeleteFilesRequest"];
+                };
+            };
+            responses: {
+                /** @description Files deleted; storage cleanup queued */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MessageResponse"];
+                    };
+                };
+                /** @description Invalid request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BadRequestError"];
+                    };
+                };
+                /** @description Authentication failed */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["UnauthorizedError"];
+                    };
+                };
+                /** @description DELETE permission required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description One or more files not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["FileNotFoundError"];
+                    };
+                };
+                /** @description Server error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ServerError"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/projects/{projectId}/files/{fileId}": {
         parameters: {
             query?: never;
@@ -555,7 +649,7 @@ export interface paths {
         post?: never;
         /**
          * Delete file
-         * @description Delete a file with the specified ID and all related versions (including OCI storage).
+         * @description Delete a file and queue all related objects for batched OCI/R2 storage cleanup.
          */
         delete: {
             parameters: {
@@ -1474,6 +1568,9 @@ export interface components {
             pageSize: number;
         };
         ProjectListResponse: components["schemas"]["ProjectListItemResponse"][];
+        DeleteFilesRequest: {
+            fileIds: string[];
+        };
         TagNameRequest: {
             name: string;
         };

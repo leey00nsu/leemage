@@ -8,6 +8,8 @@ import {
   StorageAdapter,
   CreatePresignedUrlOptions,
   PresignedUrlResult,
+  type DeleteObjectsResult,
+  MAX_DELETE_OBJECTS,
 } from "../adapter";
 import { StorageProvider } from "../types";
 import { createStorageError, StorageErrorCode } from "../errors";
@@ -18,6 +20,7 @@ let S3Client: typeof import("@aws-sdk/client-s3").S3Client;
 let PutObjectCommand: typeof import("@aws-sdk/client-s3").PutObjectCommand;
 let GetObjectCommand: typeof import("@aws-sdk/client-s3").GetObjectCommand;
 let DeleteObjectCommand: typeof import("@aws-sdk/client-s3").DeleteObjectCommand;
+let DeleteObjectsCommand: typeof import("@aws-sdk/client-s3").DeleteObjectsCommand;
 let CopyObjectCommand: typeof import("@aws-sdk/client-s3").CopyObjectCommand;
 let getSignedUrl: typeof import("@aws-sdk/s3-request-presigner").getSignedUrl;
 
@@ -28,6 +31,7 @@ async function loadS3Dependencies() {
     PutObjectCommand = s3Module.PutObjectCommand;
     GetObjectCommand = s3Module.GetObjectCommand;
     DeleteObjectCommand = s3Module.DeleteObjectCommand;
+    DeleteObjectsCommand = s3Module.DeleteObjectsCommand;
     CopyObjectCommand = s3Module.CopyObjectCommand;
 
     const presignerModule = await import("@aws-sdk/s3-request-presigner");
@@ -240,6 +244,34 @@ export class CloudflareR2Adapter implements StorageAdapter {
     });
 
     await client.send(command);
+  }
+
+  async deleteObjects(objectNames: string[]): Promise<DeleteObjectsResult> {
+    const names = [...new Set(objectNames)];
+    const result: DeleteObjectsResult = { deleted: [], failed: [] };
+    if (!names.length) return result;
+    await loadS3Dependencies();
+    const client = await this.getClient();
+    for (let offset = 0; offset < names.length; offset += MAX_DELETE_OBJECTS) {
+      const batch = names.slice(offset, offset + MAX_DELETE_OBJECTS);
+      try {
+        const response = await client.send(new DeleteObjectsCommand({
+          Bucket: this.getBucketName(),
+          Delete: { Objects: batch.map((Key) => ({ Key })), Quiet: false },
+        }));
+        const deleted = new Set(response.Deleted?.map((item) => item.Key));
+        for (const error of response.Errors ?? []) {
+          if (error.Code === "NoSuchKey") deleted.add(error.Key);
+          else deleted.delete(error.Key);
+        }
+        for (const name of batch) {
+          (deleted.has(name) ? result.deleted : result.failed).push(name);
+        }
+      } catch {
+        result.failed.push(...batch);
+      }
+    }
+    return result;
   }
 
   getObjectUrl(objectName: string): string {

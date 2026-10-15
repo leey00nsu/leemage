@@ -32,6 +32,36 @@ describe("FilesResource", () => {
     expect(client.get).toHaveBeenCalledWith("/api/v1/projects/p/files/f");
   });
 
+  it("deletes a batch in one POST request", async () => {
+    const client = { post: vi.fn().mockResolvedValue({ message: "Deleted" }) } as unknown as FetchClient;
+    const fileIds = Array.from({ length: 100 }, (_, i) => `file-${i}`);
+    await new FilesResource(client).deleteMany("project-1", fileIds);
+    expect(client.post).toHaveBeenCalledExactlyOnceWith(
+      "/api/v1/projects/project-1/files/bulk-delete", { fileIds },
+    );
+  });
+
+  it("uses the bulk endpoint for the existing single-file delete method", async () => {
+    const response = { message: "Deleted" };
+    const client = {
+      post: vi.fn().mockResolvedValue(response),
+      delete: vi.fn(),
+    } as unknown as FetchClient;
+
+    expect(await new FilesResource(client).delete("project/1", "file/1")).toEqual(response);
+    expect(client.post).toHaveBeenCalledExactlyOnceWith(
+      "/api/v1/projects/project%2F1/files/bulk-delete", { fileIds: ["file/1"] },
+    );
+    expect(client.delete).not.toHaveBeenCalled();
+  });
+
+  it("still rejects an empty file ID without sending a request", async () => {
+    const client = { post: vi.fn() } as unknown as FetchClient;
+
+    await expect(new FilesResource(client).delete("project-1", "")).rejects.toThrow("fileId는 필수입니다.");
+    expect(client.post).not.toHaveBeenCalled();
+  });
+
   it("uploads a file through presign -> upload -> confirm flow", async () => {
     const projectId = "project-123";
     const presignResult = {

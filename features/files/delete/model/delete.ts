@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { deleteFile } from "../api/delete";
+import { deleteFiles } from "../api/delete";
 import { projectKeys } from "@/features/projects/model/query-keys";
 
 interface UseDeleteFileMutationOptions {
@@ -12,7 +12,7 @@ export const useDeleteFile = (options?: UseDeleteFileMutationOptions) => {
 
   return useMutation({
     mutationFn: ({ projectId, fileId }: { projectId: string; fileId: string }) =>
-      deleteFile({ projectId, fileId }),
+      deleteFiles({ projectId, fileIds: [fileId] }),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: projectKeys.all(),

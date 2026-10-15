@@ -2,12 +2,15 @@ import { projectTagSchema } from "./tags";
 import "@/lib/openapi/setup";
 import { z } from "zod";
 import { registry } from "../registry";
+import { deleteFilesSchema } from "@/shared/lib/file-delete";
 import {
   AVAILABLE_FORMATS,
   AVAILABLE_SIZES,
 } from "@/shared/config/image-options";
 
 // 파일 ID 파라미터 스키마
+export const deleteFilesRequestSchema = deleteFilesSchema.openapi("DeleteFilesRequest");
+
 export const fileIdParamSchema = z.object({
   projectId: z.string().openapi({
     param: {

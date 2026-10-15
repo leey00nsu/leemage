@@ -59,7 +59,7 @@ export class FilesResource {
   }
 
   /**
-   * 파일 삭제
+   * 파일 삭제. deleteMany에 파일 ID 하나를 전달합니다.
    *
    * @param projectId - 프로젝트 ID
    * @param fileId - 파일 ID
@@ -70,10 +70,16 @@ export class FilesResource {
    * ```
    */
   async delete(projectId: string, fileId: string): Promise<MessageResponse> {
+    if (!fileId) throw new Error("fileId는 필수입니다.");
+    return this.deleteMany(projectId, [fileId]);
+  }
+
+  /** Delete 1–100 files atomically and queue their storage cleanup. */
+  async deleteMany(projectId: string, fileIds: string[]): Promise<MessageResponse> {
     const encodedProjectId = encodePathSegment(projectId, "projectId");
-    const encodedFileId = encodePathSegment(fileId, "fileId");
-    return this.client.delete<MessageResponse>(
-      `/api/v1/projects/${encodedProjectId}/files/${encodedFileId}`,
+    return this.client.post<MessageResponse>(
+      `/api/v1/projects/${encodedProjectId}/files/bulk-delete`,
+      { fileIds },
     );
   }
 

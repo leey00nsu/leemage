@@ -3,6 +3,7 @@ import { Prisma, type ObjectCleanupJob, type StorageProvider } from "@/lib/gener
 import { prisma } from "@/lib/prisma";
 import { StorageFactory } from "@/lib/storage/factory";
 import { fromPrismaStorageProvider } from "@/lib/storage/utils";
+import { MAX_DELETE_OBJECTS } from "@/lib/storage/adapter";
 
 const MAX_ATTEMPTS = 5;
 
@@ -121,6 +122,15 @@ export async function enqueueStorageObjects(
 }
 
 export async function claimObjectCleanupJob(): Promise<ObjectCleanupJob | null> {
+  return (await claimObjectCleanupJobs(1))[0] ?? null;
+}
+
+export async function claimObjectCleanupJobs(
+  limit = MAX_DELETE_OBJECTS,
+): Promise<ObjectCleanupJob[]> {
+  const batchSize = Number.isInteger(limit)
+    ? Math.max(1, Math.min(MAX_DELETE_OBJECTS, limit))
+    : MAX_DELETE_OBJECTS;
   await prisma.objectCleanupJob.updateMany({
     where: {
       status: "RUNNING",
@@ -141,8 +151,8 @@ export async function claimObjectCleanupJob(): Promise<ObjectCleanupJob | null> 
         (status = 'QUEUED' AND "availableAt" <= NOW())
         OR (status = 'RUNNING' AND "leaseUntil" < NOW())
       )
-      ORDER BY "availableAt" ASC
-      FOR UPDATE SKIP LOCKED LIMIT 1
+      ORDER BY "availableAt" ASC, provider, "objectName"
+      FOR UPDATE SKIP LOCKED LIMIT ${batchSize}
     )
     UPDATE "ObjectCleanupJob" job
     SET status = 'RUNNING', attempts = job.attempts + 1,
@@ -154,35 +164,72 @@ export async function claimObjectCleanupJob(): Promise<ObjectCleanupJob | null> 
       AND job."objectName" = candidate."objectName"
     RETURNING job.*
   `;
-  return jobs[0] ?? null;
+  return jobs;
 }
 
 export async function executeObjectCleanupJob(job: ObjectCleanupJob) {
-  const ownership = {
-    provider: job.provider,
-    objectName: job.objectName,
-    status: "RUNNING",
-    leaseToken: job.leaseToken,
-  };
-  try {
-    const adapter = await StorageFactory.getAdapter(
-      fromPrismaStorageProvider(job.provider),
-    );
-    await adapter.deleteObject(job.objectName);
-    await prisma.objectCleanupJob.deleteMany({ where: ownership });
-  } catch {
-    const terminal = job.attempts >= MAX_ATTEMPTS;
-    await prisma.objectCleanupJob.updateMany({
-      where: ownership,
-      data: {
-        status: terminal ? "FAILED" : "QUEUED",
-        availableAt: new Date(
-          Date.now() + Math.min(300_000, 5_000 * 2 ** (job.attempts - 1)),
-        ),
-        leaseUntil: null,
-        leaseToken: null,
-        lastError: "OBJECT_DELETE_FAILED",
-      },
-    });
+  return executeObjectCleanupJobs([job]);
+}
+
+export async function executeObjectCleanupJobs(jobs: ObjectCleanupJob[]) {
+  const providers = new Map<StorageProvider, ObjectCleanupJob[]>();
+  for (const job of jobs) {
+    // Never acknowledge or mutate an unclaimed job with a missing lease.
+    if (job.status !== "RUNNING" || !job.leaseToken) continue;
+    const group = providers.get(job.provider) ?? [];
+    group.push(job);
+    providers.set(job.provider, group);
+  }
+  for (const [provider, group] of providers) {
+    let deleted = new Set<string>();
+    try {
+      const adapter = await StorageFactory.getAdapter(fromPrismaStorageProvider(provider));
+      const result = await adapter.deleteObjects(group.map((job) => job.objectName));
+      deleted = new Set(result.deleted);
+      for (const name of result.failed) deleted.delete(name);
+    } catch {
+      // A failed request leaves all objects retryable, including unknown results.
+    }
+
+    // Group acknowledgements by lease and retries by lease/attempt count so
+    // storage and database work both stay bounded by batches, not object count.
+    const acknowledgements = new Map<string, string[]>();
+    const retries = new Map<string, { job: ObjectCleanupJob; names: string[] }>();
+    for (const job of group) {
+      if (deleted.has(job.objectName)) {
+        const names = acknowledgements.get(job.leaseToken!) ?? [];
+        names.push(job.objectName);
+        acknowledgements.set(job.leaseToken!, names);
+      } else {
+        const key = `${job.leaseToken}:${job.attempts}`;
+        const retry = retries.get(key) ?? { job, names: [] };
+        retry.names.push(job.objectName);
+        retries.set(key, retry);
+      }
+    }
+    for (const [leaseToken, names] of acknowledgements) {
+      await prisma.objectCleanupJob.deleteMany({
+        where: { provider, status: "RUNNING", leaseToken, objectName: { in: names } },
+      });
+    }
+    for (const { job, names } of retries.values()) {
+      await prisma.objectCleanupJob.updateMany({
+        where: {
+          provider,
+          status: "RUNNING",
+          leaseToken: job.leaseToken,
+          objectName: { in: names },
+        },
+        data: {
+          status: job.attempts >= MAX_ATTEMPTS ? "FAILED" : "QUEUED",
+          availableAt: new Date(
+            Date.now() + Math.min(300_000, 5_000 * 2 ** (job.attempts - 1)),
+          ),
+          leaseUntil: null,
+          leaseToken: null,
+          lastError: "OBJECT_DELETE_FAILED",
+        },
+      });
+    }
   }
 }

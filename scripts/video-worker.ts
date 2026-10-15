@@ -4,7 +4,7 @@ loadEnvConfig(process.cwd(), process.env.NODE_ENV !== "production");
 async function main() {
   const { claimVideoJob, executeVideoJob } = await import("../lib/video/queue");
   const { claimImageJob, executeImageJob } = await import("../lib/image/queue");
-  const { claimObjectCleanupJob, executeObjectCleanupJob } = await import(
+  const { claimObjectCleanupJobs, executeObjectCleanupJobs } = await import(
     "../lib/storage/cleanup-queue"
   );
   const { prisma } = await import("../lib/prisma");
@@ -47,9 +47,9 @@ async function main() {
       return true;
     },
     async () => {
-      const job = await claimObjectCleanupJob();
-      if (!job) return false;
-      await executeObjectCleanupJob(job);
+      const jobs = await claimObjectCleanupJobs();
+      if (!jobs.length) return false;
+      await executeObjectCleanupJobs(jobs);
       return true;
     },
   ];

@@ -10,6 +10,6 @@ export function getOrCreateRequestId(headers: Headers): string {
 export function normalizeApiRoute(pathname: string): string {
   return pathname
     .replace(/(\/api(?:\/v1)?\/projects)\/[^/]+/, "$1/:projectId")
-    .replace(/(\/files)\/(?!confirm(?:\/|$)|presign(?:\/|$)|tags(?:\/|$))[^/]+/, "$1/:fileId")
+    .replace(/(\/files)\/(?!confirm(?:\/|$)|presign(?:\/|$)|tags(?:\/|$)|bulk-delete(?:\/|$))[^/]+/, "$1/:fileId")
     .replace(/(\/tags)\/[^/]+/, "$1/:tagId");
 }
